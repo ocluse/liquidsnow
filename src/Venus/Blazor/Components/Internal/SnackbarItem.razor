@@ -1,0 +1,25 @@
+@using Ocluse.LiquidSnow.Venus.Blazor.Contracts;
+@using Ocluse.LiquidSnow.Venus.Blazor.Models;
+@using Ocluse.LiquidSnow.Venus.Services;
+@inject IBlazorResolver Resolver
+
+
+<div class="snackbar-item @Resolver.ResolveSnackbarStatusToClass(Handle.Status)">
+    <FeatherIcon Icon="@Resolver.ResolveSnackbarStatusToIcon(Handle.Status)" Size="DefaultSize.Size18" Color="@Resolver.ResolveSnackbarStatusToColor(Handle.Status)" />
+    <div class="snackbar-label">@Handle.Message</div>
+    <IconButton Icon="@FeatherIcons.X" OnClick="OnClickClose"></IconButton>
+</div>
+
+@code {
+    [Parameter]
+    [EditorRequired]
+    public required ISnackbarItemHandle Handle { get; set; }
+
+    [Parameter]
+    public EventCallback<SnackbarMessage> OnClose { get; set; }
+
+    public void OnClickClose()
+    {
+        Handle.Close();
+    }
+}

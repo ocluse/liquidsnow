@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+	<RootNamespace>Ocluse.LiquidSnow</RootNamespace>
+	<Nullable>enable</Nullable>
+	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	<GenerateDocumentationFile>true</GenerateDocumentationFile>
+	<Version>0.3.0-preview1.0</Version>
+	<Authors>Ocluse</Authors>
+	<PackageOutputPath>..\..\build</PackageOutputPath>
+	<Description>Useful extensions and utilities for a wide range of scenarios, such as utilities for implementing common patterns.</Description>
+	<PackageIcon>logo.png</PackageIcon>
+	<RepositoryUrl>https://github.com/ocluse/liquidsnow</RepositoryUrl>
+	<Copyright>© Ocluse</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\logo.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
+    <PackageReference Include="System.Reactive" Version="6.0.0" />
+  </ItemGroup>
+
+</Project>

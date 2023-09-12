@@ -1,0 +1,106 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34024.191
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ocluse.LiquidSnow.Core", "src\Core\Ocluse.LiquidSnow.Core.csproj", "{4E0DADAA-D35F-449A-AF17-89C33A49332D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ocluse.LiquidSnow.Cryptography", "src\Cryptography\Core\Ocluse.LiquidSnow.Cryptography.csproj", "{2450CE03-2C28-4A63-AF49-DBB5F9C2EBF6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ocluse.LiquidSnow.Cryptography.Classical", "src\Cryptography\Classical\Ocluse.LiquidSnow.Cryptography.Classical.csproj", "{5866831B-FF53-428C-8D54-B85CE5838770}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ocluse.LiquidSnow.Cryptography.IO", "src\Cryptography\IO\Ocluse.LiquidSnow.Cryptography.IO.csproj", "{20F3642A-133E-41D2-A7CC-58C0D4A47B31}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ocluse.LiquidSnow.Steganography", "src\Steganography\Ocluse.LiquidSnow.Steganography.csproj", "{DE2C264E-B721-4930-9133-099B3EF350B7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ocluse.LiquidSnow.Venus.Blazor", "src\Venus\Blazor\Ocluse.LiquidSnow.Venus.Blazor.csproj", "{7A6FE09C-2CA1-4ABC-A097-4B4657B35136}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ocluse.LiquidSnow.Venus.Core", "src\Venus\Core\Ocluse.LiquidSnow.Venus.Core.csproj", "{1B382F60-FFBC-4D5D-96D4-CD7DB844EA8C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ocluse.LiquidSnow.Venus.Icons.Brands", "src\Venus\Icons\Brands\Ocluse.LiquidSnow.Venus.Icons.Brands.csproj", "{AB7B3F72-A090-43DF-A07C-2AE627E69E67}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ocluse.LiquidSnow.Venus.Icons.Feather", "src\Venus\Icons\Feather\Ocluse.LiquidSnow.Venus.Icons.Feather.csproj", "{749A58DF-7BD9-4B3F-BA47-75DCC8BAAC67}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ocluse.LiquidSnow.Venus.Icons.Lucide", "src\Venus\Icons\Lucide\Ocluse.LiquidSnow.Venus.Icons.Lucide.csproj", "{2303947A-B0D3-4781-B62F-8BBD64201478}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ocluse.LiquidSnow.Venus.Razor", "src\Venus\Razor\Ocluse.LiquidSnow.Venus.Razor.csproj", "{C50DDE51-4627-47F4-9BAD-4E32B70932AB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Venus", "Venus", "{A1EC4AD0-7791-423C-AA6D-478E9F78FD70}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Cryptography", "Cryptography", "{2EB88D5B-1F07-4B8F-918E-D9929C426B43}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Icons", "Icons", "{E3AFDD7F-ED7A-422B-BA1B-C4018D844310}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Steganography", "Steganography", "{839AD3C7-C8D6-472A-A205-57E977F611CD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4E0DADAA-D35F-449A-AF17-89C33A49332D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E0DADAA-D35F-449A-AF17-89C33A49332D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E0DADAA-D35F-449A-AF17-89C33A49332D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E0DADAA-D35F-449A-AF17-89C33A49332D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2450CE03-2C28-4A63-AF49-DBB5F9C2EBF6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2450CE03-2C28-4A63-AF49-DBB5F9C2EBF6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2450CE03-2C28-4A63-AF49-DBB5F9C2EBF6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2450CE03-2C28-4A63-AF49-DBB5F9C2EBF6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5866831B-FF53-428C-8D54-B85CE5838770}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5866831B-FF53-428C-8D54-B85CE5838770}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5866831B-FF53-428C-8D54-B85CE5838770}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5866831B-FF53-428C-8D54-B85CE5838770}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20F3642A-133E-41D2-A7CC-58C0D4A47B31}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20F3642A-133E-41D2-A7CC-58C0D4A47B31}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20F3642A-133E-41D2-A7CC-58C0D4A47B31}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20F3642A-133E-41D2-A7CC-58C0D4A47B31}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DE2C264E-B721-4930-9133-099B3EF350B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE2C264E-B721-4930-9133-099B3EF350B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE2C264E-B721-4930-9133-099B3EF350B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DE2C264E-B721-4930-9133-099B3EF350B7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A6FE09C-2CA1-4ABC-A097-4B4657B35136}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A6FE09C-2CA1-4ABC-A097-4B4657B35136}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A6FE09C-2CA1-4ABC-A097-4B4657B35136}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A6FE09C-2CA1-4ABC-A097-4B4657B35136}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1B382F60-FFBC-4D5D-96D4-CD7DB844EA8C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B382F60-FFBC-4D5D-96D4-CD7DB844EA8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B382F60-FFBC-4D5D-96D4-CD7DB844EA8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B382F60-FFBC-4D5D-96D4-CD7DB844EA8C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB7B3F72-A090-43DF-A07C-2AE627E69E67}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB7B3F72-A090-43DF-A07C-2AE627E69E67}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB7B3F72-A090-43DF-A07C-2AE627E69E67}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB7B3F72-A090-43DF-A07C-2AE627E69E67}.Release|Any CPU.Build.0 = Release|Any CPU
+		{749A58DF-7BD9-4B3F-BA47-75DCC8BAAC67}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{749A58DF-7BD9-4B3F-BA47-75DCC8BAAC67}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{749A58DF-7BD9-4B3F-BA47-75DCC8BAAC67}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{749A58DF-7BD9-4B3F-BA47-75DCC8BAAC67}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2303947A-B0D3-4781-B62F-8BBD64201478}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2303947A-B0D3-4781-B62F-8BBD64201478}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2303947A-B0D3-4781-B62F-8BBD64201478}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2303947A-B0D3-4781-B62F-8BBD64201478}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C50DDE51-4627-47F4-9BAD-4E32B70932AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C50DDE51-4627-47F4-9BAD-4E32B70932AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C50DDE51-4627-47F4-9BAD-4E32B70932AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C50DDE51-4627-47F4-9BAD-4E32B70932AB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{2450CE03-2C28-4A63-AF49-DBB5F9C2EBF6} = {2EB88D5B-1F07-4B8F-918E-D9929C426B43}
+		{5866831B-FF53-428C-8D54-B85CE5838770} = {2EB88D5B-1F07-4B8F-918E-D9929C426B43}
+		{20F3642A-133E-41D2-A7CC-58C0D4A47B31} = {2EB88D5B-1F07-4B8F-918E-D9929C426B43}
+		{DE2C264E-B721-4930-9133-099B3EF350B7} = {839AD3C7-C8D6-472A-A205-57E977F611CD}
+		{7A6FE09C-2CA1-4ABC-A097-4B4657B35136} = {A1EC4AD0-7791-423C-AA6D-478E9F78FD70}
+		{1B382F60-FFBC-4D5D-96D4-CD7DB844EA8C} = {A1EC4AD0-7791-423C-AA6D-478E9F78FD70}
+		{AB7B3F72-A090-43DF-A07C-2AE627E69E67} = {E3AFDD7F-ED7A-422B-BA1B-C4018D844310}
+		{749A58DF-7BD9-4B3F-BA47-75DCC8BAAC67} = {E3AFDD7F-ED7A-422B-BA1B-C4018D844310}
+		{2303947A-B0D3-4781-B62F-8BBD64201478} = {E3AFDD7F-ED7A-422B-BA1B-C4018D844310}
+		{C50DDE51-4627-47F4-9BAD-4E32B70932AB} = {A1EC4AD0-7791-423C-AA6D-478E9F78FD70}
+		{E3AFDD7F-ED7A-422B-BA1B-C4018D844310} = {A1EC4AD0-7791-423C-AA6D-478E9F78FD70}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {03346F88-9EBA-4F8D-BC63-BEECABC66420}
+	EndGlobalSection
+EndGlobal

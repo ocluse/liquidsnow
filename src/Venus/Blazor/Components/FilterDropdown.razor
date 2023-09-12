@@ -1,0 +1,113 @@
+@using Ocluse.LiquidSnow.Venus.Blazor.Models;
+@implements IDropdown
+@inherits ControlBase
+
+<div class="@GetClass()" @onclick="Clicked" @onclick:stopPropagation=true>
+    <div class="dropdown-content">
+        <FeatherIcon Size="DefaultSize.Size18" Icon="@Icon" />
+        @if (Value != null)
+        {
+            <TextBlock Class="filter-name">@Value.Name</TextBlock>
+            <div class="filter-clear" @onclick:stopPropagation=true @onclick="()=>ItemClicked(null)">
+                <FeatherIcon Size="DefaultSize.Size18" Icon="@FeatherIcons.X"/>
+            </div>
+        }
+        else
+        {
+            <TextBlock Color="@Values.Color.Secondary">@Placeholder</TextBlock>
+        }
+    </div>
+
+    <div class="dropdown-items">
+        @if (Items != null)
+        {
+            @foreach (var item in Items)
+            {
+                <div class="dropdown-item" @onclick="()=>ItemClicked(item)">
+                    <TextBlock>@item.Name</TextBlock>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public required string Icon { get; set; }
+
+    [Parameter]
+    public FilterOption? Value { get; set; }
+
+    [Parameter]
+    public EventCallback<FilterOption?> ValueChanged { get; set; }
+
+    [Parameter]
+    public string? Placeholder { get; set; }
+
+    [Parameter]
+    public IEnumerable<FilterOption>? Items { get; set; }
+
+    [Parameter]
+    public IDropdownLayout? Layout { get; set; }
+
+    private bool _isOpen;
+
+    protected override void OnInitialized()
+    {
+        if (Layout != null)
+        {
+            Layout.Clicked += OnLayoutClicked;
+            Layout.DropdownClicked += OnDropdownClicked;
+        }
+    }
+    
+    private void OnLayoutClicked()
+    {
+        SetState(false);
+    }
+
+    private void OnDropdownClicked(IDropdown dropdown)
+    {
+        if (dropdown != this)
+        {
+            SetState(false);
+        }
+    }
+
+    private Task ItemClicked(FilterOption? item)
+    {
+        Value = item;
+        return ValueChanged.InvokeAsync(item);
+    }
+
+    private void Clicked()
+    {
+        SetState(!_isOpen);
+        Layout?.OnDropdownClicked(this);
+    }
+
+    protected void SetState(bool state)
+    {
+        InvokeAsync(() =>
+       {
+           _isOpen = state;
+           StateHasChanged();
+       });
+    }
+
+    protected override void BuildClass(List<string> classList)
+    {
+        base.BuildClass(classList);
+
+        classList.Add("filter-dropdown");
+
+        if(_isOpen)
+        {
+            classList.Add("open");
+        }
+        else
+        {
+            classList.Add("closed");
+        }
+    }
+}

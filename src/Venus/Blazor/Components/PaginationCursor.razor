@@ -1,0 +1,57 @@
+﻿@inherits PaginationBase
+
+<div class="@base.GetClass()">
+    <button class="pagination-item" @onclick="MovePrevious" disabled="@(PreviousCursor==null)">
+        @if (PaginationBackContent != null)
+        {
+            @PaginationBackContent
+        }
+        else
+        {
+            <FeatherIcon Icon="@FeatherIcons.ChevronLeft" Size="DefaultSize.Size18" />
+        }
+    </button>
+    <button class="pagination-item" @onclick="MovePrevious" disabled="@(NextCursor==null)">
+        @if (PaginationNextContent != null)
+        {
+            @PaginationNextContent
+        }
+        else
+        {
+            <FeatherIcon Icon="@FeatherIcons.ChevronRight" Size="DefaultSize.Size18" />
+        }
+    </button>
+</div>
+
+@code {
+
+    [Parameter]
+    public object? NextCursor { get; set; }
+
+    [Parameter]
+    public object? PreviousCursor { get; set; }
+
+    [Parameter]
+    public EventCallback<object> CursorChanged { get; set; }
+
+    private async Task MoveNext()
+    {
+        if (NextCursor != null)
+        {
+            await ChangeCursor(NextCursor);
+        }
+    }
+
+    private async Task MovePrevious()
+    {
+        if (PreviousCursor != null)
+        {
+            await ChangeCursor(PreviousCursor);
+        }
+    }
+
+    private async Task ChangeCursor(object cursor)
+    {
+        await CursorChanged.InvokeAsync(cursor);
+    }
+}

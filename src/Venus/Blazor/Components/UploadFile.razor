@@ -1,0 +1,67 @@
+@using Microsoft.AspNetCore.Components.Forms;
+@inherits ControlBase
+<div class="@GetClass()" style="@GetStyle()" @ondragenter="OnDragEnter" @ondragleave="OnDragLeave">
+    @if (ChildContent != null)
+    {
+        @ChildContent
+    }
+    <div class="dropzone">
+        @if (AllowMultiple)
+        {
+            <InputFile OnChange="OnFilesChanged" multiple />
+        }
+        else
+        {
+            <InputFile OnChange="OnFilesChanged" />
+        }
+
+        @if (MessageContent != null)
+        {
+            @MessageContent
+        }
+        else
+        {
+            <div style="padding:2rem;">Click to browse or drop files here</div>
+        }
+    </div>
+</div>
+
+@code {
+    private bool _isDragging;
+
+    protected override void BuildClass(List<string> classList)
+    {
+        base.BuildClass(classList);
+        classList.Add("upload-file");
+
+        if (_isDragging)
+        {
+            classList.Add(DragClass);
+        }
+    }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public EventCallback<InputFileChangeEventArgs> OnFilesChanged { get; set; }
+
+    [Parameter]
+    public bool AllowMultiple { get; set; } = true;
+
+    [Parameter]
+    public RenderFragment? MessageContent { get; set; }
+
+    [Parameter]
+    public string DragClass { get; set; } = "active";
+
+    private void OnDragEnter()
+    {
+        _isDragging = true;
+    }
+
+    private void OnDragLeave()
+    {
+        _isDragging = false;
+    }
+}

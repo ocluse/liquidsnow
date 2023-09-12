@@ -1,0 +1,57 @@
+﻿@using Ocluse.LiquidSnow.Venus.Blazor.Components.Internal
+@using Ocluse.LiquidSnow.Venus.Blazor.Contracts;
+@using Ocluse.LiquidSnow.Venus.Blazor.Models;
+@using Ocluse.LiquidSnow.Venus.Services;
+@implements ISnackbarHost
+@inject ISnackbarService SnackbarService
+@inject IBlazorResolver Resolver
+
+<div class="snackbar-container">
+
+    @foreach (var item in _items)
+    {
+        <SnackbarItem Handle="item" />
+    }
+</div>
+
+@code {
+    private List<SnackbarItemHandle> _items = new();
+
+    protected override void OnInitialized()
+    {
+        SnackbarService.SetHost(this);
+    }
+
+    public ISnackbarItemHandle ShowMessage(SnackbarMessage message)
+    {
+        SnackbarItemHandle item = new() 
+        { 
+            Message = message.Content, 
+            Status = message.Status, 
+            Parent = this,
+            Duration = message.Duration
+        };
+
+        AddItem(item);
+
+        return item;
+    }
+
+    internal void RemoveItem(SnackbarItemHandle item)
+    {
+        _items.Remove(item);
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async void AddItem(SnackbarItemHandle item)
+    {
+        _items.Add(item);
+        await InvokeAsync(StateHasChanged);
+        int delay = Resolver.ResolveSnackbarDurationToMilliseconds(item.Duration);
+        if (delay > 0)
+        {
+            await Task.Delay(delay);
+            RemoveItem(item);
+        }
+    }
+}

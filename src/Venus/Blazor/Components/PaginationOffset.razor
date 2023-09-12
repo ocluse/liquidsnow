@@ -1,0 +1,126 @@
+@using System.Text;
+@inherits PaginationBase
+
+<div class="@base.GetClass()">
+
+    @if (_totalPages > 0)
+    {
+        int startPage = CurrentPage - 5;
+        if (startPage < 0)
+        {
+            startPage = 0;
+        }
+
+        int endPage = startPage + 9;
+        if (endPage > _totalPages)
+        {
+            endPage = _totalPages - 1;
+            startPage = endPage - 9;
+            if (startPage < 0)
+            {
+                startPage = 0;
+            }
+        }
+
+        <button class="pagination-item" @onclick="MoveBack" disabled="@(CurrentPage < 1)">
+            @if (PaginationBackContent != null)
+            {
+                @PaginationBackContent
+            }
+            else
+            {
+                <FeatherIcon Icon="@FeatherIcons.ChevronLeft" Size="DefaultSize.Size18" />
+            }
+
+        </button>
+
+        for (int i = startPage; i <= endPage; i++)
+        {
+            var buttonNumber = i;
+            var isActive = i == CurrentPage;
+            
+            <button class="@GetPaginationItemClass(isActive)" @onclick="(() => ChangePage(buttonNumber))" disabled="@(isActive)">
+                @if (PaginationItemContent != null)
+                {
+                    @PaginationItemContent(buttonNumber + 1)
+                }
+                else
+                {
+
+                    @(buttonNumber + 1)
+                }
+            </button>
+        }
+
+        <button class="pagination-item" @onclick="MoveNext" disabled="@(CurrentPage >= _totalPages - 1)">
+            @if (PaginationNextContent != null)
+            {
+                @PaginationNextContent
+            }
+            else
+            {
+                <FeatherIcon Icon="@FeatherIcons.ChevronRight" Size="DefaultSize.Size18" />
+            }
+        </button>
+    }
+
+</div>
+
+@code{
+    private int _totalPages;
+
+    [Parameter]
+    public int CurrentPage { get; set; }
+
+    [Parameter]
+    public int ItemsPerPage { get; set; }
+
+    [Parameter]
+    public int TotalItems { get; set; }
+
+    [Parameter]
+    public EventCallback<int> PageChanged { get; set; }
+
+    [Parameter]
+    public RenderFragment<int>? PaginationItemContent { get; set; }
+
+    [Parameter]
+    public string? ActiveItemClass { get; set; }
+
+    private string GetPaginationItemClass(bool isActive)
+    {
+        StringBuilder sb = new();
+        sb.Append("pagination-item");
+        if (isActive)
+        {
+            sb.Append(' ');
+            sb.Append(ActiveItemClass ?? "active");
+        }
+
+        return sb.ToString();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _totalPages = (int)Math.Ceiling(TotalItems / (double)ItemsPerPage);
+        await base.OnParametersSetAsync();
+    }
+
+    private async Task ChangePage(int page)
+    {
+        CurrentPage = page;
+        await PageChanged.InvokeAsync(page);
+    }
+
+    public async Task MoveNext()
+    {
+        CurrentPage++;
+        await PageChanged.InvokeAsync(CurrentPage);
+    }
+
+    private async Task MoveBack()
+    {
+        CurrentPage--;
+        await PageChanged.InvokeAsync(CurrentPage);
+    }
+}
