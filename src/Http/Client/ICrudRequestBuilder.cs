@@ -13,6 +13,11 @@ namespace Ocluse.LiquidSnow.Http.Client
     public interface ICrudRequestBuilder<TCreate, TUpdate, TList, TModel, TSummary> where TUpdate : IKeyCommand<TModel>
     {
         /// <summary>
+        /// The REST URl endpoint of the resource.
+        /// </summary>
+        string Path { get; }
+
+        /// <summary>
         /// Sends a request to create a resource
         /// </summary>
         Task<TModel> CreateAsync(TCreate create, CancellationToken cancellationToken = default);

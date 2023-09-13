@@ -23,7 +23,12 @@ namespace Ocluse.LiquidSnow.Http.Client
             _readHandler = new(httpClientFactory, path, clientName, httpHandler);
             _deleteHandler = new(httpClientFactory, path, clientName, httpHandler);
             _listHandler = new(httpClientFactory, path, clientName, httpHandler);
+
+            Path = path;
         }
+
+        ///<inheritdoc/>
+        public string Path { get; }
 
         ///<inheritdoc/>
         public async Task<TModel> CreateAsync(TCreate create, CancellationToken cancellationToken = default)
