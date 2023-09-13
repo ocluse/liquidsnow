@@ -1,4 +1,4 @@
-﻿using Ocluse.LiquidSnow.Entities;
+﻿using System.Reactive;
 
 namespace Ocluse.LiquidSnow.Cqrs
 {
