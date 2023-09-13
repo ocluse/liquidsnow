@@ -51,7 +51,7 @@
             string path = GetTransformedUrlPath(content);
             HttpContent httpContent = await GetContent(content, cancellationToken);
 
-            using HttpRequestMessage request = new(HttpMethod.Get, path);
+            using HttpRequestMessage request = new(HttpMethod, path);
 
             request.Content = httpContent;
 

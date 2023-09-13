@@ -48,7 +48,7 @@
         {
             string path = GetTransformedUrlPath(id);
 
-            using HttpRequestMessage request = new(HttpMethod.Get, path);
+            using HttpRequestMessage request = new(HttpMethod, path);
             return await SendAsync(request, cancellationToken);
         }
     }
