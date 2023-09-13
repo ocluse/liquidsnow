@@ -27,6 +27,7 @@ namespace Ocluse.LiquidSnow.Http.Client
             Path = path;
             HttpClientFactory = httpClientFactory;
             HttpHandler = httpHandler;
+            ClientName = clientName;
         }
 
         ///<inheritdoc/>
@@ -41,6 +42,11 @@ namespace Ocluse.LiquidSnow.Http.Client
         /// The handler used to handle requests and responses.
         /// </summary>
         protected IHttpHandler? HttpHandler { get; }
+
+        /// <summary>
+        /// The name of the client to use when creating HTTP clients.
+        /// </summary>
+        protected string? ClientName { get; }
 
         ///<inheritdoc/>
         public async Task<TModel> CreateAsync(TCreate create, CancellationToken cancellationToken = default)
