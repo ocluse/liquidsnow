@@ -1,4 +1,4 @@
-﻿namespace Ocluse.LiquidSnow.Http.Client.RequestHandler
+﻿namespace Ocluse.LiquidSnow.Http.Client.RequestHandlers
 {
     /// <summary>
     /// A request handler that sends a request with content.
@@ -52,7 +52,7 @@
             HttpContent httpContent = await GetContent(content, cancellationToken);
 
             using HttpRequestMessage request = new(HttpMethod.Get, path);
-            
+
             request.Content = httpContent;
 
             return await SendAsync(request, cancellationToken);

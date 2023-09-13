@@ -1,5 +1,4 @@
-﻿using Ocluse.LiquidSnow.Http.Client.RequestHandler;
-using Ocluse.LiquidSnow.Http.Cqrs;
+﻿using Ocluse.LiquidSnow.Http.Cqrs;
 
 namespace Ocluse.LiquidSnow.Http.Client.RequestHandlers.Crud
 {

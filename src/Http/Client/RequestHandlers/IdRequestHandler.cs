@@ -1,4 +1,4 @@
-﻿namespace Ocluse.LiquidSnow.Http.Client.RequestHandler
+﻿namespace Ocluse.LiquidSnow.Http.Client.RequestHandlers
 {
     /// <summary>
     /// A request handler used to send a request with an id based path
@@ -9,7 +9,7 @@
         /// <summary>
         /// Creates a new instance of the <see cref="IdRequestHandler{TResult}"/> class
         /// </summary>
-        public IdRequestHandler(HttpMethod httpMethod, ISnowHttpClientFactory httpClientFactory, string path, string? clientName = null, IHttpHandler? httpHandler = null) 
+        public IdRequestHandler(HttpMethod httpMethod, ISnowHttpClientFactory httpClientFactory, string path, string? clientName = null, IHttpHandler? httpHandler = null)
             : base(httpClientFactory, path, clientName, httpHandler)
         {
             HttpMethod = httpMethod;

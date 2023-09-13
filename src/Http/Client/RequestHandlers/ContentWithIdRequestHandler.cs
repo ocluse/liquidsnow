@@ -1,4 +1,4 @@
-﻿namespace Ocluse.LiquidSnow.Http.Client.RequestHandler
+﻿namespace Ocluse.LiquidSnow.Http.Client.RequestHandlers
 {
     /// <summary>
     /// A request handler that sends a HTTP request with a content and an id based path

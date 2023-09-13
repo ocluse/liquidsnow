@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Web;
 
-namespace Ocluse.LiquidSnow.Http.Client.RequestHandler;
+namespace Ocluse.LiquidSnow.Http.Client.RequestHandlers;
 
 internal static class JsonOptionsCache
 {

@@ -1,4 +1,4 @@
-﻿namespace Ocluse.LiquidSnow.Http.Client.RequestHandler
+﻿namespace Ocluse.LiquidSnow.Http.Client.RequestHandlers
 {
     /// <summary>
     /// A handler used to send a get request to a resource by id
@@ -8,7 +8,7 @@
         /// <summary>
         /// Creates a new instance of the <see cref="GetByIdRequestHandler{TResult}"/> class
         /// </summary>
-        public GetByIdRequestHandler(ISnowHttpClientFactory httpClientFactory, string path, string? clientName = null, IHttpHandler? httpHandler = null) 
+        public GetByIdRequestHandler(ISnowHttpClientFactory httpClientFactory, string path, string? clientName = null, IHttpHandler? httpHandler = null)
             : base(HttpMethod.Get, httpClientFactory, path, clientName, httpHandler)
         {
         }

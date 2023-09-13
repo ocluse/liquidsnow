@@ -1,4 +1,4 @@
-﻿namespace Ocluse.LiquidSnow.Http.Client.RequestHandler
+﻿namespace Ocluse.LiquidSnow.Http.Client.RequestHandlers
 {
     /// <summary>
     /// A handler that sends http request to a server by query string parameters.
@@ -8,7 +8,7 @@
         /// <summary>
         /// Creates a new instance of the <see cref="QueryRequestHandler{TQuery,TResult}"/> class
         /// </summary>
-        public QueryRequestHandler(HttpMethod httpMethod, ISnowHttpClientFactory httpClientFactory, string path, string? clientName = null, IHttpHandler? httpHandler = null) 
+        public QueryRequestHandler(HttpMethod httpMethod, ISnowHttpClientFactory httpClientFactory, string path, string? clientName = null, IHttpHandler? httpHandler = null)
             : base(httpClientFactory, path, clientName, httpHandler)
         {
             HttpMethod = httpMethod;

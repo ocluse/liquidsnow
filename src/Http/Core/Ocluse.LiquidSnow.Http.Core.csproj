@@ -7,10 +7,10 @@
 	<RootNamespace>Ocluse.LiquidSnow.Http</RootNamespace>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	<GenerateDocumentationFile>true</GenerateDocumentationFile>
-	<Version>0.3.0-preview1.0</Version>
+	<Version>0.3.0-preview1.1</Version>
 	<Authors>Ocluse</Authors>
 	<PackageOutputPath>..\..\..\build</PackageOutputPath>
-	<Description>Provides utilities for performing easy cryptographic operations such as encryption and decryption. It also adds support for generating random numbers, strings, and IDs.</Description>
+	<Description>Provides utilities for implementing common HTTP request patterns.</Description>
 	<PackageIcon>logo.png</PackageIcon>
 	<RepositoryUrl>https://github.com/ocluse/liquidsnow</RepositoryUrl>
 	<Copyright>© Ocluse</Copyright>

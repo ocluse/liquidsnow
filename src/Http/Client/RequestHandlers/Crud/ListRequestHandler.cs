@@ -1,6 +1,4 @@
-﻿using Ocluse.LiquidSnow.Http.Client.RequestHandler;
-
-namespace Ocluse.LiquidSnow.Http.Client.RequestHandlers.Crud
+﻿namespace Ocluse.LiquidSnow.Http.Client.RequestHandlers.Crud
 {
     /// <summary>
     /// A handler user to get a list of resources
