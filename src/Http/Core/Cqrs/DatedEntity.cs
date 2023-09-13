@@ -8,7 +8,7 @@ namespace Ocluse.LiquidSnow.Http.Cqrs
         /// <summary>
         /// The date and time the entity was created
         /// </summary>
-        public abstract DateTime CreatedAt { get; set; }
+        public required DateTime CreatedAt { get; set; }
     }
 
     ///<inheritdoc/>
