@@ -1,4 +1,4 @@
-﻿using Ocluse.LiquidSnow.Entities;
+﻿using System.Reactive;
 
 namespace Ocluse.LiquidSnow.Orchestrations
 {
@@ -58,7 +58,7 @@ namespace Ocluse.LiquidSnow.Orchestrations
         /// </remarks>
         public static ISkipOrchestrationResult SkipAsUnit(bool isSuccess = true)
         {
-            return new SkipOrchestrationResult(Unit.Value, isSuccess);
+            return new SkipOrchestrationResult(default, isSuccess);
         }
     }
 }

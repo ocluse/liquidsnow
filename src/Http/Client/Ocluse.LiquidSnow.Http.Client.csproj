@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	<GenerateDocumentationFile>true</GenerateDocumentationFile>
+	<Version>0.3.0-preview1.0</Version>
+	<Authors>Ocluse</Authors>
+	<PackageOutputPath>..\..\..\build</PackageOutputPath>
+	<Description>Provides utilities for performing easy cryptographic operations such as encryption and decryption. It also adds support for generating random numbers, strings, and IDs.</Description>
+	<PackageIcon>logo.png</PackageIcon>
+	<RepositoryUrl>https://github.com/ocluse/liquidsnow</RepositoryUrl>
+	<Copyright>© Ocluse</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\logo.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Ocluse.LiquidSnow.Http.Core.csproj" />
+  </ItemGroup>
+
+</Project>
