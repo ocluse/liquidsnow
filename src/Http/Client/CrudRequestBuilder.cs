@@ -25,10 +25,22 @@ namespace Ocluse.LiquidSnow.Http.Client
             _listHandler = new(httpClientFactory, path, clientName, httpHandler);
 
             Path = path;
+            HttpClientFactory = httpClientFactory;
+            HttpHandler = httpHandler;
         }
 
         ///<inheritdoc/>
         public string Path { get; }
+
+        /// <summary>
+        /// The factory used to create HTTP clients.
+        /// </summary>
+        protected ISnowHttpClientFactory HttpClientFactory { get; }
+
+        /// <summary>
+        /// The handler used to handle requests and responses.
+        /// </summary>
+        protected IHttpHandler? HttpHandler { get; }
 
         ///<inheritdoc/>
         public async Task<TModel> CreateAsync(TCreate create, CancellationToken cancellationToken = default)
