@@ -9,7 +9,7 @@
         /// Generates an ID based on <see cref="System.Guid"/>
         /// </summary>
         Guid,
-        
+
         /// <summary>
         /// Generates a GUID that is transformed into an alphanumeric sequence.
         /// </summary>
@@ -28,6 +28,11 @@
         /// <summary>
         /// Generates an ID based on <see cref="System.Random"/>
         /// </summary>
-        Random
+        Random,
+
+        /// <summary>
+        /// Generates an ID based on randomly generated strings of numerical integers of specified length
+        /// </summary>
+        Numeric
     }
 }
