@@ -3,7 +3,7 @@
 namespace Ocluse.LiquidSnow.Events
 {
     ///<inheritdoc/>
-    public interface ITimedEvent : IEvent
+    public interface ITimestampedEvent : IEvent
     {
         /// <summary>
         /// The time when the event occurred.
