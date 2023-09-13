@@ -147,7 +147,7 @@ public class RequestHandler<TResult>
         }
         else
         {
-            return await message.Content.ReadFromJsonAsync<TResult>(cancellationToken: cancellationToken)
+            return await message.Content.ReadFromJsonAsync<TResult>(JsonSerializerOptions, cancellationToken)
                 ?? throw new ResponseContentNullException();
         }
     }
