@@ -21,13 +21,13 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         public int? ColumnsXs { get; set; }
 
         [Parameter]
-        public int Gap { get; set; }
+        public double Gap { get; set; }
 
         [Parameter]
-        public int? ColumnGap { get; set; }
+        public double? ColumnGap { get; set; }
 
         [Parameter]
-        public int? RowGap { get; set; }
+        public double? RowGap { get; set; }
 
         [Parameter]
         public RenderFragment? ChildContent { get; set; }

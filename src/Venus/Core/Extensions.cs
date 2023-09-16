@@ -62,8 +62,6 @@ public static class Extensions
         }
     }
 
-    
-
     /// <summary>
     /// Validates that a date is not null
     /// </summary>
@@ -148,11 +146,11 @@ public static class Extensions
         styleList.Add($"--grid-columns-xs: {TranslateToGridTemplate(xs)}");
 
         //Column Gap
-        int columnGap = grid.ColumnGap ?? grid.Gap;
+        double columnGap = grid.ColumnGap ?? grid.Gap;
         styleList.Add($"--grid-column-gap: {columnGap / 2}rem");
 
         //Row Gap
-        int rowGap = grid.RowGap ?? grid.Gap;
+        double rowGap = grid.RowGap ?? grid.Gap;
         styleList.Add($"--grid-row-gap: {rowGap / 2}rem;");
 
         return styleList;
