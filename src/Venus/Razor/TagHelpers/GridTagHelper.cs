@@ -15,11 +15,11 @@ namespace Ocluse.LiquidSnow.Venus.Razor.TagHelpers
 
         public int? ColumnsXs { get; set; }
 
-        public int Gap { get; set; }
+        public double Gap { get; set; }
 
-        public int? ColumnGap { get; set; }
+        public double? ColumnGap { get; set; }
 
-        public int? RowGap { get; set; }
+        public double? RowGap { get; set; }
 
         public GridTagHelper(IVenusResolver resolver) : base(resolver)
         {

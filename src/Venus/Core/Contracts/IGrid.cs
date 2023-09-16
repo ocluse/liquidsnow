@@ -9,9 +9,9 @@ namespace Ocluse.LiquidSnow.Venus.Contracts
         int? ColumnsMd { get; set; }
         int? ColumnsSm { get; set; }
         int? ColumnsXs { get; set; }
-        int Gap { get; set; }
-        int? ColumnGap { get; set; }
-        int? RowGap { get; set; }
+        double Gap { get; set; }
+        double? ColumnGap { get; set; }
+        double? RowGap { get; set; }
     }
 }
 
