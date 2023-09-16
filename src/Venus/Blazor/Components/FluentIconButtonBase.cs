@@ -2,7 +2,7 @@
 
 namespace Ocluse.LiquidSnow.Venus.Blazor.Components;
 
-public class FluentIconButton<T> : ButtonBase where T : FluentIcon
+public class FluentIconButtonBase<T> : ButtonBase where T : FluentIcon
 {
     [Parameter]
     public string? Icon { get; set; }
@@ -24,30 +24,30 @@ public class FluentIconButton<T> : ButtonBase where T : FluentIcon
     }
 }
 
-public class FluentIconButton : FluentIconButton<FluentIcon>
+public class FluentIconButton : FluentIconButtonBase<FluentIcon>
 {
 }
 
-public class Fluent12IconButton : FluentIconButton<Fluent12Icon>
+public class Fluent12IconButton : FluentIconButtonBase<Fluent12Icon>
 {
 }
 
-public class Fluent16IconButton : FluentIconButton<Fluent16Icon>
+public class Fluent16IconButton : FluentIconButtonBase<Fluent16Icon>
 {
 }
 
-public class Fluent20IconButton : FluentIconButton<Fluent20Icon>
+public class Fluent20IconButton : FluentIconButtonBase<Fluent20Icon>
 {
 }
 
-public class Fluent28IconButton : FluentIconButton<Fluent28Icon>
+public class Fluent28IconButton : FluentIconButtonBase<Fluent28Icon>
 {
 }
 
-public class Fluent32IconButton : FluentIconButton<Fluent32Icon>
+public class Fluent32IconButton : FluentIconButtonBase<Fluent32Icon>
 {
 }
 
-public class Fluent48IconButton : FluentIconButton<Fluent48Icon>
+public class Fluent48IconButton : FluentIconButtonBase<Fluent48Icon>
 {
 }
