@@ -14,7 +14,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
             return value?.ToString() ?? string.Empty;
         }
 
-        protected override string GetInputType()
+        protected override string InputType()
         {
             return InputType.ToString().PascalToKebabCase();
         }

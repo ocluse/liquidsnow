@@ -2,17 +2,13 @@
 {
     public class DatePicker : InputControlBase<DateOnly?>
     {
-        
+        protected override string InputType { get; } = "date";
+
         protected override DateOnly? GetValue(object? value)
         {
             string? val = value?.ToString();
 
             return string.IsNullOrEmpty(val) ? null : DateOnly.Parse(val);
-        }
-
-        protected override string GetInputType()
-        {
-            return "date";
         }
 
         protected override object? GetInputDisplayValue(DateOnly? value)
