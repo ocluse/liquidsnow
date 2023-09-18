@@ -24,7 +24,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         public ValidationResult ValidationResult { get; set; } = ValidationResult.Succeeded();
 
         [Parameter]
-        public EventCallback<ValidationResult> ErrorStateChanged { get; set; }
+        public EventCallback<ValidationResult> ValidationResultChanged { get; set; }
 
         [Parameter]
         public Func<TValue?, Task<ValidationResult>>? Validate { get; set; }
@@ -113,7 +113,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
             {
                 var validationResult = await Validate.Invoke(Value);
                 ValidationResult = validationResult;
-                await ErrorStateChanged.InvokeAsync(validationResult);
+                await ValidationResultChanged.InvokeAsync(validationResult);
                 return ValidationResult.Success;
             }
             else
