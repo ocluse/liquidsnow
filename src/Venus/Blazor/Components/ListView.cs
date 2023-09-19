@@ -177,7 +177,6 @@ public class ListView<T> : ControlBase
             else if (LoadingTemplate != null && State == ContainerState.Loading)
             {
                 builder.AddContent(61, LoadingTemplate);
-                builder.CloseComponent();
             }
             else if (ErrorTemplate != null && State == ContainerState.Error)
             {

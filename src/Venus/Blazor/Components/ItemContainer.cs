@@ -72,7 +72,6 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
                 else if (LoadingTemplate != null && State == ContainerState.Loading)
                 {
                     builder.AddContent(2, LoadingTemplate);
-                    builder.CloseComponent();
                 }
                 else if (ErrorTemplate != null && State == ContainerState.Error)
                 {

@@ -73,7 +73,6 @@ public class GridView<T> : Grid
             else if (LoadingTemplate != null && State == ContainerState.Loading)
             {
                 builder.AddContent(9, LoadingTemplate);
-                builder.CloseComponent();
             }
             else if (ErrorTemplate != null && State == ContainerState.Error)
             {
