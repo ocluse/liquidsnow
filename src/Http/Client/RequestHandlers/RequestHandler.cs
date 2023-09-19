@@ -161,6 +161,10 @@ public class RequestHandler<TResult>
         {
             return await contentHandler.GetContent(value, cancellationToken);
         }
+        else if(value is HttpContent content)
+        {
+            return content;
+        }
         else
         {
             string json = JsonSerializer.Serialize(value, JsonSerializerOptions);
