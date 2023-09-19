@@ -10,22 +10,22 @@ namespace Ocluse.LiquidSnow.Http
     public record QueryRequest<Q> :  IQueryRequest<Q>
     {
         ///<inheritdoc/>
-        public IEnumerable<string>? Ids { get; init; }
+        public IEnumerable<string>? Ids { get; set; }
 
         ///<inheritdoc/>
         public Q? QType { get; set; }
 
         ///<inheritdoc/>
-        public string? Cursor { get; init; }
+        public string? Cursor { get; set; }
 
         ///<inheritdoc/>
-        public int? Page { get; init; }
+        public int? Page { get; set; }
 
         ///<inheritdoc/>
-        public int? Size { get; init; }
+        public int? Size { get; set; }
 
         ///<inheritdoc/>
-        public string? Search { get; init; }
+        public string? Search { get; set; }
     }
 
     ///<inheritdoc/>

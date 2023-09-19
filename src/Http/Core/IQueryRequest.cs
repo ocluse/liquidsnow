@@ -9,17 +9,17 @@
         /// <summary>
         /// If specified, the query will be paged using the cursor.
         /// </summary>
-        string? Cursor { get; init; }
+        string? Cursor { get; set; }
 
         /// <summary>
         /// If specified, the query should return only the items with the specified ids.
         /// </summary>
-        IEnumerable<string>? Ids { get; init; }
+        IEnumerable<string>? Ids { get; set; }
 
         /// <summary>
         /// If specified, the query will be paged using the offset.
         /// </summary>
-        int? Page { get; init; }
+        int? Page { get; set; }
 
         /// <summary>
         /// Used to determine the type of query to perform
@@ -29,12 +29,12 @@
         /// <summary>
         /// If specified, the query items will be filtered using the specified search string.
         /// </summary>
-        string? Search { get; init; }
+        string? Search { get; set; }
 
         /// <summary>
         /// If specified, the returned items will be limited to the specified size.
         /// </summary>
-        int? Size { get; init; }
+        int? Size { get; set; }
     }
 
     ///<inheritdoc cref="IQueryRequest{Q}"/>

@@ -7,7 +7,7 @@
 	<RootNamespace>Ocluse.LiquidSnow.Http</RootNamespace>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	<GenerateDocumentationFile>true</GenerateDocumentationFile>
-	<Version>0.3.0-preview1.4</Version>
+	<Version>0.3.0-preview1.5</Version>
 	<Authors>Ocluse</Authors>
 	<PackageOutputPath>..\..\..\build</PackageOutputPath>
 	<Description>Provides utilities for implementing common HTTP request patterns.</Description>
