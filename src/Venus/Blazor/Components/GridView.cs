@@ -13,6 +13,15 @@ public class GridView<T> : Grid
     public RenderFragment<T>? ItemTemplate { get; set; }
 
     [Parameter]
+    public RenderFragment? EmptyTemplate { get; set; }
+
+    [Parameter]
+    public RenderFragment? LoadingTemplate { get; set; }
+
+    [Parameter]
+    public RenderFragment? ErrorTemplate { get; set; }
+
+    [Parameter]
     public string? ItemClass { get; set; }
 
     [Parameter]
@@ -57,9 +66,25 @@ public class GridView<T> : Grid
         }
         else
         {
-            Type typeToRender = ContainerStateResolver.ResolveContainerStateToRenderType(State);           
-            builder.OpenComponent(8, typeToRender);           
-            builder.CloseComponent();
+            if (EmptyTemplate != null && State == ContainerState.Empty)
+            {
+                builder.AddContent(8, EmptyTemplate);
+            }
+            else if (LoadingTemplate != null && State == ContainerState.Loading)
+            {
+                builder.AddContent(9, LoadingTemplate);
+                builder.CloseComponent();
+            }
+            else if (ErrorTemplate != null && State == ContainerState.Error)
+            {
+                builder.AddContent(10, ErrorTemplate);
+            }
+            else
+            {
+                Type typeToRender = ContainerStateResolver.ResolveContainerStateToRenderType(State);
+                builder.OpenComponent(11, typeToRender);
+                builder.CloseComponent();
+            }
         }
     }
 

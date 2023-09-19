@@ -15,13 +15,22 @@ public class ListView<T> : ControlBase
     public IBlazorResolver ContainerStateResolver { get; set; } = null!;
 
     [Parameter]
-    public RenderFragment? Header { get; set; }
-
-    [Parameter]
     public FiltrationOptions? FiltrationOptions { get; set; }
 
     [Parameter]
+    public RenderFragment? Header { get; set; }
+
+    [Parameter]
     public RenderFragment<T>? ItemTemplate { get; set; }
+
+    [Parameter]
+    public RenderFragment? EmptyTemplate { get; set; }
+
+    [Parameter]
+    public RenderFragment? LoadingTemplate { get; set; }
+
+    [Parameter]
+    public RenderFragment? ErrorTemplate { get; set; }
     
     [Parameter]
     public IEnumerable<T>? Items { get; set; }
@@ -161,9 +170,25 @@ public class ListView<T> : ControlBase
         }
         else
         {
-            Type typeToRender = ContainerStateResolver.ResolveContainerStateToRenderType(State);
-            builder.OpenComponent(58, typeToRender);
-            builder.CloseComponent();
+            if (EmptyTemplate != null && State == ContainerState.Empty)
+            {
+                builder.AddContent(60, EmptyTemplate);
+            }
+            else if (LoadingTemplate != null && State == ContainerState.Loading)
+            {
+                builder.AddContent(61, LoadingTemplate);
+                builder.CloseComponent();
+            }
+            else if (ErrorTemplate != null && State == ContainerState.Error)
+            {
+                builder.AddContent(62, ErrorTemplate);
+            }
+            else
+            {
+                Type typeToRender = ContainerStateResolver.ResolveContainerStateToRenderType(State);
+                builder.OpenComponent(58, typeToRender);
+                builder.CloseComponent();
+            }
         }
     }
 

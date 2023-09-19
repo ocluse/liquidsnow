@@ -14,6 +14,15 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         public required RenderFragment<T> ChildContent { get; set; }
 
         [Parameter]
+        public RenderFragment? EmptyTemplate { get; set; }
+
+        [Parameter]
+        public RenderFragment? LoadingTemplate { get; set; }
+
+        [Parameter]
+        public RenderFragment? ErrorTemplate { get; set; }
+
+        [Parameter]
         public T? Item { get; set; }
 
         [Parameter]
@@ -56,9 +65,25 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
             }
             else
             {
-                Type typeToRender = Resolver.ResolveContainerStateToRenderType(State);
-                builder.OpenComponent(1, typeToRender);
-                builder.CloseComponent();
+                if (EmptyTemplate != null && State == ContainerState.Empty)
+                {
+                    builder.AddContent(1, EmptyTemplate);
+                }
+                else if (LoadingTemplate != null && State == ContainerState.Loading)
+                {
+                    builder.AddContent(2, LoadingTemplate);
+                    builder.CloseComponent();
+                }
+                else if (ErrorTemplate != null && State == ContainerState.Error)
+                {
+                    builder.AddContent(3, ErrorTemplate);
+                }
+                else
+                {
+                    Type typeToRender = Resolver.ResolveContainerStateToRenderType(State);
+                    builder.OpenComponent(4, typeToRender);
+                    builder.CloseComponent();
+                }
             }
         }
     }
