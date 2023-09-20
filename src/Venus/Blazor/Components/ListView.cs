@@ -12,7 +12,7 @@ public class ListView<T> : ControlBase
     private object? _nextCursor, _previousCursor;
 
     [Inject]
-    public IBlazorResolver ContainerStateResolver { get; set; } = null!;
+    public IBlazorResolver Resolver { get; set; } = null!;
 
     [Parameter]
     public FiltrationOptions? FiltrationOptions { get; set; }
@@ -33,6 +33,15 @@ public class ListView<T> : ControlBase
     public RenderFragment? ErrorTemplate { get; set; }
 
     [Parameter]
+    public RenderFragment? UnauthorizedTemplate { get; set; }
+
+    [Parameter]
+    public RenderFragment? NotFoundTemplate { get; set; }
+
+    [Parameter]
+    public RenderFragment? ReauthenticationRequiredTemplate { get; set; }
+
+    [Parameter]
     public IEnumerable<T>? Items { get; set; }
 
     [Parameter]
@@ -45,7 +54,10 @@ public class ListView<T> : ControlBase
     public string? ItemClass { get; set; }
 
     [Parameter]
-    public int State { get; set; }
+    public int State { get; set; } = ContainerState.Found;
+
+    [Parameter]
+    public EventCallback<int> StateChanged { get; set; }
 
     [Parameter]
     public int? PageSize { get; set; }
@@ -66,10 +78,10 @@ public class ListView<T> : ControlBase
     public string? DisplayMemberPath { get; set; }
 
     [Parameter]
-    public EventCallback<T> ItemClicked { get; set; }
+    public Func<T?, string>? DisplayMemberFunc { get; set; }
 
     [Parameter]
-    public Func<T?, string>? DisplayMemberFunc { get; set; }
+    public EventCallback<T> ItemClicked { get; set; }
 
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
@@ -182,10 +194,22 @@ public class ListView<T> : ControlBase
             {
                 builder.AddContent(62, ErrorTemplate);
             }
+            else if (NotFoundTemplate != null && State == ContainerState.NotFound)
+            {
+                builder.AddContent(63, NotFoundTemplate);
+            }
+            else if (UnauthorizedTemplate != null && State == ContainerState.Unauthorized)
+            {
+                builder.AddContent(64, UnauthorizedTemplate);
+            }
+            else if(ReauthenticationRequiredTemplate!=null && State == ContainerState.ReauthenticationRequired)
+            {
+                builder.AddContent(65, ReauthenticationRequiredTemplate);
+            }
             else
             {
-                Type typeToRender = ContainerStateResolver.ResolveContainerStateToRenderType(State);
-                builder.OpenComponent(58, typeToRender);
+                Type typeToRender = Resolver.ResolveContainerStateToRenderType(State);
+                builder.OpenComponent(66, typeToRender);
                 builder.CloseComponent();
             }
         }
@@ -214,6 +238,7 @@ public class ListView<T> : ControlBase
                 Items = result.Items;
                 _nextCursor = result.NextCursor;
                 _previousCursor = result.PreviousCursor;
+                State = ContainerState.Found;
             }
             catch (Exception ex)
             {
