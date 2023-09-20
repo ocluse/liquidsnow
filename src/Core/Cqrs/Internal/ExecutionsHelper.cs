@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,8 +13,8 @@ namespace Ocluse.LiquidSnow.Cqrs.Internal
 
     internal static class ExecutionsHelper
     {
-        private static readonly Dictionary<string, ExecutionDescriptor> _descriptorCache
-            = new Dictionary<string, ExecutionDescriptor>();
+        private static readonly ConcurrentDictionary<string, ExecutionDescriptor> _descriptorCache
+            = new ConcurrentDictionary<string, ExecutionDescriptor>();
 
         private static ExecutionDescriptor CreateDescriptor<TResult>(ExecutionKind kind, Type executionType)
         {
@@ -55,14 +55,7 @@ namespace Ocluse.LiquidSnow.Cqrs.Internal
             {
                 descriptor = CreateDescriptor<TResult>(kind, executionType);
 
-                try
-                {
-                    _descriptorCache.Add(key, descriptor);
-                }
-                catch (ArgumentException)
-                {
-                    //do nothing
-                }
+                _descriptorCache.TryAdd(key, descriptor);
 
                 return descriptor;
             }
@@ -81,7 +74,7 @@ namespace Ocluse.LiquidSnow.Cqrs.Internal
 
                 if (preExecutionResultType == descriptor.StopExecutionResultType)
                 {
-                    return (TResult)descriptor.StopExecutionResultValuePropertyInfo!.GetValue(preExecutionResult);
+                    return (TResult)descriptor.StopExecutionResultValuePropertyInfo.GetValue(preExecutionResult);
                 }
                 else if (preExecutionResultType != typeof(PreExecutionResult.ContinuePreExecutionResult))
                 {
