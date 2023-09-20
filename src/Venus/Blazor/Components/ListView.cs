@@ -8,7 +8,7 @@ public class ListView<T> : ControlBase
     private FilterOption? _selectedFilterOption, _selectedSortOption;
 
     private int _totalItems;
-    
+
     private object? _nextCursor, _previousCursor;
 
     [Inject]
@@ -31,10 +31,10 @@ public class ListView<T> : ControlBase
 
     [Parameter]
     public RenderFragment? ErrorTemplate { get; set; }
-    
+
     [Parameter]
     public IEnumerable<T>? Items { get; set; }
-    
+
     [Parameter]
     public Func<CursorPaginationState, Task<CursorListViewData<T>>>? CursorFetch { get; set; }
 
@@ -46,7 +46,7 @@ public class ListView<T> : ControlBase
 
     [Parameter]
     public int State { get; set; }
-    
+
     [Parameter]
     public int? PageSize { get; set; }
 
@@ -75,7 +75,7 @@ public class ListView<T> : ControlBase
     {
         builder.OpenElement(0, "div");
 
-        if(Header != null || FiltrationOptions != null)
+        if (Header != null || FiltrationOptions != null)
         {
             builder.OpenElement(1, "list-header");
 
@@ -86,8 +86,8 @@ public class ListView<T> : ControlBase
                 builder.AddContent(4, Header);
                 builder.CloseElement();
             }
-           
-            if(FiltrationOptions != null)
+
+            if (FiltrationOptions != null)
             {
                 builder.OpenElement(5, "div");
                 builder.AddAttribute(6, "class", "list-filtration");
@@ -133,7 +133,7 @@ public class ListView<T> : ControlBase
         {
             builder.OpenComponent<PaginationOffset>(127);
             builder.AddAttribute(128, nameof(PaginationOffset.CurrentPage), OffsetPaginationState.Page);
-            builder.AddAttribute(129, nameof(PaginationOffset.PageChanged), EventCallback.Factory.Create(this, (Func<int,Task>)OnPageChanged));
+            builder.AddAttribute(129, nameof(PaginationOffset.PageChanged), EventCallback.Factory.Create(this, (Func<int, Task>)OnPageChanged));
             builder.AddAttribute(130, nameof(PaginationOffset.TotalItems), _totalItems);
             builder.AddAttribute(131, nameof(PaginationOffset.ItemsPerPage), PageSize ?? OffsetPaginationState.PageSize);
             builder.CloseComponent();
@@ -142,7 +142,7 @@ public class ListView<T> : ControlBase
 
     private void BuildContent(RenderTreeBuilder builder)
     {
-        if (Items != null)
+        if (Items != null && State == ContainerState.Found)
         {
             string itemClass = $"list-item {ItemClass}";
             foreach (var item in Items)
@@ -201,7 +201,7 @@ public class ListView<T> : ControlBase
     {
         await ReloadData();
     }
-    
+
     public async Task ReloadData()
     {
         if (CursorFetch != null)
