@@ -207,7 +207,7 @@ public class ListView<T> : ControlBase
         if (CursorFetch != null)
         {
             State = ContainerState.Loading;
-
+            await InvokeAsync(StateHasChanged);
             try
             {
                 var result = await CursorFetch.Invoke(CursorPaginationState);
