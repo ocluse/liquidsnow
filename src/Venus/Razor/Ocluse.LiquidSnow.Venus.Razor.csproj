@@ -5,7 +5,7 @@
 	<ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-	<Version>0.3.0-preview1.1</Version>
+	<Version>0.3.0-preview1.2</Version>
 	<Authors>Ocluse</Authors>
 	<PackageOutputPath>..\..\..\build</PackageOutputPath>
 	<Description>Utilities for quickly bootsrapping UI for Razor Pages and MVC using Ocluse's Venus design patterns.</Description>
