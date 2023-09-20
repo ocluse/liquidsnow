@@ -32,7 +32,9 @@ namespace Ocluse.LiquidSnow.Cqrs.Internal
             Execute = ExecutionHandler.GetMethod(HANDLE_METHOD_NAME, paramTypes)
                         ?? throw new InvalidOperationException("Handle method not found on handler");
 
-            PostExecute = PostExecutionHandler.GetMethod(HANDLE_METHOD_NAME, paramTypes)
+            var postParamTypes = new Type[] { ExecutionType, ResultType, typeof(CancellationToken) };
+
+            PostExecute = PostExecutionHandler.GetMethod(HANDLE_METHOD_NAME, postParamTypes)
                         ?? throw new InvalidOperationException("Handle method not found on handler");
 
             StopExecutionResultType = typeof(PreExecutionResult.StopPreExecutionResult<>).MakeGenericType(ResultType);
