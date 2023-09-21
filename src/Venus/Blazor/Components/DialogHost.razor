@@ -50,7 +50,7 @@
     private bool _allowDismiss;
     private string? _dialogHeader;
 
-    private Dictionary<string, object>? _dialogParameters;
+    private Dictionary<string, object?>? _dialogParameters;
 
     private TaskCompletionSource<DialogResult>? _tcsDialog;
 
@@ -59,7 +59,7 @@
         DialogService.SetHost(this);
     }
 
-    public async Task<DialogResult> ShowDialog(Type dialogType, string? dialogHeader, bool allowDismiss, bool showClose, Dictionary<string, object>? parameters)
+    public async Task<DialogResult> ShowDialog(Type dialogType, string? dialogHeader, bool allowDismiss, bool showClose, Dictionary<string, object?>? parameters)
     {
         _showClose = showClose;
         _allowDismiss = allowDismiss;

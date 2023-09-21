@@ -24,13 +24,13 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Services.Implementations
             _host = host;
         }
 
-        public Task<DialogResult> ShowDialog<T>(string? dialogHeader = null, bool allowDismiss = false, bool showClose = true, Dictionary<string, object>? parameters = null) where T : ComponentBase
+        public Task<DialogResult> ShowDialog<T>(string? dialogHeader = null, bool allowDismiss = false, bool showClose = true, Dictionary<string, object?>? parameters = null) where T : ComponentBase
         {
             Type type = typeof(T);
             return ShowDialog(type, dialogHeader, allowDismiss, showClose, parameters);
         }
 
-        public Task<DialogResult> ShowDialog(Type dialogType, string? dialogHeader = null, bool allowDismiss = false, bool showClose = true, Dictionary<string, object>? parameters = null)
+        public Task<DialogResult> ShowDialog(Type dialogType, string? dialogHeader = null, bool allowDismiss = false, bool showClose = true, Dictionary<string, object?>? parameters = null)
         {
             return GetHost().ShowDialog(dialogType, dialogHeader, allowDismiss, showClose, parameters);
         }
