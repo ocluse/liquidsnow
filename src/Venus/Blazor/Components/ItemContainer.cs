@@ -31,31 +31,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 
         protected override void BuildRenderTree(RenderTreeBuilder builder)
         {
-            if (Item != null)
-            {
-                builder.AddContent(0, ChildContent, Item);
-            }
-            else
-            {
-                if (EmptyTemplate != null && State == ContainerState.Empty)
-                {
-                    builder.AddContent(1, EmptyTemplate);
-                }
-                else if (LoadingTemplate != null && State == ContainerState.Loading)
-                {
-                    builder.AddContent(2, LoadingTemplate);
-                }
-                else if (ErrorTemplate != null && State == ContainerState.Error)
-                {
-                    builder.AddContent(3, ErrorTemplate);
-                }
-                else
-                {
-                    Type typeToRender = Resolver.ResolveContainerStateToRenderType(State);
-                    builder.OpenComponent(4, typeToRender);
-                    builder.CloseComponent();
-                }
-            }
+            BuildContainer(builder);
         }
 
         protected override void BuildFound(RenderTreeBuilder builder)
