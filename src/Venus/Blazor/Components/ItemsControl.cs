@@ -162,25 +162,20 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
             {
                 foreach (var item in Items)
                 {
-
+                    builder.OpenElement(52, "div");
+                    builder.SetKey(item);
+                    builder.AddAttribute(53, "class", itemClass);
+                    builder.AddAttribute(54, "onclick", EventCallback.Factory.Create(this, async () => { await ItemClicked.InvokeAsync(item); }));
                     if (ItemTemplate == null)
                     {
-                        builder.OpenComponent<TextBlock>(52);
-                        builder.SetKey(item);
-                        builder.AddAttribute(53, nameof(TextBlock.ChildContent), item.GetDisplayMember(DisplayMemberFunc, DisplayMemberPath));
-                        builder.AddAttribute(54, nameof(Class), itemClass);
-                        builder.AddAttribute(55, "onclick", EventCallback.Factory.Create(this, async () => { await ItemClicked.InvokeAsync(item); }));
-                        builder.CloseComponent();
+                        
+                        builder.AddContent(55, item.GetDisplayMember(DisplayMemberFunc, DisplayMemberPath));
                     }
                     else
                     {
-                        builder.OpenElement(56, "div");
-                        builder.SetKey(item);
-                        builder.AddAttribute(57, "class", itemClass);
-                        builder.AddAttribute(58, "onclick", EventCallback.Factory.Create(this, async () => { await ItemClicked.InvokeAsync(item); }));
                         builder.AddContent(59, ItemTemplate, item);
-                        builder.CloseElement();
                     }
+                    builder.CloseElement();
                 }
             }
             else if (EmptyTemplate != null)
