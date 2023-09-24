@@ -5,7 +5,7 @@
 	<Nullable>enable</Nullable>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	<GenerateDocumentationFile>true</GenerateDocumentationFile>
-	<Version>0.3.0-preview1.0</Version>
+	<Version>0.3.0-preview1.2</Version>
 	<Authors>Ocluse</Authors>
 	<PackageOutputPath>..\..\..\build</PackageOutputPath>
 	<Description>Utilities for executing classical ciphers, such as Playfair, Caesar and simulation of the EnigmaMachine.</Description>

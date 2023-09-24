@@ -105,8 +105,8 @@ public class RequestHandler<TResult>
             await httpRequestHandler.HandleRequestBeforeSend(requestMessage, cancellationToken);
         }
 
-        using HttpClient httpClient = await GetClient(cancellationToken);
-        using HttpResponseMessage response = await httpClient.SendAsync(requestMessage, cancellationToken);
+        HttpClient httpClient = await GetClient(cancellationToken);
+        HttpResponseMessage response = await httpClient.SendAsync(requestMessage, cancellationToken);
 
         if (HttpHandler is IHttpResponseHandler httpResponseHandler)
         {
@@ -160,6 +160,10 @@ public class RequestHandler<TResult>
         if (HttpHandler is IHttpContentHandler contentHandler)
         {
             return await contentHandler.GetContent(value, cancellationToken);
+        }
+        else if(value is HttpContent content)
+        {
+            return content;
         }
         else
         {

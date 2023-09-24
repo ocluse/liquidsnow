@@ -8,12 +8,12 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         [Parameter]
         public UpdateTrigger UpdateTrigger { get; set; } = UpdateTrigger.OnChange;
 
+        protected virtual string InputType { get; } = "text";
+
         protected override void BuildInputClass(List<string> classList)
         {
             classList.Add("textbox");
         }
-
-        
 
         private string GetUpdateTrigger()
         {
@@ -61,7 +61,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         {
             builder.OpenElement(10, "input");
             builder.AddAttribute(13, "placeholder", Placeholder ?? " ");
-            builder.AddAttribute(14, "type", GetInputType());
+            builder.AddAttribute(14, "type", InputType);
             builder.AddAttribute(15, GetUpdateTrigger(), OnChange);
             builder.AddAttribute(16, "value", GetInputDisplayValue(Value));
 
@@ -70,17 +70,12 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
                 builder.AddAttribute(17, "disabled");
             }
 
-            if(ReadOnly)
+            if (ReadOnly)
             {
                 builder.AddAttribute(18, "readonly");
             }
-            
-            builder.CloseElement();
-        }
 
-        protected virtual string GetInputType()
-        {
-            return "text";
+            builder.CloseElement();
         }
 
         protected virtual object? GetInputDisplayValue(T? value)

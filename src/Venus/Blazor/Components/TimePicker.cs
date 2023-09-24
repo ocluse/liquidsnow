@@ -2,6 +2,8 @@
 {
     public class TimePicker : InputControlBase<TimeOnly?>
     {
+        protected override string InputType { get; } = "time";
+
         protected override TimeOnly? GetValue(object? value)
         {
             string? val = value?.ToString();
@@ -12,10 +14,6 @@
         protected override object? GetInputDisplayValue(TimeOnly? value)
         {
             return value?.ToString("HH:mm");
-        }
-        protected override string GetInputType()
-        {
-            return "time";
         }
     }
 }

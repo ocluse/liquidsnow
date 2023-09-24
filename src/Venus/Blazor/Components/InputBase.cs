@@ -1,12 +1,11 @@
-﻿using Timer = System.Timers.Timer;
-
-using Microsoft.AspNetCore.Components;
+﻿using System.Reactive.Linq;
 
 namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 {
     public abstract class InputBase<TValue> : ControlBase, IValidatable, IDisposable
     {
-        private Timer? _debounceTimer;
+        //private Timer? _debounceTimer;
+        private IDisposable? _debounceSubscription;
 
         [Parameter]
         public TValue? Value { get; set; }
@@ -24,7 +23,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         public ValidationResult ValidationResult { get; set; } = ValidationResult.Succeeded();
 
         [Parameter]
-        public EventCallback<ValidationResult> ErrorStateChanged { get; set; }
+        public EventCallback<ValidationResult> ValidationResultChanged { get; set; }
 
         [Parameter]
         public Func<TValue?, Task<ValidationResult>>? Validate { get; set; }
@@ -55,32 +54,10 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 
         protected override void OnParametersSet()
         {
-            if (EnableDebounce)
+            if (!EnableDebounce && _debounceSubscription!=null)
             {
-                if (_debounceTimer == null)
-                {
-                    _debounceTimer = new Timer(DebounceInterval);
-                    _debounceTimer.Elapsed += (sender, args) =>
-                    {
-                        InvokeAsync(OnUserFinish);
-                    };
-                }
-                else if (_debounceTimer.Interval != DebounceInterval)
-                {
-                    _debounceTimer.Interval = DebounceInterval;
-                }
+                _debounceSubscription.Dispose();
             }
-            else if (_debounceTimer != null)
-            {
-                _debounceTimer.Dispose();
-                _debounceTimer = null;
-            }
-        }
-
-        private void ResetTimer()
-        {
-            _debounceTimer?.Stop();
-            _debounceTimer?.Start();
         }
 
         protected async Task OnChange(ChangeEventArgs e)
@@ -89,9 +66,17 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 
             await ValueChanged.InvokeAsync(Value);
 
+            _debounceSubscription?.Dispose();
+
             if (EnableDebounce)
             {
-                ResetTimer();
+                _debounceSubscription = Observable
+                    .Timer(TimeSpan.FromMilliseconds(DebounceInterval))
+                    .Subscribe((t) =>
+                    {
+                        InvokeAsync(OnUserFinish);
+                        _debounceSubscription?.Dispose();
+                    });
             }
             else
             {
@@ -113,7 +98,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
             {
                 var validationResult = await Validate.Invoke(Value);
                 ValidationResult = validationResult;
-                await ErrorStateChanged.InvokeAsync(validationResult);
+                await ValidationResultChanged.InvokeAsync(validationResult);
                 return ValidationResult.Success;
             }
             else
@@ -163,7 +148,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 
         public void Dispose()
         {
-            _debounceTimer?.Dispose();
+            _debounceSubscription?.Dispose();
             GC.SuppressFinalize(this);
         }
     }
