@@ -43,7 +43,7 @@ namespace Ocluse.LiquidSnow.Venus.Services
                 _ => throw new NotImplementedException()
             };
 
-            return $"var(--color-{colorStr}";
+            return $"var(--color-{colorStr})";
         }
 
         ///<inheritdoc/>
