@@ -10,6 +10,14 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 
         private FilterOption? _selectedFilterOption, _selectedSortOption;
 
+        #region Properties
+
+        protected virtual string ItemElement { get; } = "div";
+
+        protected virtual string ContainerElement { get; } = "div";
+
+        #endregion
+
         #region Parameters
         [Parameter]
         public string? ItemClass { get; set; }
@@ -162,13 +170,13 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
             {
                 foreach (var item in Items)
                 {
-                    builder.OpenElement(52, "div");
+                    builder.OpenElement(52, ItemElement);
                     builder.SetKey(item);
                     builder.AddAttribute(53, "class", itemClass);
                     builder.AddAttribute(54, "onclick", EventCallback.Factory.Create(this, async () => { await ItemClicked.InvokeAsync(item); }));
                     if (ItemTemplate == null)
                     {
-                        
+
                         builder.AddContent(55, item.GetDisplayMember(DisplayMemberFunc, DisplayMemberPath));
                     }
                     else
@@ -206,6 +214,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
             {
                 builder.OpenElement(2, "div");
                 builder.AddAttribute(3, "class", "items-header");
+
                 if (Header != null)
                 {
                     builder.OpenElement(4, "div");
@@ -231,13 +240,15 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
                     builder.AddAttribute(17, nameof(FilterDropdown.Placeholder), "Sort By");
                     builder.AddAttribute(18, nameof(FilterDropdown.ValueChanged), SorterChanged);
                     builder.CloseComponent();
+                    builder.CloseElement();
                 }
 
                 builder.CloseElement();
             }
 
+            builder.OpenElement(20, ContainerElement);
+            builder.AddAttribute(21, "class", "items-container");
             BuildContainer(builder);
-
             builder.CloseElement();
 
             if (CursorFetch != null)
@@ -257,6 +268,8 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
                 builder.AddAttribute(531, nameof(PaginationOffset.ItemsPerPage), PageSize ?? OffsetPaginationState.PageSize);
                 builder.CloseComponent();
             }
+
+            builder.CloseElement();
         }
     }
 }
