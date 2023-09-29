@@ -1,6 +1,6 @@
 ﻿@inherits PaginationBase
 
-<div class="@base.GetClass()">
+<div class="@GetClass()" style="@GetStyle()">
     <button class="pagination-item" @onclick="MovePrevious" disabled="@(PreviousCursor==null)">
         @if (PaginationBackContent != null)
         {

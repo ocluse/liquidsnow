@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Rendering;
+﻿using Microsoft.AspNetCore.Components.Rendering;
 
 namespace Ocluse.LiquidSnow.Venus.Blazor.Components;
 
@@ -8,10 +7,10 @@ public class Button : ButtonBase
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
-    protected override void BuildButtonClass(List<string> classList)
+    protected override void BuildButtonClass(ClassBuilder classBuilder)
     {
-        base.BuildButtonClass(classList); 
-        classList.Add("button");
+        base.BuildButtonClass(classBuilder); 
+        classBuilder.Add("button");
     }
 
     protected override void BuildContent(RenderTreeBuilder builder)

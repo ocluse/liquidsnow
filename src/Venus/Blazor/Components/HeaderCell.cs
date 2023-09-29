@@ -10,13 +10,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         {
             builder.OpenElement(0, "th");
 
-            Dictionary<string, object> attributes = new()
-            {
-                { "class", GetClass() },
-                {"style", GetStyle() }
-            };
-
-            builder.AddMultipleAttributes(1, attributes);
+            builder.AddMultipleAttributes(1, GetClassAndStyle());
             builder.AddContent(2, ChildContent);
             builder.CloseElement();
         }

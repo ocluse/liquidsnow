@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Razor.TagHelpers;
-using Ocluse.LiquidSnow.Venus.Services;
 
 namespace Ocluse.LiquidSnow.Venus.Razor.TagHelpers
 {
@@ -17,13 +16,13 @@ namespace Ocluse.LiquidSnow.Venus.Razor.TagHelpers
             //Set the tag name
             output.TagName = _resolver.ResolveTextHierarchy(Hierarchy);
 
-            AddClassAndSetStyle(output);
+            SetClassAndSetStyle(output);
         }
 
-        protected override void BuildClass(List<string> classList)
+        protected override void BuildClass(ClassBuilder classBuilder)
         {
-            base.BuildClass(classList);
-            classList.Add(_resolver.ResolveTextStyle(TextStyle));
+            base.BuildClass(classBuilder);
+            classBuilder.Add(_resolver.ResolveTextStyle(TextStyle));
         }
     }
 }

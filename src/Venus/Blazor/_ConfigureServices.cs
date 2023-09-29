@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Ocluse.LiquidSnow.Venus.Blazor.Services;
 using Ocluse.LiquidSnow.Venus.Blazor.Services.Implementations;
 
 namespace Ocluse.LiquidSnow.Venus.Blazor

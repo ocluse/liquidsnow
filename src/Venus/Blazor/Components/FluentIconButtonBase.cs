@@ -10,10 +10,10 @@ public class FluentIconButtonBase<T> : ButtonBase where T : FluentIcon
     [Parameter]
     public int Size { get; set; } = DefaultSize.Size18;
 
-    protected override void BuildButtonClass(List<string> classList)
+    protected override void BuildButtonClass(ClassBuilder classBuilder)
     {
-        base.BuildButtonClass(classList);
-        classList.Add("icon-button");
+        base.BuildButtonClass(classBuilder);
+        classBuilder.Add("icon-button");
     }
     protected override void BuildContent(RenderTreeBuilder builder)
     {

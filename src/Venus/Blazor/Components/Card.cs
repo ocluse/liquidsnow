@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Rendering;
+﻿using Microsoft.AspNetCore.Components.Rendering;
 
 namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 {
@@ -24,17 +23,16 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         public string? FooterClass { get; set; }
 
 
-        protected override void BuildClass(List<string> classList)
+        protected override void BuildClass(ClassBuilder classBuilder)
         {
-            base.BuildClass(classList);
-            classList.Add("card");
+            base.BuildClass(classBuilder);
+            classBuilder.Add("card");
         }
 
         protected override void BuildRenderTree(RenderTreeBuilder builder)
         {
             builder.OpenElement(0, "div");
-            builder.AddAttribute(1, "class", GetClass());
-            builder.AddAttribute(2, "style", GetStyle());
+            builder.AddMultipleAttributes(1, GetClassAndStyle());
 
             if(Header != null)
             {

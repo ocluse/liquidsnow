@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Rendering;
+﻿using Microsoft.AspNetCore.Components.Rendering;
 
 namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 {
@@ -10,9 +9,9 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 
         protected virtual string InputType { get; } = "text";
 
-        protected override void BuildInputClass(List<string> classList)
+        protected override void BuildInputClass(ClassBuilder classBuilder)
         {
-            classList.Add("textbox");
+            classBuilder.Add("textbox");
         }
 
         private string GetUpdateTrigger()
@@ -29,9 +28,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         {
             builder.OpenElement(0, "div");
 
-            builder.AddAttribute(1, "class", GetClass());
-
-
+            builder.AddMultipleAttributes(1, GetClassAndStyle());
 
             //Input itself
             BuildInput(builder);

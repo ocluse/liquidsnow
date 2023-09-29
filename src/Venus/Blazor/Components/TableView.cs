@@ -8,17 +8,16 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 
         protected override string ContainerElement { get; } = "table";
 
-
         [Parameter]
         public RenderFragment? HeaderTemplate { get; set; }
 
         [Parameter]
         public RenderFragment? FooterTemplate { get; set; }
 
-        protected override void BuildClass(List<string> classList)
+        protected override void BuildContainerClass(ClassBuilder builder)
         {
-            base.BuildClass(classList);
-            classList.Add("table");
+            base.BuildContainerClass(builder);
+            builder.Add("table");
         }
 
         protected override void BuildFound(RenderTreeBuilder builder)

@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.TagHelpers;
-using Microsoft.AspNetCore.Razor.TagHelpers;
-using System.Text.Encodings.Web;
+﻿using Microsoft.AspNetCore.Razor.TagHelpers;
 
 namespace Ocluse.LiquidSnow.Venus.Razor.TagHelpers
 {
@@ -12,60 +10,44 @@ namespace Ocluse.LiquidSnow.Venus.Razor.TagHelpers
 
         public string? Class { get; set; }
 
-        protected virtual void BuildStyle(List<string> styleList)
-        {
-        }
+        protected virtual void BuildStyle(StyleBuilder styleBuilder) { }
 
-        protected virtual void BuildClass(List<string> classList)
-        {
-        }
+        protected virtual void BuildClass(ClassBuilder classBuilder) { }
 
-        protected IEnumerable<string> GetStyle()
+        protected string GetStyle()
         {
-
-            List<string> styleList = new();
+            StyleBuilder styleBuilder = new();
 
             if (!string.IsNullOrEmpty(Margin))
             {
-                styleList.Add($"margin: {Margin.ParseThicknessValues()};");
+                styleBuilder.Add($"margin: {Margin.ParseThicknessValues()};");
             }
 
             if (!string.IsNullOrEmpty(Padding))
             {
-                styleList.Add($"padding: {Padding.ParseThicknessValues()};");
+                styleBuilder.Add($"padding: {Padding.ParseThicknessValues()};");
             }
 
-            BuildStyle(styleList);
+            BuildStyle(styleBuilder);
 
-            return styleList;
+            return styleBuilder.Build();
         }
 
-        protected IEnumerable<string> GetClass()
+        protected string GetClass()
         {
-            List<string> classList = new();
-            BuildClass(classList);
+            ClassBuilder classBuilder = new();
+            
+            BuildClass(classBuilder);
 
-            if (!string.IsNullOrEmpty(Class))
-            {
-                classList.AddRange(Class.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
-            }
+            classBuilder.Add(Class);
 
-
-            return classList;
+            return classBuilder.Build();
         }
 
-        protected void AddClassAndSetStyle(TagHelperOutput output)
+        protected void SetClassAndSetStyle(TagHelperOutput output)
         {
-            foreach (var cls in GetClass())
-            {
-                output.AddClass(cls, HtmlEncoder.Default);
-            }
-
-            var styles = GetStyle();
-            if (styles.Any())
-            {
-                output.Attributes.SetAttribute("style", string.Join(';', styles));
-            }
+            output.Attributes.SetAttribute("style", GetStyle());
+            output.Attributes.SetAttribute("class", GetClass());
         }
     }
 }

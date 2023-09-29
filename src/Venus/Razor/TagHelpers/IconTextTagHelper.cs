@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Razor.TagHelpers;
-using Ocluse.LiquidSnow.Venus.Services;
 
 namespace Ocluse.LiquidSnow.Venus.Razor.TagHelpers
 {
@@ -17,10 +16,10 @@ namespace Ocluse.LiquidSnow.Venus.Razor.TagHelpers
 
         public int TextStyle { get; set; } = Values.TextStyle.Body;
 
-        protected override void BuildClass(List<string> classList)
+        protected override void BuildClass(ClassBuilder classBuilder)
         {
-            base.BuildClass(classList);
-            classList.Add("icon-text");
+            base.BuildClass(classBuilder);
+            classBuilder.Add("icon-text");
         }
 
         public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
@@ -28,7 +27,7 @@ namespace Ocluse.LiquidSnow.Venus.Razor.TagHelpers
             var content = await output.GetChildContentAsync();
 
             output.TagName = "div";
-            AddClassAndSetStyle(output);
+            SetClassAndSetStyle(output);
 
             using var writer = new StringWriter();
 

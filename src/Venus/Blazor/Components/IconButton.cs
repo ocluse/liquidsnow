@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Rendering;
+﻿using Microsoft.AspNetCore.Components.Rendering;
 
 namespace Ocluse.LiquidSnow.Venus.Blazor.Components;
 
@@ -14,10 +13,10 @@ public class IconButton : ButtonBase
     [Parameter]
     public int StrokeWidth { get; set; } = FeatherIcon.STROKE_WIDTH;
 
-    protected override void BuildButtonClass(List<string> classList)
+    protected override void BuildButtonClass(ClassBuilder classBuilder)
     {
-        base.BuildButtonClass(classList);
-        classList.Add("icon-button");
+        base.BuildButtonClass(classBuilder);
+        classBuilder.Add("icon-button");
     }
     protected override void BuildContent(RenderTreeBuilder builder)
     {

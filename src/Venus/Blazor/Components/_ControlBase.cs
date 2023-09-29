@@ -11,16 +11,16 @@
         [Inject]
         public required IVenusResolver VenusResolver { get; set; }
 
-        protected override void BuildStyle(List<string> styleList)
+        protected override void BuildStyle(StyleBuilder styleBuilder)
         {
-            base.BuildStyle(styleList);
+            base.BuildStyle(styleBuilder);
             if (Color != null)
             {
-                styleList.Add($"color: {VenusResolver.ResolveColor(Color.Value)}");
+                styleBuilder.Add($"color: {VenusResolver.ResolveColor(Color.Value)}");
             }
             if (BackgroundColor != null)
             {
-                styleList.Add($"background-color: {VenusResolver.ResolveColor(BackgroundColor.Value)}");
+                styleBuilder.Add($"background-color: {VenusResolver.ResolveColor(BackgroundColor.Value)}");
             }
         }
     }

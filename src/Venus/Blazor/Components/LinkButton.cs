@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Rendering;
+﻿using Microsoft.AspNetCore.Components.Rendering;
 using Ocluse.LiquidSnow.Extensions;
 
 namespace Ocluse.LiquidSnow.Venus.Blazor.Components;
@@ -16,13 +15,13 @@ public class LinkButton : ButtonBase
     public RenderFragment? ChildContent { get; set; }
 
 
-    protected override void BuildButtonClass(List<string> classList)
+    protected override void BuildButtonClass(ClassBuilder classBuilder)
     {
-        base.BuildButtonClass(classList);
-        classList.Add("link");
+        base.BuildButtonClass(classBuilder);
+        classBuilder.Add("link");
         if (Hierarchy == TextHierarchy.Span)
         {
-            classList.Add($"text-{TextStyle.ToString().PascalToKebabCase()}");
+            classBuilder.Add($"text-{TextStyle.ToString().PascalToKebabCase()}");
         }
     }
 

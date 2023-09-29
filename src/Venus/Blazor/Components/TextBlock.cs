@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Rendering;
+﻿using Microsoft.AspNetCore.Components.Rendering;
 
 namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 {
@@ -18,13 +17,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         {
             builder.OpenElement(0, VenusResolver.ResolveTextHierarchy(Hierarchy));
 
-            Dictionary<string, object> attributes = new()
-            {
-                { "class", GetClass() },
-                {"style", GetStyle() },
-            };
-
-            builder.AddMultipleAttributes(1, attributes);
+            builder.AddMultipleAttributes(1, GetClassAndStyle());
 
             if (ChildContent != null)
             {
@@ -34,10 +27,10 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
             builder.CloseElement();
         }
 
-        protected override void BuildClass(List<string> classList)
+        protected override void BuildClass(ClassBuilder classBuilder)
         {
-            base.BuildClass(classList);
-            classList.Add(VenusResolver.ResolveTextStyle(TextStyle));
+            base.BuildClass(classBuilder);
+            classBuilder.Add(VenusResolver.ResolveTextStyle(TextStyle));
         }
     }
 }

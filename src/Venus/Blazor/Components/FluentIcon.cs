@@ -1,9 +1,4 @@
 ﻿using Microsoft.AspNetCore.Components.Rendering;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Ocluse.LiquidSnow.Venus.Blazor.Components;
 
@@ -23,19 +18,17 @@ public class FluentIcon : ControlBase
         {
             builder.OpenElement(0, "svg");
 
-            Dictionary<string, object> _attributes = new()
+            Dictionary<string, object> attributes = new()
             {
                 { "height", Size},
                 { "width", Size},
-                { "class", GetClass() },
-                { "style", GetStyle() },
                 { "xmlns", "http://www.w3.org/2000/svg" },
                 { "viewBox", $"0 0 {ViewBox} {ViewBox}" },
                 { "fill", "currentColor" }
             };
 
-            builder.AddMultipleAttributes(1, _attributes);
-
+            builder.AddMultipleAttributes(1, attributes);
+            builder.AddMultipleAttributes(2, GetClassAndStyle());
             MarkupString content = new(Icon);
 
             builder.AddContent(3, content);

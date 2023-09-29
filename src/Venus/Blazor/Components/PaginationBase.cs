@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
-
-namespace Ocluse.LiquidSnow.Venus.Blazor.Components
+﻿namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 {
     public class PaginationBase : ControlBase
     {
@@ -10,10 +8,10 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         [Parameter]
         public RenderFragment? PaginationBackContent { get; set; }
 
-        protected override void BuildClass(List<string> classList)
+        protected override void BuildClass(ClassBuilder classBuilder)
         {
-            classList.Add("pagination");
-            base.BuildClass(classList);
+            classBuilder.Add("pagination");
+            base.BuildClass(classBuilder);
         }
     }
 }

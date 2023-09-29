@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Rendering;
+﻿using Microsoft.AspNetCore.Components.Rendering;
 
 namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 {
@@ -22,16 +21,16 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
             return (T?)value;
         }
 
-        protected override void BuildInputClass(List<string> classList)
+        protected override void BuildInputClass(ClassBuilder classBuilder)
         {
-            base.BuildInputClass(classList);
-            classList.Add("chip-select");
+            base.BuildInputClass(classBuilder);
+            classBuilder.Add("chip-select");
         }
 
         protected override void BuildRenderTree(RenderTreeBuilder builder)
         {
             builder.OpenElement(0, "div");
-            builder.AddAttribute(1, "class", GetClass());
+            builder.AddMultipleAttributes(1, GetClassAndStyle());
             if (Items != null)
             {
                 foreach (T item in Items)
