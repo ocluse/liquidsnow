@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Razor.TagHelpers;
-using Ocluse.LiquidSnow.Venus.Services;
 
 namespace Ocluse.LiquidSnow.Venus.Razor.TagHelpers
 {
@@ -12,13 +11,13 @@ namespace Ocluse.LiquidSnow.Venus.Razor.TagHelpers
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
             output.TagName = "div";
-            AddClassAndSetStyle(output);
+            SetClassAndSetStyle(output);
         }
 
-        protected override void BuildClass(List<string> classList)
+        protected override void BuildClass(ClassBuilder classBuilder)
         {
-            base.BuildClass(classList);
-            classList.Add("reading-container");
+            base.BuildClass(classBuilder);
+            classBuilder.Add("reading-container");
         }
     }
 }

@@ -1,6 +1,4 @@
-﻿using Ocluse.LiquidSnow.Venus.Blazor.Models;
-
-namespace Ocluse.LiquidSnow.Venus.Blazor.Contracts
+﻿namespace Ocluse.LiquidSnow.Venus.Blazor.Contracts
 {
     public interface ISnackbarHost
     {

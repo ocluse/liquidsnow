@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Rendering;
+﻿using Microsoft.AspNetCore.Components.Rendering;
 
 namespace Ocluse.LiquidSnow.Venus.Blazor.Components;
 
@@ -20,20 +19,20 @@ public abstract class ButtonBase : ControlBase
     [Parameter]
     public string? DisabledClass { get; set; }
 
-    protected virtual void BuildButtonClass(List<string> classList)
+    protected virtual void BuildButtonClass(ClassBuilder classBuilder)
     {
 
     }
 
-    protected override sealed void BuildClass(List<string> classList)
+    protected override sealed void BuildClass(ClassBuilder classBuilder)
     {
-        base.BuildClass(classList);
+        base.BuildClass(classBuilder);
 
-        BuildButtonClass(classList);
+        BuildButtonClass(classBuilder);
 
         if (Disabled)
         {
-            classList.Add(DisabledClass ?? "disabled");
+            classBuilder.Add(DisabledClass ?? "disabled");
         }
     }
 
@@ -42,10 +41,13 @@ public abstract class ButtonBase : ControlBase
         builder.OpenElement(0, "a");
         Dictionary<string, object> attributes = new()
         {
-            { "class", GetClass() },
-            {"style", GetStyle() },
             {"onclick", OnClick },
         };
+
+        foreach(var attr in GetClassAndStyle())
+        {
+            attributes.Add(attr.Key, attr.Value);
+        }
 
         if(Disabled)
         {

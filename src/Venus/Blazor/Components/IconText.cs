@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Rendering;
+﻿using Microsoft.AspNetCore.Components.Rendering;
 
 namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 {
@@ -24,12 +23,8 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         protected override void BuildRenderTree(RenderTreeBuilder builder)
         {
             builder.OpenElement(0, "div");
-            Dictionary<string, object> attributes = new()
-            {
-                { "class", GetClass() },
-                {"style", GetStyle() },
-            };
-            builder.AddMultipleAttributes(1, attributes);
+
+            builder.AddMultipleAttributes(1, GetClassAndStyle());
             if (Icon != null)
             {
                 builder.OpenComponent<FeatherIcon>(2);
@@ -54,10 +49,10 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
             builder.CloseElement();
         }
 
-        protected override void BuildClass(List<string> classList)
+        protected override void BuildClass(ClassBuilder classBuilder)
         {
-            base.BuildClass(classList);
-            classList.Add("icon-text");
+            base.BuildClass(classBuilder);
+            classBuilder.Add("icon-text");
         }
     }
 }

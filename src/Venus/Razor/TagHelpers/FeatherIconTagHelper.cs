@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Razor.TagHelpers;
 
-using Ocluse.LiquidSnow.Venus.Services;
-
 namespace Ocluse.LiquidSnow.Venus.Razor.TagHelpers
 {
     [HtmlTargetElement("feather-icon", TagStructure = TagStructure.WithoutEndTag)]
@@ -19,7 +17,7 @@ namespace Ocluse.LiquidSnow.Venus.Razor.TagHelpers
         {
             output.TagName = "svg";
 
-            AddClassAndSetStyle(output);
+            SetClassAndSetStyle(output);
 
             output.Attributes.Add("height", Size);
             output.Attributes.Add("width", Size);

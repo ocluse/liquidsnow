@@ -2,7 +2,7 @@
 @implements IDropdown
 @inherits ControlBase
 
-<div class="@GetClass()" @onclick="Clicked" @onclick:stopPropagation=true>
+<div class="@GetClass()" style="@GetStyle()" @onclick="Clicked" @onclick:stopPropagation=true>
     <div class="dropdown-content">
         <FeatherIcon Size="DefaultSize.Size18" Icon="@Icon" />
         @if (Value != null)
@@ -95,19 +95,19 @@
        });
     }
 
-    protected override void BuildClass(List<string> classList)
+    protected override void BuildClass(ClassBuilder classBuilder)
     {
-        base.BuildClass(classList);
+        base.BuildClass(classBuilder);
 
-        classList.Add("filter-dropdown");
+        classBuilder.Add("filter-dropdown");
 
         if(_isOpen)
         {
-            classList.Add("open");
+            classBuilder.Add("open");
         }
         else
         {
-            classList.Add("closed");
+            classBuilder.Add("closed");
         }
     }
 }

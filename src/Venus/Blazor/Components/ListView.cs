@@ -1,13 +1,10 @@
-﻿using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Rendering;
-
-namespace Ocluse.LiquidSnow.Venus.Blazor.Components;
+﻿namespace Ocluse.LiquidSnow.Venus.Blazor.Components;
 
 public class ListView<T> : ItemsControl<T>
 {
-    protected override void BuildClass(List<string> classList)
+    protected override void BuildContainerClass(ClassBuilder builder)
     {
-        base.BuildClass(classList);
-        classList.Add("list");
+        base.BuildContainerClass(builder);
+        builder.Add("list");
     }
 }

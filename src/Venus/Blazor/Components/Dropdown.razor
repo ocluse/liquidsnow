@@ -2,7 +2,7 @@
 @inherits InputBase<T>
 @implements IDropdown
 
-<div class="@GetClass()" @onclick="Clicked" @onclick:stopPropagation=!Disabled>
+<div class="@GetClass()" style="@GetStyle()" @onclick="Clicked" @onclick:stopPropagation=!Disabled>
     <div class="dropdown-content">
         @if (Value != null)
         {
@@ -115,19 +115,19 @@
        });
     }
 
-    protected override void BuildInputClass(List<string> classList)
+    protected override void BuildInputClass(ClassBuilder classBuilder)
     {
-        base.BuildInputClass(classList);
+        base.BuildInputClass(classBuilder);
 
-        classList.Add("dropdown");
+        classBuilder.Add("dropdown");
 
         if (_isOpen)
         {
-            classList.Add(OpenClass ?? "open");
+            classBuilder.Add(OpenClass ?? "open");
         }
         else
         {
-            classList.Add(ClosedClass ?? "closed");
+            classBuilder.Add(ClosedClass ?? "closed");
         }
     }
 

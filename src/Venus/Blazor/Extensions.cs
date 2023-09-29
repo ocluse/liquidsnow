@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Ocluse.LiquidSnow.Venus.Blazor
+﻿namespace Ocluse.LiquidSnow.Venus.Blazor
 {
     internal static class Extensions
     {

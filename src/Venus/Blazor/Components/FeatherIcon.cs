@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Rendering;
+﻿using Microsoft.AspNetCore.Components.Rendering;
 
 namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 {
@@ -22,12 +21,10 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
             {
                 builder.OpenElement(0, "svg");
 
-                Dictionary<string, object> _attributes = new()
+                Dictionary<string, object> attributes = new()
                 {
                     { "height", Size},
                     { "width", Size},
-                    { "class", GetClass() },
-                    { "style", GetStyle() },
                     { "xmlns", "http://www.w3.org/2000/svg" },
                     { "viewBox", "0 0 24 24" },
                     { "fill", "none" },
@@ -37,7 +34,8 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
                     { "stroke-linejoin", "round"}
                 };
 
-                builder.AddMultipleAttributes(1, _attributes);
+                builder.AddMultipleAttributes(1, attributes);
+                builder.AddMultipleAttributes(2, GetClassAndStyle());
 
                 MarkupString content = new(Icon);
 

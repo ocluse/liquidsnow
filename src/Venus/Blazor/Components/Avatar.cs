@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Rendering;
+﻿using Microsoft.AspNetCore.Components.Rendering;
 
 namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 {
@@ -17,10 +16,10 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         [Parameter]
         public string? SrcOnError { get; set; } = "/images/anonymous.svg";
 
-        protected override void BuildClass(List<string> classList)
+        protected override void BuildClass(ClassBuilder classBuilder)
         {
-            base.BuildClass(classList);
-            classList.Add("avatar");
+            base.BuildClass(classBuilder);
+            classBuilder.Add("avatar");
         }
 
         protected override void BuildRenderTree(RenderTreeBuilder builder)
@@ -33,7 +32,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
             builder.AddAttribute(2, "height", Size);
             builder.AddAttribute(2, "width", Size);
             builder.AddAttribute(3, "onerror", $"this.src ='{SrcOnError}';this.onerror=''");
-            builder.AddAttribute(4, "class", GetClass());
+            builder.AddMultipleAttributes(4, GetClassAndStyle());
             builder.CloseElement();
         }
     }

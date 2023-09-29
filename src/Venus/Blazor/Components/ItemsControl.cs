@@ -19,6 +19,10 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         #endregion
 
         #region Parameters
+
+        [Parameter]
+        public string? ContainerClass { get; set; }
+
         [Parameter]
         public string? ItemClass { get; set; }
 
@@ -94,15 +98,30 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
             return Items?.Any() == true ? ContainerState.Found : ContainerState.Empty;
         }
 
-        protected override void BuildClass(List<string> classList)
+        protected override void BuildClass(ClassBuilder classBuilder)
         {
-            base.BuildClass(classList);
-            classList.Add("items-control");
+            base.BuildClass(classBuilder);
+            classBuilder.Add("items-control");
         }
 
         protected virtual string GetItemClass()
         {
             return $"item-view {ItemClass}";
+        }
+        
+        protected virtual void BuildContainerClass(ClassBuilder builder)
+        {
+            builder.Add(ContainerClass);
+            builder.Add("items-container");
+        }
+
+        protected virtual void BuildItemClass(ClassBuilder builder)
+        {
+            builder.Add(GetItemClass());
+        }
+
+        protected virtual void BuildContainerStyles(StyleBuilder builder)
+        {
         }
 
         private Task FilterChanged(FilterOption? option)
@@ -202,13 +221,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         {
             builder.OpenElement(0, "div");
 
-            Dictionary<string, object> attributes = new()
-            {
-                { "class", GetClass() },
-                {"style", GetStyle() },
-            };
-
-            builder.AddMultipleAttributes(1, attributes);
+            builder.AddMultipleAttributes(1, GetClassAndStyle());
 
             if (Header != null || FiltrationOptions != null)
             {
@@ -246,8 +259,15 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
                 builder.CloseElement();
             }
 
+            ClassBuilder containerClass = new();
+            StyleBuilder containerStyle = new();
+
+            BuildContainerClass(containerClass);
+            BuildContainerStyles(containerStyle);
+
             builder.OpenElement(20, ContainerElement);
-            builder.AddAttribute(21, "class", "items-container");
+            builder.AddAttribute(21, "class", containerClass.Build());
+            builder.AddAttribute(22, "style", containerStyle.Build());
             BuildContainer(builder);
             builder.CloseElement();
 

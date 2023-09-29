@@ -26,15 +26,15 @@ public class GridView<T> : ItemsControl<T>, IGrid
     [Parameter]
     public double? RowGap { get; set; }
 
-    protected override void BuildClass(List<string> classList)
+    protected override void BuildContainerClass(ClassBuilder builder)
     {
-        base.BuildClass(classList);
-        classList.Add("grid");
+        base.BuildContainerClass(builder);
+        builder.Add("grid");
     }
 
-    protected override void BuildStyle(List<string> styleList)
+    protected override void BuildContainerStyles(StyleBuilder builder)
     {
-        base.BuildStyle(styleList);
-        styleList.AddRange(this.GetGridStyles());
+        base.BuildContainerStyles(builder);
+        builder.AddAll(this.GetGridStyles());
     }
 }

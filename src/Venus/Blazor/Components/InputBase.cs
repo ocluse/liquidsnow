@@ -107,34 +107,34 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
             }
         }
 
-        protected override sealed void BuildClass(List<string> classList)
+        protected override sealed void BuildClass(ClassBuilder classBuilder)
         {
-            base.BuildClass(classList);
+            base.BuildClass(classBuilder);
 
-            BuildInputClass(classList);
+            BuildInputClass(classBuilder);
 
             if (!ValidationResult.Success)
             {
-                classList.Add("error");
+                classBuilder.Add("error");
             }
 
             if (Disabled)
             {
-                classList.Add(DisabledClass ?? "disabled");
+                classBuilder.Add(DisabledClass ?? "disabled");
             }
 
             if (ReadOnly)
             {
-                classList.Add(ReadOnlyClass ?? "read-only");
+                classBuilder.Add(ReadOnlyClass ?? "read-only");
             }
 
             if (Value != null)
             {
-                classList.Add(HasValueClass ?? "has-value");
+                classBuilder.Add(HasValueClass ?? "has-value");
             }
         }
 
-        protected virtual void BuildInputClass(List<string> classList)
+        protected virtual void BuildInputClass(ClassBuilder classBuilder)
         {
 
         }

@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Rendering;
+﻿using Microsoft.AspNetCore.Components.Rendering;
 
 namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 {
@@ -9,18 +8,17 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         public RenderFragment? ChildContent { get; set; }
 
         
-        protected override void BuildClass(List<string> classList)
+        protected override void BuildClass(ClassBuilder classBuilder)
         {
-            base.BuildClass(classList);
+            base.BuildClass(classBuilder);
 
-            classList.Add("form-container");
+            classBuilder.Add("form-container");
         }
 
         protected override void BuildRenderTree(RenderTreeBuilder builder)
         {
             builder.OpenElement(0, "div");
-            builder.AddAttribute(1, "class", GetClass());
-            builder.AddAttribute(1, "style", GetStyle());
+            builder.AddMultipleAttributes(1, GetClassAndStyle());
             builder.AddContent(2, ChildContent);
             builder.CloseElement();
         }

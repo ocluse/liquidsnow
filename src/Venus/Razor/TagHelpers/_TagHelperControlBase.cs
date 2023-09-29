@@ -1,6 +1,4 @@
-﻿using Ocluse.LiquidSnow.Venus.Contracts;
-
-namespace Ocluse.LiquidSnow.Venus.Razor.TagHelpers
+﻿namespace Ocluse.LiquidSnow.Venus.Razor.TagHelpers
 {
     public abstract class TagHelperControlBase : TagHelperElementBase
     {
@@ -15,16 +13,16 @@ namespace Ocluse.LiquidSnow.Venus.Razor.TagHelpers
             _resolver = resolver;
         }
 
-        protected override void BuildStyle(List<string> styleList)
+        protected override void BuildStyle(StyleBuilder styleBuilder)
         {
-            base.BuildStyle(styleList);
+            base.BuildStyle(styleBuilder);
             if (Color != null)
             {
-                styleList.Add($"color: {_resolver.ResolveColor(Color.Value)}");
+                styleBuilder.Add($"color: {_resolver.ResolveColor(Color.Value)}");
             }
             if (BackgroundColor != null)
             {
-                styleList.Add($"background-color: {_resolver.ResolveColor(BackgroundColor.Value)}");
+                styleBuilder.Add($"background-color: {_resolver.ResolveColor(BackgroundColor.Value)}");
             }
         }
     }

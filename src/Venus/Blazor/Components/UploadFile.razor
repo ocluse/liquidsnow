@@ -29,15 +29,11 @@
 @code {
     private bool _isDragging;
 
-    protected override void BuildClass(List<string> classList)
+    protected override void BuildClass(ClassBuilder classBuilder)
     {
-        base.BuildClass(classList);
-        classList.Add("upload-file");
-
-        if (_isDragging)
-        {
-            classList.Add(DragClass);
-        }
+        base.BuildClass(classBuilder);
+        classBuilder.Add("upload-file");
+        classBuilder.AddIf(_isDragging, DragClass);
     }
 
     [Parameter]

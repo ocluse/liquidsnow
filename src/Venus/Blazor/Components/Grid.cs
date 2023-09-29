@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Components.Rendering;
-using Microsoft.AspNetCore.Components;
 
 namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 {
@@ -36,13 +35,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         {
             builder.OpenElement(0, "div");
 
-            Dictionary<string, object> attributes = new()
-            {
-                { "class", GetClass() },
-                {"style", GetStyle() },
-            };
-
-            builder.AddMultipleAttributes(1, attributes);
+            builder.AddMultipleAttributes(1, GetClassAndStyle());
 
             BuildContent(builder);
 
@@ -57,16 +50,16 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
             }
         }
 
-        protected override void BuildClass(List<string> classList)
+        protected override void BuildClass(ClassBuilder classBuilder)
         {
-            base.BuildClass(classList);
-            classList.Add("grid");
+            base.BuildClass(classBuilder);
+            classBuilder.Add("grid");
         }
 
-        protected override void BuildStyle(List<string> styleList)
+        protected override void BuildStyle(StyleBuilder styleBuilder)
         {
-            base.BuildStyle(styleList);
-            styleList.AddRange(this.GetGridStyles());
+            base.BuildStyle(styleBuilder);
+            styleBuilder.AddAll(this.GetGridStyles());
         }
     }
 }

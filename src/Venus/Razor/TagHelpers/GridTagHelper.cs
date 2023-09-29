@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Razor.TagHelpers;
-using Ocluse.LiquidSnow.Venus.Services;
 
 namespace Ocluse.LiquidSnow.Venus.Razor.TagHelpers
 {
@@ -29,19 +28,19 @@ namespace Ocluse.LiquidSnow.Venus.Razor.TagHelpers
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
             output.TagName = "div";
-            AddClassAndSetStyle(output);
+            SetClassAndSetStyle(output);
         }
 
-        protected override void BuildClass(List<string> classList)
+        protected override void BuildClass(ClassBuilder classBuilder)
         {
-            base.BuildClass(classList);
-            classList.Add("grid");
+            base.BuildClass(classBuilder);
+            classBuilder.Add("grid");
         }
 
-        protected override void BuildStyle(List<string> styleList)
+        protected override void BuildStyle(StyleBuilder styleBuilder)
         {
-            base.BuildStyle(styleList);
-            styleList.AddRange(this.GetGridStyles());
+            base.BuildStyle(styleBuilder);
+            styleBuilder.AddAll(this.GetGridStyles());
         }
 
 

@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
-
-namespace Ocluse.LiquidSnow.Venus.Blazor.Components
+﻿namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 {
     public abstract class ElementBase : ComponentBase
     {
@@ -13,60 +11,55 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         [Parameter]
         public string? Class { get; set; }
 
-        protected virtual void BuildStyle(List<string> styleList)
-        {
-        }
+        [Parameter]
+        public string? Style { get; set; }
 
-        protected virtual void BuildClass(List<string> classList)
-        {
-        }
+        protected virtual void BuildStyle(StyleBuilder builder) { }
+
+        protected virtual void BuildClass(ClassBuilder builder) { }
 
         protected string GetStyle()
         {
 
-            List<string> styleList = new();
+            StyleBuilder styleBuilder = new();
 
             if (!string.IsNullOrEmpty(Margin))
             {
-                styleList.Add($"margin: {Margin.ParseThicknessValues()};");
+                styleBuilder.Add($"margin: {Margin.ParseThicknessValues()};");
             }
 
             if (!string.IsNullOrEmpty(Padding))
             {
-                styleList.Add($"padding: {Padding.ParseThicknessValues()};");
+                styleBuilder.Add($"padding: {Padding.ParseThicknessValues()};");
             }
 
-            BuildStyle(styleList);
+            BuildStyle(styleBuilder);
 
-            if (styleList.Count > 0)
-            {
-                return string.Join(';', styleList);
-            }
-            else
-            {
-                return string.Empty;
-            }
+            styleBuilder.Add(Style);
+
+            return styleBuilder.Build();
         }
 
         protected string GetClass()
         {
-            List<string> classList = new();
-            BuildClass(classList);
+            ClassBuilder classBuilder = new();
 
-            if (!string.IsNullOrEmpty(Class))
-            {
-                classList.Add(Class);
-            }
+            BuildClass(classBuilder);
 
-            if (classList.Count > 0)
-            {
-                return string.Join(" ", classList);
+            classBuilder.Add(Class);
 
-            }
-            else
+            return classBuilder.Build();
+
+        }
+
+        protected Dictionary<string, object> GetClassAndStyle()
+        {
+            Dictionary<string, object> attributes = new()
             {
-                return string.Empty;
-            }
+                { "class", GetClass() },
+                {"style", GetStyle() },
+            };
+            return attributes;
         }
     }
 }

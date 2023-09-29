@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Razor.TagHelpers;
-using Ocluse.LiquidSnow.Venus.Services;
 
 namespace Ocluse.LiquidSnow.Venus.Razor.TagHelpers
 {
@@ -12,14 +11,14 @@ namespace Ocluse.LiquidSnow.Venus.Razor.TagHelpers
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
             output.TagName = "h2";
-            AddClassAndSetStyle(output);
+            SetClassAndSetStyle(output);
         }
 
-        protected override void BuildClass(List<string> classList)
+        protected override void BuildClass(ClassBuilder classBuilder)
         {
-            base.BuildClass(classList);
-            classList.Add(_resolver.ResolveTextStyle(TextStyle.Subtitle));
-            classList.Add("heading");
+            base.BuildClass(classBuilder);
+            classBuilder.Add(_resolver.ResolveTextStyle(TextStyle.Subtitle));
+            classBuilder.Add("heading");
         }
     }
 
@@ -38,10 +37,10 @@ namespace Ocluse.LiquidSnow.Venus.Razor.TagHelpers
 
         public string? SrcOnError { get; set; } = "/images/anonymous.svg";
 
-        protected override void BuildClass(List<string> classList)
+        protected override void BuildClass(ClassBuilder classBuilder)
         {
-            base.BuildClass(classList);
-            classList.Add("avatar");
+            base.BuildClass(classBuilder);
+            classBuilder.Add("avatar");
         }
 
 
@@ -51,7 +50,7 @@ namespace Ocluse.LiquidSnow.Venus.Razor.TagHelpers
 
             string src = string.IsNullOrEmpty(UserId) ? Src : _resolver.ResolveAvatarId(UserId);
 
-            AddClassAndSetStyle(output);
+            SetClassAndSetStyle(output);
 
             output.Attributes.Add("src", src);
             output.Attributes.Add("height", Size);

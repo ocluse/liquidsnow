@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
-using Ocluse.LiquidSnow.Extensions;
+﻿using Ocluse.LiquidSnow.Extensions;
 
 namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 {
