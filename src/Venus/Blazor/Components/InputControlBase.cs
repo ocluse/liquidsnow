@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components.Rendering;
+using Microsoft.AspNetCore.Components.Web;
 
 namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 {
@@ -6,6 +7,12 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
     {
         [Parameter]
         public UpdateTrigger UpdateTrigger { get; set; } = UpdateTrigger.OnChange;
+
+        [Parameter]
+        public EventCallback<KeyboardEventArgs> OnKeyDown { get; set; }
+
+        [Parameter]
+        public EventCallback OnReturn { get; set; }
 
         protected virtual string InputType { get; } = "text";
 
@@ -61,15 +68,15 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
             builder.AddAttribute(14, "type", InputType);
             builder.AddAttribute(15, GetUpdateTrigger(), OnChange);
             builder.AddAttribute(16, "value", GetInputDisplayValue(Value));
-
+            builder.AddAttribute(17, "onkeydown", EventCallback.Factory.Create<KeyboardEventArgs>(this, KeyDown));
             if (Disabled)
             {
-                builder.AddAttribute(17, "disabled");
+                builder.AddAttribute(18, "disabled");
             }
 
             if (ReadOnly)
             {
-                builder.AddAttribute(18, "readonly");
+                builder.AddAttribute(19, "readonly");
             }
 
             builder.CloseElement();
@@ -78,6 +85,15 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         protected virtual object? GetInputDisplayValue(T? value)
         {
             return value;
+        }
+
+        private async Task KeyDown(KeyboardEventArgs e)
+        {
+            if (e.Key == "Enter" || e.Code == "NumpadEnter")
+            {
+                await OnReturn.InvokeAsync();
+            }
+            await OnKeyDown.InvokeAsync(e);
         }
     }
 }
