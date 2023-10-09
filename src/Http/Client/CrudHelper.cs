@@ -15,15 +15,14 @@ namespace Ocluse.LiquidSnow.Http.Client
         /// <summary>
         /// Sends a request to query for a list of resources using offset paging.
         /// </summary>
-        public static async Task<QueryResult<TModel>> QueryAsync<TCreate, TUpdate, TList, TModel>(
-            this CrudRequestBuilder<TCreate, TUpdate, TList, TModel> crudBuilder,
+        public static async Task<QueryResult<TResult>> QueryAsync<TQuery, TResult>(
+            this IListRequestBuilder<TQuery, TResult> crudBuilder,
             int page,
             string? search = null,
             int? pageSize = null)
-            where TUpdate : IKeyCommand<TModel>
-            where TList : ListQuery<TModel>
+            where TQuery : ListQuery<TResult>
         {
-            TList query = Activator.CreateInstance<TList>();
+            TQuery query = Activator.CreateInstance<TQuery>();
             query.Page = page;
             query.Search = search;
             query.Size = pageSize ?? DefaultPageSize;
@@ -35,14 +34,13 @@ namespace Ocluse.LiquidSnow.Http.Client
         /// <summary>
         /// Sends a request to query for a list of resources using cursor paging.
         /// </summary>
-        public static async Task<QueryResult<TModel>> QueryAsync<TCreate, TUpdate, TList, TModel>(
-            this CrudRequestBuilder<TCreate, TUpdate, TList, TModel> crudBuilder,
+        public static async Task<QueryResult<TResult>> QueryAsync<TQuery, TResult>(
+            this IListRequestBuilder<TQuery, TResult> crudBuilder,
             string? cursor,
             int? pageSize = null)
-            where TUpdate : IKeyCommand<TModel>
-            where TList : ListQuery<TModel>
+            where TQuery : ListQuery<TResult>
         {
-            TList query = Activator.CreateInstance<TList>();
+            TQuery query = Activator.CreateInstance<TQuery>();
             query.Cursor = cursor;
             query.Size = pageSize ?? DefaultPageSize;
             query.QType = QueryType.Cursor;
