@@ -61,9 +61,9 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 
         protected async Task OnChange(ChangeEventArgs e)
         {
-            Value = GetValue(e.Value);
+            var newValue = GetValue(e.Value);
 
-            await ValueChanged.InvokeAsync(Value);
+            await ValueChanged.InvokeAsync(newValue);
 
             _debounceSubscription?.Dispose();
 
