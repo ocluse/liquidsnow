@@ -29,8 +29,10 @@ namespace Ocluse.LiquidSnow.Events.Internal
             await (Task)handleMethodInfo.Invoke(handler, handleMethodArgs);
         }
 
-        public async Task Publish(IEvent ev, CancellationToken cancellationToken = default)
+        public async Task Publish(IEvent ev, PublishStrategy? strategy = null, CancellationToken cancellationToken = default)
         {
+            strategy ??= _strategy;
+
             Type eventType = ev.GetType();
 
             Type eventHandlerType = typeof(IEventHandler<>).MakeGenericType(eventType);
@@ -46,26 +48,42 @@ namespace Ocluse.LiquidSnow.Events.Internal
 
             List<TaskCompletionSource<bool>> handleTasks = new List<TaskCompletionSource<bool>>();
 
-            if (_strategy == PublishStrategy.Sequential)
+            if (strategy == PublishStrategy.Sequential)
             {
+                List<Exception> exceptions = new();
+
                 foreach (object? handler in handlers)
                 {
-                    await ExecuteHandler(handler, handleMethodInfo, handleMethodArgs);
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    try
+                    {
+                        await ExecuteHandler(handler, handleMethodInfo, handleMethodArgs);
+                    }
+                    catch (Exception ex)
+                    {
+                        exceptions.Add(ex);
+                    }
+                }
+
+                if (exceptions.Count > 1)
+                {
+                    throw new AggregateException(exceptions);
                 }
             }
-            else if (_strategy == PublishStrategy.FireAndForget)
+            else if (strategy == PublishStrategy.FireAndForget)
             {
                 foreach (object? handler in handlers)
                 {
                     _ = ExecuteHandler(handler, handleMethodInfo, handleMethodArgs);
                 }
             }
-            else if (_strategy == PublishStrategy.Parallel)
+            else if (strategy == PublishStrategy.Parallel)
             {
                 await Task.WhenAll(handlers.Select(
                     handler => ExecuteHandler(handler, handleMethodInfo, handleMethodArgs)));
             }
-            else if (_strategy == PublishStrategy.FireAndForgetAfterFirst)
+            else if (strategy == PublishStrategy.FireAndForgetAfterFirst)
             {
                 await Task.WhenAny(handlers.Select(
                     handler => ExecuteHandler(handler, handleMethodInfo, handleMethodArgs)))

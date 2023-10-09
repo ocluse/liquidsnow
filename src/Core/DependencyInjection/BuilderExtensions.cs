@@ -72,7 +72,7 @@ namespace Ocluse.LiquidSnow.DependencyInjection
             Assembly assembly, 
             ServiceLifetime busLifetime = ServiceLifetime.Scoped, 
             ServiceLifetime handlerLifetime = ServiceLifetime.Transient, 
-            PublishStrategy publishStrategy = PublishStrategy.FireAndForget)
+            PublishStrategy publishStrategy = PublishStrategy.Sequential)
         {
             var options = new EventBusOptions() { PublishStrategy = publishStrategy };
             services.TryAddSingleton(options);
