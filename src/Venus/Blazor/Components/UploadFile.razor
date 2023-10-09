@@ -6,14 +6,7 @@
         @ChildContent
     }
     <div class="dropzone">
-        @if (AllowMultiple)
-        {
-            <InputFile OnChange="OnFilesChanged" multiple />
-        }
-        else
-        {
-            <InputFile OnChange="OnFilesChanged" />
-        }
+        <InputFile OnChange="OnFilesChanged" AdditionalAttributes="GetAttributes()" />
 
         @if (MessageContent != null)
         {
@@ -43,7 +36,10 @@
     public EventCallback<InputFileChangeEventArgs> OnFilesChanged { get; set; }
 
     [Parameter]
-    public bool AllowMultiple { get; set; } = true;
+    public bool Multiple { get; set; } = true;
+
+    [Parameter]
+    public string? Accept { get; set; }
 
     [Parameter]
     public RenderFragment? MessageContent { get; set; }
@@ -59,5 +55,19 @@
     private void OnDragLeave()
     {
         _isDragging = false;
+    }
+
+    private Dictionary<string, object> GetAttributes()
+    {
+        var attributes = new Dictionary<string, object>();
+        if (Multiple)
+        {
+            attributes.Add("multiple", "multiple");
+        }
+        if (Accept != null)
+        {
+            attributes.Add("accept", Accept);
+        }
+        return attributes;
     }
 }

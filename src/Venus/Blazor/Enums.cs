@@ -5,16 +5,15 @@
     {
         Text,
         Email,
-        File,
-        Date,
-        DateTimeLocal,
-        Hidden,
-        Image,
-        Month,
+        Tel,
+        Search,
         Number,
         Password,
+        Date,
+        DatetimeLocal,
         Week,
-        Tel
+        Month,
+        Color,
     }
 
     public enum Ordering

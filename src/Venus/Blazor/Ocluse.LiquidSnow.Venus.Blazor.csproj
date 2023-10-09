@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
 	<Nullable>enable</Nullable>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-	<Version>0.3.0-preview3.6</Version>
+	<Version>0.3.0-preview4.5</Version>
 	<Authors>Ocluse</Authors>
 	<PackageOutputPath>..\..\..\build</PackageOutputPath>
 	<Description>Utilities for quickly bootsrapping UI for Blazor using Ocluse's Venus design patterns.</Description>
