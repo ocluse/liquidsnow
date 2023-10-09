@@ -8,7 +8,11 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 
         private object? _nextCursor, _previousCursor;
 
-        private FilterOption? _selectedFilterOption, _selectedSortOption;
+        private object? _cursor;
+
+        private int _page;
+
+        private PaginationState _paginationState = new(0, null, null, Blazor.Ordering.Ascending);
 
         #region Properties
 
@@ -45,19 +49,22 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         public Func<OffsetPaginationState, Task<OffsetListViewData<T>>>? OffsetFetch { get; set; }
 
         [Parameter]
+        public object? Cursor { get; set; }
+
+        [Parameter]
+        public int Page { get; set; }
+
+        [Parameter]
         public int? PageSize { get; set; }
 
         [Parameter]
-        public OffsetPaginationState OffsetPaginationState { get; set; } = new();
+        public object? Sort { get; set; }
 
         [Parameter]
-        public EventCallback<OffsetPaginationState> OffsetPaginationStateChanged { get; set; }
+        public object? Filter { get; set; }
 
         [Parameter]
-        public CursorPaginationState CursorPaginationState { get; set; } = new();
-
-        [Parameter]
-        public EventCallback<CursorPaginationState> CursorPaginationStateChanged { get; set; }
+        public Ordering? Ordering { get; set; }
 
         [Parameter]
         public string? DisplayMemberPath { get; set; }
@@ -69,30 +76,47 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         public EventCallback<T> ItemClicked { get; set; }
         #endregion
 
-        protected override async Task OnParametersSetAsync()
+        protected override void OnInitialized()
         {
-            if (CursorFetch == null && OffsetFetch == null)
-            {
-                await ReloadData();
-            }
+            _cursor = Cursor;
+            _page = Page;
+            _paginationState = new(
+                PageSize: PageSize ?? Resolver.DefaultPageSize,
+                Sort: Sort ?? FiltrationOptions?.DefaultSort.Value,
+                Filter: Filter ?? FiltrationOptions?.DefaultFilter.Value,
+                Ordering: Ordering ?? FiltrationOptions?.DefaultSort.Ordering ?? Blazor.Ordering.Ascending);
+
+            base.OnInitialized();
         }
 
         protected override async Task<int> FetchDataAsync()
         {
             if (CursorFetch != null)
             {
-                var result = await CursorFetch.Invoke(CursorPaginationState);
+                CursorPaginationState state = new(
+                    _cursor, 
+                    _paginationState.PageSize, 
+                    _paginationState.Sort, 
+                    _paginationState.Filter, 
+                    _paginationState.Ordering);
+
+                var result = await CursorFetch.Invoke(state);
                 Items = result.Items;
                 _nextCursor = result.NextCursor;
                 _previousCursor = result.PreviousCursor;
             }
             else if (OffsetFetch != null)
             {
-                var state = OffsetPaginationState.Copy();
-                state.WithPageSize(PageSize ?? state.PageSize);
+                OffsetPaginationState state = new(
+                    _page, 
+                    _paginationState.PageSize, 
+                    _paginationState.Sort, 
+                    _paginationState.Filter, 
+                    _paginationState.Ordering);
+
                 var result = await OffsetFetch.Invoke(state);
                 Items = result.Items;
-                _totalItems = result.TotalItems;
+                _totalItems = result.TotalCount;
             }
 
             return Items?.Any() == true ? ContainerState.Found : ContainerState.Empty;
@@ -108,7 +132,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         {
             return $"item-view {ItemClass}";
         }
-        
+
         protected virtual void BuildContainerClass(ClassBuilder builder)
         {
             builder.Add(ContainerClass);
@@ -124,60 +148,43 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         {
         }
 
-        private Task FilterChanged(FilterOption? option)
+        private async Task FilterChanged(FilterOption? option)
         {
-            _selectedFilterOption = option;
-            object? filter = option?.Value ?? FiltrationOptions?.DefaultFilter.Value;
-            var newCursorState = CursorPaginationState.Copy().WithFilter(filter);
-            var newOffsetState = OffsetPaginationState.Copy().WithFilter(filter);
-            return SetPaginationState(newOffsetState, newCursorState);
+            _paginationState = _paginationState with { Filter = option?.Value ?? FiltrationOptions?.DefaultFilter.Value };
+            await ReloadData();
         }
 
-        public Task SorterChanged(FilterOption? option)
+        public async Task SorterChanged(FilterOption? option)
         {
-            _selectedSortOption = option;
+            var sort = option?.Value ?? FiltrationOptions?.DefaultSort.Value;
+            Ordering ordering = Blazor.Ordering.Ascending;
 
-            object? sort = option?.Value ?? FiltrationOptions?.DefaultSort.Value;
-
-            var newCursorState = CursorPaginationState.Copy().WithSort(sort);
-            var newOffsetState = OffsetPaginationState.Copy().WithSort(sort);
-
-            if (option is SortOption sortOption)
+            if (option != null)
             {
-                newCursorState.WithOrdering(sortOption.Ordering);
-                newOffsetState.WithOrdering(sortOption.Ordering);
+                if (option is SortOption sortOption)
+                {
+                    ordering = sortOption.Ordering;
+                }
+                else if (FiltrationOptions?.DefaultSort != null)
+                {
+                    ordering = FiltrationOptions.DefaultSort.Ordering;
+                }
             }
 
-            return SetPaginationState(newOffsetState, newCursorState);
+            _paginationState = _paginationState with { Sort = sort, Ordering = ordering };
+
+            await ReloadData();
         }
 
-        private Task OnCursorChanged(object newCursor)
+        private async Task OnCursorChanged(object newCursor)
         {
-            var newCursorState = CursorPaginationState.Copy().WithCursor(newCursor);
-            return SetPaginationState(OffsetPaginationState, newCursorState);
+            _cursor = newCursor;
+            await ReloadData();
         }
 
-        private Task OnPageChanged(int newPage)
+        private async Task OnPageChanged(int newPage)
         {
-            var newOffsetState = OffsetPaginationState.Copy().WithPage(newPage);
-            return SetPaginationState(newOffsetState, CursorPaginationState);
-        }
-
-        private async Task SetPaginationState(OffsetPaginationState offsetPagination, CursorPaginationState cursorPagination)
-        {
-            if (OffsetFetch != null)
-            {
-                OffsetPaginationState = offsetPagination.Copy();
-                await InvokeAsync(async () => await OffsetPaginationStateChanged.InvokeAsync(OffsetPaginationState));
-            }
-
-            if (CursorFetch != null)
-            {
-                CursorPaginationState = cursorPagination.Copy();
-                await InvokeAsync(async () => await CursorPaginationStateChanged.InvokeAsync(CursorPaginationState));
-            }
-
-
+            _page = newPage;
             await ReloadData();
         }
 
@@ -242,14 +249,14 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
                     builder.AddAttribute(8, "class", "items-filtration");
                     builder.OpenComponent<FilterDropdown>(9);
                     builder.AddAttribute(10, nameof(FilterDropdown.Icon), FeatherIcons.Filter);
-                    builder.AddAttribute(11, nameof(FilterDropdown.Value), _selectedFilterOption);
+                    builder.AddAttribute(11, nameof(FilterDropdown.Value), _paginationState.Filter);
                     builder.AddAttribute(12, nameof(FilterDropdown.Placeholder), "Filter By");
                     builder.AddAttribute(13, nameof(FilterDropdown.ValueChanged), FilterChanged);
                     builder.CloseComponent();
 
                     builder.OpenComponent<FilterDropdown>(14);
                     builder.AddAttribute(15, nameof(FilterDropdown.Icon), FeatherIcons.List);
-                    builder.AddAttribute(16, nameof(FilterDropdown.Value), _selectedSortOption);
+                    builder.AddAttribute(16, nameof(FilterDropdown.Value), _paginationState.Sort);
                     builder.AddAttribute(17, nameof(FilterDropdown.Placeholder), "Sort By");
                     builder.AddAttribute(18, nameof(FilterDropdown.ValueChanged), SorterChanged);
                     builder.CloseComponent();
@@ -282,10 +289,10 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
             else if (OffsetFetch != null)
             {
                 builder.OpenComponent<PaginationOffset>(527);
-                builder.AddAttribute(528, nameof(PaginationOffset.CurrentPage), OffsetPaginationState.Page);
+                builder.AddAttribute(528, nameof(PaginationOffset.CurrentPage), _page);
                 builder.AddAttribute(529, nameof(PaginationOffset.PageChanged), EventCallback.Factory.Create(this, (Func<int, Task>)OnPageChanged));
                 builder.AddAttribute(530, nameof(PaginationOffset.TotalItems), _totalItems);
-                builder.AddAttribute(531, nameof(PaginationOffset.ItemsPerPage), PageSize ?? OffsetPaginationState.PageSize);
+                builder.AddAttribute(531, nameof(PaginationOffset.ItemsPerPage), _paginationState.PageSize);
                 builder.CloseComponent();
             }
 

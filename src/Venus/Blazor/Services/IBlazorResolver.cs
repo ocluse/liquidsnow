@@ -2,6 +2,8 @@
 {
     public interface IBlazorResolver
     {
+        int DefaultPageSize { get; }
+
         Type ResolveContainerStateToRenderType(int containerState);
         
         string ResolveSnackbarStatusToIcon(int status);

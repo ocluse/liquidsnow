@@ -4,6 +4,8 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Services.Implementations
 {
     public class BlazorResolver : IBlazorResolver
     {
+        public int DefaultPageSize => 10;
+
         public virtual Type ResolveContainerStateToRenderType(int containerState)
         {
             return containerState switch
