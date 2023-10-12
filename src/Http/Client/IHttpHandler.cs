@@ -18,7 +18,7 @@ namespace Ocluse.LiquidSnow.Http.Client
         /// <summary>
         /// The client name used when creating HTTP clients.
         /// </summary>
-        string ClientName { get; }
+        string? ClientName { get; }
     }
 
     /// <summary>

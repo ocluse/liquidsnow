@@ -45,7 +45,7 @@ public class RequestHandler<TResult>
         HttpHandler = httpHandler;
 
         //Set the client name:
-        if (string.IsNullOrEmpty(clientName))
+        if (clientName is null)
         {
             var clientNameProvider = HttpHandler.As<IClientNameProvider>();
 
@@ -55,7 +55,7 @@ public class RequestHandler<TResult>
             }
             else
             {
-                throw new InvalidOperationException("No client name specified and no default client name set.");
+                ClientName = null;
             }
         }
         else
@@ -77,7 +77,7 @@ public class RequestHandler<TResult>
     /// <summary>
     /// The name of HTTP clients to use when sending the request.
     /// </summary>
-    public string ClientName { get; }
+    public string? ClientName { get; }
 
     /// <summary>
     /// The handler used to transform the requests and responses.
