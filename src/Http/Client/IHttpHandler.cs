@@ -35,7 +35,7 @@ namespace Ocluse.LiquidSnow.Http.Client
     /// <summary>
     /// A handler that provides options for serializing and deserializing JSON.
     /// </summary>
-    public interface IJsonOptionsProvider
+    public interface IJsonOptionsProvider : IHttpHandler
     {
         /// <summary>
         /// The options used to serialize and deserialize JSON.

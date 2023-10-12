@@ -85,13 +85,15 @@ public class RequestHandler<TResult>
     public IHttpHandler? HttpHandler { get; }
 
     /// <summary>
-    /// The <see cref="JsonSerializerOptions"/> used to serialize and deserialize the request and response.
+    /// The <see cref="System.Text.Json.JsonSerializerOptions"/> used to serialize and deserialize the request and response.
     /// </summary>
     protected virtual JsonSerializerOptions JsonSerializerOptions
     {
         get
         {
-            if (HttpHandler is IJsonOptionsProvider jsonOptionsProvider)
+            var jsonOptionsProvider = HttpHandler.As<IJsonOptionsProvider>();
+
+            if(jsonOptionsProvider != null)
             {
                 return jsonOptionsProvider.JsonSerializerOptions;
             }
@@ -102,7 +104,6 @@ public class RequestHandler<TResult>
         }
     }
 
-    
     /// <summary>
     /// Transforms a path by using the <see cref="IHttpUrlTransformer"/> if one is specified.
     /// </summary>
@@ -157,7 +158,9 @@ public class RequestHandler<TResult>
     /// <exception cref="ResponseContentNullException"></exception>
     public virtual async Task<TResult> GetResult(HttpResponseMessage message, CancellationToken cancellationToken = default)
     {
-        if (HttpHandler is IHttpContentHandler contentHandler)
+        var contentHandler = HttpHandler.As<IHttpContentHandler>();
+
+        if (contentHandler != null)
         {
             return await contentHandler.GetResult<TResult>(message, cancellationToken);
         }
@@ -181,11 +184,13 @@ public class RequestHandler<TResult>
     /// </summary>
     public virtual async Task<HttpContent> GetContent<T>(T value, CancellationToken cancellationToken = default)
     {
-        if (HttpHandler is IHttpContentHandler contentHandler)
+        var contentHandler = HttpHandler.As<IHttpContentHandler>();
+
+        if (contentHandler != null)
         {
-            return await contentHandler.GetContent(value, cancellationToken);
+               return await contentHandler.GetContent(value, cancellationToken);
         }
-        else if(value is HttpContent content)
+        else if (value is HttpContent content)
         {
             return content;
         }
@@ -202,9 +207,11 @@ public class RequestHandler<TResult>
     /// </summary>
     protected string GetQueryString<T>(T value)
     {
-        if (HttpHandler is IHttpQueryTransformer transformer)
+        var queryTransformer = HttpHandler.As<IHttpQueryTransformer>();
+
+        if (queryTransformer != null)
         {
-            return transformer.Transform(value);
+            return queryTransformer.Transform(value);
         }
         else
         {
