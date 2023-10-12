@@ -9,8 +9,8 @@
         /// <summary>
         /// Creates a new instance of the <see cref="ReadRequestHandler{TResult}"/> class
         /// </summary>
-        public ReadRequestHandler(ISnowHttpClientFactory httpClientFactory, string path, string? clientName = null, IHttpHandler? httpHandler = null) 
-            : base(httpClientFactory, path, clientName, httpHandler)
+        public ReadRequestHandler(ISnowHttpClientFactory httpClientFactory, string path, IHttpHandler? httpHandler = null, string? clientName = null) 
+            : base(httpClientFactory, path, httpHandler, clientName)
         {
         }
     }

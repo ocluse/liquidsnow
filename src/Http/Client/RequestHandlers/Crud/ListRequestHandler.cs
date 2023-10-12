@@ -8,8 +8,8 @@
         /// <summary>
         /// Creates a new instance of the <see cref="ListRequestHandler{TQuery,TResult}"/> class
         /// </summary>
-        public ListRequestHandler(ISnowHttpClientFactory httpClientFactory, string path, string? clientName = null, IHttpHandler? httpHandler = null)
-            : base(httpClientFactory, path, clientName, httpHandler)
+        public ListRequestHandler(ISnowHttpClientFactory httpClientFactory, string path, IHttpHandler? httpHandler = null, string? clientName = null) 
+            : base(httpClientFactory, path, httpHandler, clientName)
         {
         }
     }

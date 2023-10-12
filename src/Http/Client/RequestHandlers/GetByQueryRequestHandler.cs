@@ -8,8 +8,8 @@
         /// <summary>
         /// Creates a new instance of the <see cref="GetByQueryRequestHandler{TQuery,TResult}"/> class
         /// </summary>
-        public GetByQueryRequestHandler(ISnowHttpClientFactory httpClientFactory, string path, string? clientName = null, IHttpHandler? httpHandler = null)
-            : base(HttpMethod.Get, httpClientFactory, path, clientName, httpHandler)
+        public GetByQueryRequestHandler(ISnowHttpClientFactory httpClientFactory, string path, IHttpHandler? httpHandler = null, string ? clientName = null)
+            : base(HttpMethod.Get, httpClientFactory, path, httpHandler, clientName)
         {
         }
     }

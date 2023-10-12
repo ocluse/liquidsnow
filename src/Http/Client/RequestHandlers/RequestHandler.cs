@@ -37,8 +37,8 @@ public class RequestHandler<TResult>
     public RequestHandler(
         ISnowHttpClientFactory httpClientFactory,
         string path,
-        string? clientName = null,
-        IHttpHandler? httpHandler = null)
+        IHttpHandler? httpHandler = null,
+        string? clientName = null)
     {
         HttpClientFactory = httpClientFactory;
         Path = path;

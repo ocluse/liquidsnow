@@ -9,8 +9,8 @@
         /// <summary>
         /// Creates a new instance of the <see cref="IdRequestHandler{TResult}"/> class
         /// </summary>
-        public IdRequestHandler(HttpMethod httpMethod, ISnowHttpClientFactory httpClientFactory, string path, string? clientName = null, IHttpHandler? httpHandler = null)
-            : base(httpClientFactory, path, clientName, httpHandler)
+        public IdRequestHandler(HttpMethod httpMethod, ISnowHttpClientFactory httpClientFactory, string path, IHttpHandler? httpHandler = null, string ? clientName = null)
+            : base(httpClientFactory, path, httpHandler, clientName)
         {
             HttpMethod = httpMethod;
         }

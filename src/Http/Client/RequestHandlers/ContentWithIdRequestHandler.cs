@@ -8,8 +8,8 @@
         /// <summary>
         /// Creates a new instance of the <see cref="ContentWithIdRequestHandler{TContent,TResult}"/> class
         /// </summary>
-        public ContentWithIdRequestHandler(HttpMethod httpMethod, ISnowHttpClientFactory httpClientFactory, string path, string? clientName = null, IHttpHandler? httpHandler = null)
-            : base(httpClientFactory, path, clientName, httpHandler)
+        public ContentWithIdRequestHandler(HttpMethod httpMethod, ISnowHttpClientFactory httpClientFactory, string path, IHttpHandler? httpHandler = null, string ? clientName = null)
+            : base(httpClientFactory, path, httpHandler, clientName)
         {
             HttpMethod = httpMethod;
         }

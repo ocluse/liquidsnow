@@ -4,7 +4,7 @@ using Ocluse.LiquidSnow.Http.Cqrs;
 namespace Ocluse.LiquidSnow.Http.Client
 {
     ///<inheritdoc cref="ICrudRequestBuilder{TCreate, TUpdate, TList, TModel, TSummary}"/>
-    public class CrudRequestBuilder<TCreate, TUpdate, TList, TModel, TSummary> 
+    public class CrudRequestBuilder<TCreate, TUpdate, TList, TModel, TSummary>
         : ICrudRequestBuilder<TCreate, TUpdate, TList, TModel, TSummary> where TUpdate : IKeyCommand<TModel>
     {
         private readonly CreateRequestHandler<TCreate, TModel> _createHandler;
@@ -16,13 +16,13 @@ namespace Ocluse.LiquidSnow.Http.Client
         /// <summary>
         /// Creates the request builder for the specified REST path.
         /// </summary>
-        public CrudRequestBuilder(ISnowHttpClientFactory httpClientFactory, string path, string? clientName = null, IHttpHandler? httpHandler = null)
+        public CrudRequestBuilder(ISnowHttpClientFactory httpClientFactory, string path, IHttpHandler? httpHandler = null, string? clientName = null)
         {
-            _createHandler = new(httpClientFactory, path, clientName, httpHandler);
-            _updateHandler = new(httpClientFactory, path, clientName, httpHandler);
-            _readHandler = new(httpClientFactory, path, clientName, httpHandler);
-            _deleteHandler = new(httpClientFactory, path, clientName, httpHandler);
-            _listHandler = new(httpClientFactory, path, clientName, httpHandler);
+            _createHandler = new(httpClientFactory, path, httpHandler, clientName);
+            _updateHandler = new(httpClientFactory, path, httpHandler, clientName);
+            _readHandler = new(httpClientFactory, path, httpHandler, clientName);
+            _deleteHandler = new(httpClientFactory, path, httpHandler, clientName);
+            _listHandler = new(httpClientFactory, path, httpHandler, clientName);
 
             Path = path;
             HttpClientFactory = httpClientFactory;
@@ -80,7 +80,7 @@ namespace Ocluse.LiquidSnow.Http.Client
     }
 
     ///<inheritdoc/>
-    public class CrudRequestBuilder<TCreate, TUpdate, TList, TModel> 
+    public class CrudRequestBuilder<TCreate, TUpdate, TList, TModel>
         : CrudRequestBuilder<TCreate, TUpdate, TList, TModel, TModel>,
         ICrudRequestBuilder<TCreate, TUpdate, TList, TModel>
         where TUpdate : IKeyCommand<TModel>
@@ -88,8 +88,8 @@ namespace Ocluse.LiquidSnow.Http.Client
         /// <summary>
         /// Creates the request builder for the specified REST path.
         /// </summary>
-        public CrudRequestBuilder(ISnowHttpClientFactory httpClientFactory, string path, string? clientName = null, IHttpHandler? httpHandler = null) 
-            : base(httpClientFactory, path, clientName, httpHandler)
+        public CrudRequestBuilder(ISnowHttpClientFactory httpClientFactory, string path, IHttpHandler? httpHandler = null, string? clientName = null)
+            : base(httpClientFactory, path, httpHandler, clientName)
         {
         }
     }

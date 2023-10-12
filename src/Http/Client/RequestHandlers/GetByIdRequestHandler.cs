@@ -8,8 +8,8 @@
         /// <summary>
         /// Creates a new instance of the <see cref="GetByIdRequestHandler{TResult}"/> class
         /// </summary>
-        public GetByIdRequestHandler(ISnowHttpClientFactory httpClientFactory, string path, string? clientName = null, IHttpHandler? httpHandler = null)
-            : base(HttpMethod.Get, httpClientFactory, path, clientName, httpHandler)
+        public GetByIdRequestHandler(ISnowHttpClientFactory httpClientFactory, string path, IHttpHandler? httpHandler = null, string? clientName = null)
+            : base(HttpMethod.Get, httpClientFactory, path, httpHandler, clientName)
         {
         }
     }

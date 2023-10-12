@@ -10,8 +10,8 @@ namespace Ocluse.LiquidSnow.Http.Client.RequestHandlers.Crud
         /// <summary>
         /// Creates a new instance of the <see cref="DeleteRequestHandler"/> class
         /// </summary>
-        public DeleteRequestHandler(ISnowHttpClientFactory httpClientFactory, string path, string? clientName = null, IHttpHandler? httpHandler = null) 
-            : base(httpClientFactory, path, clientName, httpHandler)
+        public DeleteRequestHandler(ISnowHttpClientFactory httpClientFactory, string path, IHttpHandler? httpHandler = null, string? clientName = null) 
+            : base(httpClientFactory, path, httpHandler, clientName)
         {
         }
     }
