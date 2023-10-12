@@ -28,6 +28,43 @@ internal static class JsonOptionsCache
 public class RequestHandler<TResult>
 {
     /// <summary>
+    /// Creates a http request handler.
+    /// </summary>
+    /// <param name="httpClientFactory">The factory that will be used to create HTTP clients</param>
+    /// <param name="path">The path that will be used to send the requests</param>
+    /// <param name="clientName">The client name that will be created to send the requests. If none is specified, the default one will be used</param>
+    /// <param name="httpHandler">The handler that will be used to transform requests and responses</param>
+    public RequestHandler(
+        ISnowHttpClientFactory httpClientFactory,
+        string path,
+        string? clientName = null,
+        IHttpHandler? httpHandler = null)
+    {
+        HttpClientFactory = httpClientFactory;
+        Path = path;
+        HttpHandler = httpHandler;
+
+        //Set the client name:
+        if (string.IsNullOrEmpty(clientName))
+        {
+            var clientNameProvider = HttpHandler.As<IClientNameProvider>();
+
+            if (clientNameProvider != null)
+            {
+                ClientName = clientNameProvider.ClientName;
+            }
+            else
+            {
+                throw new InvalidOperationException("No client name specified and no default client name set.");
+            }
+        }
+        else
+        {
+            ClientName = clientName;
+        }
+    }
+
+    /// <summary>
     /// The factory used to create HTTP clients for sending requests.
     /// </summary>
     public ISnowHttpClientFactory HttpClientFactory { get; }
@@ -40,7 +77,7 @@ public class RequestHandler<TResult>
     /// <summary>
     /// The name of HTTP clients to use when sending the request.
     /// </summary>
-    public string? ClientName { get; }
+    public string ClientName { get; }
 
     /// <summary>
     /// The handler used to transform the requests and responses.
@@ -65,33 +102,19 @@ public class RequestHandler<TResult>
         }
     }
 
-    /// <summary>
-    /// Creates a http request handler.
-    /// </summary>
-    /// <param name="httpClientFactory">The factory that will be used to create HTTP clients</param>
-    /// <param name="path">The path that will be used to send the requests</param>
-    /// <param name="clientName">The client name that will be created to send the requests. If none is specified, the default one will be used</param>
-    /// <param name="httpHandler">The handler that will be used to transform requests and responses</param>
-    public RequestHandler(
-        ISnowHttpClientFactory httpClientFactory,
-        string path,
-        string? clientName = null,
-        IHttpHandler? httpHandler = null)
-    {
-        HttpClientFactory = httpClientFactory;
-        ClientName = clientName;
-        Path = path;
-        HttpHandler = httpHandler;
-    }
+    
     /// <summary>
     /// Transforms a path by using the <see cref="IHttpUrlTransformer"/> if one is specified.
     /// </summary>
     protected virtual string TransformUrlPath(string urlPath)
     {
-        if (HttpHandler is IHttpUrlTransformer urlTransformer)
+        var urlTransformer = HttpHandler.As<IHttpUrlTransformer>();
+
+        if (urlTransformer != null)
         {
             return urlTransformer.Transform(urlPath);
         }
+
         return urlPath;
     }
 
@@ -100,7 +123,9 @@ public class RequestHandler<TResult>
     /// </summary>
     public async Task<TResult> SendAsync(HttpRequestMessage requestMessage, CancellationToken cancellationToken)
     {
-        if (HttpHandler is IHttpRequestHandler httpRequestHandler)
+        var httpRequestHandler = HttpHandler.As<IHttpRequestHandler>();
+
+        if (httpRequestHandler != null)
         {
             await httpRequestHandler.HandleRequestBeforeSend(requestMessage, cancellationToken);
         }
@@ -108,7 +133,9 @@ public class RequestHandler<TResult>
         HttpClient httpClient = await GetClient(cancellationToken);
         HttpResponseMessage response = await httpClient.SendAsync(requestMessage, cancellationToken);
 
-        if (HttpHandler is IHttpResponseHandler httpResponseHandler)
+        var httpResponseHandler = HttpHandler.As<IHttpResponseHandler>();
+
+        if (httpResponseHandler != null)
         {
             await httpResponseHandler.HandleResponseAfterReceive(response, cancellationToken);
         }
@@ -121,10 +148,7 @@ public class RequestHandler<TResult>
     /// </summary>
     protected virtual async Task<HttpClient> GetClient(CancellationToken cancellationToken)
     {
-        string clientName = ClientName ?? HttpHandler?.DefaultClientName
-            ?? throw new InvalidOperationException("No client name specified and no default client name set.");
-
-        return await HttpClientFactory.CreateClient(clientName, cancellationToken);
+        return await HttpClientFactory.CreateClient(ClientName, cancellationToken);
     }
 
     /// <summary>
