@@ -4,13 +4,14 @@ using Ocluse.LiquidSnow.Http.Cqrs;
 namespace Ocluse.LiquidSnow.Http.Client
 {
     ///<inheritdoc cref="ICrudRequestBuilder{TCreate, TUpdate, TList, TModel, TSummary}"/>
-    public class CrudRequestBuilder<TCreate, TUpdate, TList, TModel, TSummary>
-        : ICrudRequestBuilder<TCreate, TUpdate, TList, TModel, TSummary> where TUpdate : IKeyCommand<TModel>
+    public class CrudRequestBuilder<TKey, TCreate, TUpdate, TList, TModel, TSummary>
+        : ICrudRequestBuilder<TKey, TCreate, TUpdate, TList, TModel, TSummary> 
+        where TUpdate : IKeyCommand<TKey, TModel>
     {
         private readonly CreateRequestHandler<TCreate, TModel> _createHandler;
-        private readonly UpdateRequestHandler<TUpdate, TModel> _updateHandler;
-        private readonly ReadRequestHandler<TModel> _readHandler;
-        private readonly DeleteRequestHandler _deleteHandler;
+        private readonly UpdateRequestHandler<TKey, TUpdate, TModel> _updateHandler;
+        private readonly ReadRequestHandler<TKey, TModel> _readHandler;
+        private readonly DeleteRequestHandler<TKey> _deleteHandler;
         private readonly ListRequestHandler<TList, TSummary> _listHandler;
 
         /// <summary>
@@ -61,13 +62,13 @@ namespace Ocluse.LiquidSnow.Http.Client
         }
 
         ///<inheritdoc/>
-        public async Task<TModel> ReadAsync(string id, CancellationToken cancellationToken = default)
+        public async Task<TModel> ReadAsync(TKey id, CancellationToken cancellationToken = default)
         {
             return await _readHandler.ExecuteAsync(id, cancellationToken);
         }
 
         ///<inheritdoc/>
-        public async Task DeleteAsync(string id, CancellationToken cancellationToken = default)
+        public async Task DeleteAsync(TKey id, CancellationToken cancellationToken = default)
         {
             await _deleteHandler.ExecuteAsync(id, cancellationToken);
         }
@@ -80,10 +81,10 @@ namespace Ocluse.LiquidSnow.Http.Client
     }
 
     ///<inheritdoc/>
-    public class CrudRequestBuilder<TCreate, TUpdate, TList, TModel>
-        : CrudRequestBuilder<TCreate, TUpdate, TList, TModel, TModel>,
-        ICrudRequestBuilder<TCreate, TUpdate, TList, TModel>
-        where TUpdate : IKeyCommand<TModel>
+    public class CrudRequestBuilder<TKey, TCreate, TUpdate, TList, TModel>
+        : CrudRequestBuilder<TKey, TCreate, TUpdate, TList, TModel, TModel>,
+        ICrudRequestBuilder<TKey, TCreate, TUpdate, TList, TModel>
+        where TUpdate : IKeyCommand<TKey, TModel>
     {
         /// <summary>
         /// Creates the request builder for the specified REST path.

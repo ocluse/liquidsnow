@@ -8,7 +8,11 @@
         /// <summary>
         /// Creates a new instance of the <see cref="DeleteByQueryRequestHandler{TQuery,TResult}"/> class
         /// </summary>
-        public DeleteByQueryRequestHandler(ISnowHttpClientFactory httpClientFactory, string path, IHttpHandler? httpHandler = null, string? clientName = null) 
+        public DeleteByQueryRequestHandler(
+            ISnowHttpClientFactory httpClientFactory, 
+            string path, 
+            IHttpHandler? httpHandler = null, 
+            string? clientName = null) 
             : base(HttpMethod.Delete, httpClientFactory, path, httpHandler, clientName)
         {
         }

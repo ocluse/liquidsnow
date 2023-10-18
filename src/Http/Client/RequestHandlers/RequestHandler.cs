@@ -1,5 +1,4 @@
-﻿using Ocluse.LiquidSnow.Entities;
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using System.Reactive;
 using System.Text;
 using System.Text.Json;
@@ -199,6 +198,21 @@ public class RequestHandler<TResult>
             string json = JsonSerializer.Serialize(value, JsonSerializerOptions);
 
             return new StringContent(json, Encoding.UTF8, "application/json");
+        }
+    }
+
+    /// <summary>
+    /// Returns the path segment string for the given id, invoking the <see cref="IHttpIdPathSegmentTransformer{TKey}"/> if specified.
+    /// </summary>
+    public virtual string GetPathSegmentFromId<TKey>(TKey id)
+    {
+        if(HttpHandler is IHttpIdPathSegmentTransformer<TKey> idTransformer)
+        {
+            return idTransformer.GetPathStringFromId(id);
+        }
+        else
+        {
+            return id?.ToString() ?? throw new ArgumentNullException(nameof(id), "The automatic conversion of ID to path string returned null");
         }
     }
 

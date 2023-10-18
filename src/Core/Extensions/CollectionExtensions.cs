@@ -192,7 +192,7 @@ namespace Ocluse.LiquidSnow.Extensions
         /// </summary>
         public static T Random<T>(this IEnumerable<T> source)
         {
-            List<T> copy = new List<T>(source);
+            List<T> copy = new(source);
             if (copy.Count == 0) throw new InvalidOperationException("Sequence contains no elements");
             if (copy.Count > 1)
             {

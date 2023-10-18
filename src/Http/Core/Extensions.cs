@@ -16,7 +16,7 @@ namespace Ocluse.LiquidSnow.Http
         /// <summary>
         /// Returns the most likely type of a query by looking at the properties of the query.
         /// </summary>
-        public static QueryType GetQueryType(this IQueryRequest query)
+        public static QueryType GetQueryType<TKey>(this IQueryRequest<TKey> query)
         {
             if (query.QType != null)
             {

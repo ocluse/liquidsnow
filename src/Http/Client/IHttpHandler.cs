@@ -7,7 +7,7 @@ namespace Ocluse.LiquidSnow.Http.Client
     /// </summary>
     public interface IHttpHandler
     {
-        
+
     }
 
     /// <summary>
@@ -101,5 +101,17 @@ namespace Ocluse.LiquidSnow.Http.Client
         /// Transforms the body of the HTTP response into a value, for example by deserializing it from JSON.
         /// </summary>
         Task<TResult> GetResult<TResult>(HttpResponseMessage response, CancellationToken cancellationToken = default);
+    }
+
+    /// <summary>
+    /// A handler that can transform the id of a resource into a string to be used in the ID segment of the url path.
+    /// </summary>
+    public interface IHttpIdPathSegmentTransformer<TKey> : IHttpHandler
+    {
+        /// <summary>
+        /// Converts the id to a string to be used in the url path
+        /// </summary>
+        string GetPathStringFromId(TKey id);
+
     }
 }

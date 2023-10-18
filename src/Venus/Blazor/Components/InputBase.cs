@@ -93,17 +93,20 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 
         public virtual async Task<bool> InvokeValidate()
         {
+            bool result;
             if (Validate != null)
             {
                 var validationResult = await Validate.Invoke(Value);
-                ValidationResult = validationResult;
                 await ValidationResultChanged.InvokeAsync(validationResult);
-                return ValidationResult.Success;
+                result = ValidationResult.Success;
             }
             else
             {
-                return true;
+                result = true;
             }
+            await InvokeAsync(StateHasChanged);
+
+            return result;
         }
 
         protected override sealed void BuildClass(ClassBuilder classBuilder)

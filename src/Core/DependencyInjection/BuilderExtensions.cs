@@ -39,15 +39,15 @@ namespace Ocluse.LiquidSnow.DependencyInjection
             ServiceLifetime handlerLifetime = ServiceLifetime.Scoped)
         {
             ServiceDescriptor commandsDescriptor 
-                = new ServiceDescriptor(typeof(ICommandDispatcher), typeof(CommandDispatcher), dispatcherLifetime);
+                = new(typeof(ICommandDispatcher), typeof(CommandDispatcher), dispatcherLifetime);
 
             ServiceDescriptor queriesDescriptor 
-                = new ServiceDescriptor(typeof(IQueryDispatcher), typeof(QueryDispatcher), dispatcherLifetime);
+                = new(typeof(IQueryDispatcher), typeof(QueryDispatcher), dispatcherLifetime);
 
             services.TryAdd(commandsDescriptor);
             services.TryAdd(queriesDescriptor);
 
-            CqrsBuilder builder = new CqrsBuilder(handlerLifetime, services);
+            CqrsBuilder builder = new(handlerLifetime, services);
 
             return builder.AddHandlers(assembly);
         }
@@ -78,12 +78,12 @@ namespace Ocluse.LiquidSnow.DependencyInjection
             services.TryAddSingleton(options);
 
             ServiceDescriptor busDescriptor 
-                = new ServiceDescriptor(typeof(IEventBus), typeof(EventBus), busLifetime);
+                = new(typeof(IEventBus), typeof(EventBus), busLifetime);
 
             services.TryAdd(busDescriptor);
 
 
-            EventBusBuilder builder = new EventBusBuilder(handlerLifetime, services);
+            EventBusBuilder builder = new(handlerLifetime, services);
 
             return builder.AddHandlers(assembly);
         }
@@ -111,11 +111,11 @@ namespace Ocluse.LiquidSnow.DependencyInjection
             ServiceLifetime stepLifetime = ServiceLifetime.Transient)
         {
 
-            ServiceDescriptor orchestratorDescriptor = new ServiceDescriptor(typeof(IOrchestrator), typeof(Orchestrator), orchestratorLifetime);
+            ServiceDescriptor orchestratorDescriptor = new(typeof(IOrchestrator), typeof(Orchestrator), orchestratorLifetime);
 
             services.TryAdd(orchestratorDescriptor);
 
-            OrchestratorBuilder builder = new OrchestratorBuilder(stepLifetime, services);
+            OrchestratorBuilder builder = new(stepLifetime, services);
 
             return builder.AddSteps(assembly);
         }
@@ -132,7 +132,7 @@ namespace Ocluse.LiquidSnow.DependencyInjection
             ServiceLifetime lifetime, 
             bool doNotAddDuplicates = true)
         {
-            List<ServiceDescriptor> descriptors = new List<ServiceDescriptor>();
+            List<ServiceDescriptor> descriptors = new();
             assembly.GetTypes()
                 .Where(item => item.GetInterfaces()
                 .Where(i => i.IsGenericType).Any(i => i.GetGenericTypeDefinition() == type) && !item.IsAbstract && !item.IsInterface)
@@ -143,7 +143,7 @@ namespace Ocluse.LiquidSnow.DependencyInjection
 
                     foreach (var serviceType in serviceTypes)
                     {
-                        ServiceDescriptor descriptor = new ServiceDescriptor(serviceType, assignedType, lifetime);
+                        ServiceDescriptor descriptor = new(serviceType, assignedType, lifetime);
                         descriptors.Add(descriptor);
                     }
                 });

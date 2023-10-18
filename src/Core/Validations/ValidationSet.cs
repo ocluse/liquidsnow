@@ -9,7 +9,7 @@ namespace Ocluse.LiquidSnow.Validations
     /// </summary>
     public class ValidationSet
     {
-        private readonly List<IValidatable> _items = new List<IValidatable>();
+        private readonly List<IValidatable> _items = new();
 
         /// <summary>
         /// Creates a new instance of <see cref="ValidationSet"/>.
@@ -30,7 +30,7 @@ namespace Ocluse.LiquidSnow.Validations
         /// </summary>
         public async Task<bool> Validate()
         {
-            List<bool> results = new List<bool>();
+            List<bool> results = new();
 
             foreach (var item in _items)
             {

@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace Ocluse.LiquidSnow.Http
 {
-    ///<inheritdoc cref="IQueryRequest{Q}"/>
-    public record QueryRequest<Q> :  IQueryRequest<Q>
+    ///<inheritdoc cref="IQueryRequest{TKey, Q}"/>
+    public record QueryRequest<TKey, Q> :  IQueryRequest<TKey, Q>
     {
         ///<inheritdoc/>
-        public IEnumerable<string>? Ids { get; set; }
+        public IEnumerable<TKey>? Ids { get; set; }
 
         ///<inheritdoc/>
         public Q? QType { get; set; }
@@ -29,7 +29,7 @@ namespace Ocluse.LiquidSnow.Http
     }
 
     ///<inheritdoc/>
-    public record QueryRequest : QueryRequest<QueryType?>, IQueryRequest
+    public record QueryRequest<TKey> : QueryRequest<TKey, QueryType?>, IQueryRequest<TKey>
     {
 
     }

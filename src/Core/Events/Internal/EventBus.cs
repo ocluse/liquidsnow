@@ -46,7 +46,7 @@ namespace Ocluse.LiquidSnow.Events.Internal
             IEnumerable<object?> handlers = _serviceProvider
                 .GetServices(eventHandlerType);
 
-            List<TaskCompletionSource<bool>> handleTasks = new List<TaskCompletionSource<bool>>();
+            List<TaskCompletionSource<bool>> handleTasks = new();
 
             if (strategy == PublishStrategy.Sequential)
             {
