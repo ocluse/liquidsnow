@@ -44,18 +44,19 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
             //Floating label
             if (Header != null)
             {
-                builder.OpenElement(50, "span");
+                builder.OpenElement(50, "label");
                 builder.AddAttribute(51, "class", "header-label");
                 builder.AddContent(52, Header);
                 builder.CloseElement();
             }
 
             //Validation message
-            if (!string.IsNullOrEmpty(ValidationResult.Message))
+            if (Validation != null && !string.IsNullOrEmpty(Validation.Value.Message))
             {
                 builder.OpenElement(53, "span");
                 builder.AddAttribute(54, "class", GetValidationClass());
-                builder.AddContent(55, ValidationResult.Message);
+                builder.AddAttribute(55, "role", "alert");
+                builder.AddContent(56, Validation.Value.Message);
                 builder.CloseElement();
             }
 
@@ -73,7 +74,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 
             builder.AddAttribute(15, GetUpdateTrigger(), valueUpdateCallback);
             builder.SetUpdatesAttributeName("value");
-            
+
             builder.AddAttribute(17, "onkeydown", EventCallback.Factory.Create<KeyboardEventArgs>(this, KeyDown));
             if (Disabled)
             {

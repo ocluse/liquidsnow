@@ -6,7 +6,7 @@
 	<Nullable>enable</Nullable>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	<GenerateDocumentationFile>true</GenerateDocumentationFile>
-	<Version>0.3.1-preview1.0</Version>
+	<Version>0.3.2-preview1.0</Version>
 	<Authors>Ocluse</Authors>
 	<PackageOutputPath>..\..\..\build</PackageOutputPath>
 	<Description>Provides utility method for performing crypotgraphic operations on files, including the creation of encrypted containers that hold multiple files.</Description>

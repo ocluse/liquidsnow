@@ -4,6 +4,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 {
     public abstract class InputBase<TValue> : ControlBase, IValidatable, IDisposable
     {
+        private bool _valueHasChanged;
         private IDisposable? _debounceSubscription;
 
         [Parameter]
@@ -19,10 +20,10 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         public string? Header { get; set; }
 
         [Parameter]
-        public ValidationResult ValidationResult { get; set; } = ValidationResult.Succeeded();
+        public ValidationResult? Validation { get; set; }
 
         [Parameter]
-        public EventCallback<ValidationResult> ValidationResultChanged { get; set; }
+        public EventCallback<ValidationResult?> ValidationChanged { get; set; }
 
         [Parameter]
         public Func<TValue?, Task<ValidationResult>>? Validate { get; set; }
@@ -53,9 +54,25 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 
         protected override void OnParametersSet()
         {
-            if (!EnableDebounce && _debounceSubscription!=null)
+            if (!EnableDebounce && _debounceSubscription != null)
             {
                 _debounceSubscription.Dispose();
+            }
+        }
+
+        public override async Task SetParametersAsync(ParameterView parameters)
+        {
+            var newValue = parameters.GetValueOrDefault<TValue>(nameof(Value));
+
+            bool valueChanged = !EqualityComparer<TValue>.Default.Equals(Value, newValue);
+
+            await base.SetParametersAsync(parameters);
+
+            // Since debounce will validate on user finish, we need to validate here if debounce is disabled
+            // We also only want to validate if the value has changed.
+            if (valueChanged && !EnableDebounce && _valueHasChanged)
+            {
+                await InvokeAsync(InvokeValidate);
             }
         }
 
@@ -64,7 +81,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
             var newValue = GetValue(e.Value);
 
             await ValueChanged.InvokeAsync(newValue);
-
+            _valueHasChanged = true;
             _debounceSubscription?.Dispose();
 
             if (EnableDebounce)
@@ -77,15 +94,11 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
                         _debounceSubscription?.Dispose();
                     });
             }
-            else
-            {
-                await InvokeValidate();
-            }
         }
 
         private async void OnUserFinish()
         {
-            await InvokeValidate();
+            await InvokeAsync(InvokeValidate);
             await UserFinished.InvokeAsync();
         }
 
@@ -97,8 +110,8 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
             if (Validate != null)
             {
                 var validationResult = await Validate.Invoke(Value);
-                await ValidationResultChanged.InvokeAsync(validationResult);
-                result = ValidationResult.Success;
+                await ValidationChanged.InvokeAsync(validationResult);
+                result = validationResult.Success;
             }
             else
             {
@@ -115,7 +128,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 
             BuildInputClass(classBuilder);
 
-            if (!ValidationResult.Success)
+            if (Validation?.Success == false)
             {
                 classBuilder.Add("error");
             }
@@ -144,7 +157,8 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         protected string GetValidationClass()
         {
             return new ClassBuilder()
-                .Add(ValidationResult.Success ? "validation-success" : "validation-error")
+                .AddIf(Validation?.Success == true, "validation-success")
+                .AddIf(Validation?.Success == false, "validation-error")
                 .Build();
         }
 

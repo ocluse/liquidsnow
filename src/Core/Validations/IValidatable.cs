@@ -15,6 +15,6 @@ namespace Ocluse.LiquidSnow.Validations
         /// <summary>
         /// The most recent validation result.
         /// </summary>
-        ValidationResult ValidationResult { get; set; }
+        ValidationResult? Validation { get; set; }
     }
 }
