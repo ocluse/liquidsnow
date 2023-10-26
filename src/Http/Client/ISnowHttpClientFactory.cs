@@ -8,6 +8,6 @@
         /// <summary>
         /// Creates a <see cref="HttpClient"/> with the given name.
         /// </summary>
-        Task<HttpClient> CreateClient(string name, CancellationToken cancellationToken = default);
+        Task<HttpClient> CreateClient(string? name, CancellationToken cancellationToken = default);
     }
 }

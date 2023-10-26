@@ -16,7 +16,7 @@ namespace Ocluse.LiquidSnow.Utils
         /// <returns></returns>
         public static DateTime FirstDateOfWeek(int year, int weekOfYear)
         {
-            DateTime jan1 = new DateTime(year, 1, 1);
+            DateTime jan1 = new(year, 1, 1);
             int daysOffset = DayOfWeek.Thursday - jan1.DayOfWeek;
 
             // Use first Thursday in January to get first week of the year as

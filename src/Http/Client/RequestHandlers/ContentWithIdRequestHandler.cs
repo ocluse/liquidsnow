@@ -3,13 +3,18 @@
     /// <summary>
     /// A request handler that sends a HTTP request with a content and an id based path
     /// </summary>
-    public class ContentWithIdRequestHandler<TContent, TResult> : RequestHandler<TResult>
+    public class ContentWithIdRequestHandler<TKey, TContent, TResult> : RequestHandler<TResult>
     {
         /// <summary>
-        /// Creates a new instance of the <see cref="ContentWithIdRequestHandler{TContent,TResult}"/> class
+        /// Creates a new instance of the <see cref="ContentWithIdRequestHandler{TKey, TContent,TResult}"/> class
         /// </summary>
-        public ContentWithIdRequestHandler(HttpMethod httpMethod, ISnowHttpClientFactory httpClientFactory, string path, string? clientName = null, IHttpHandler? httpHandler = null)
-            : base(httpClientFactory, path, clientName, httpHandler)
+        public ContentWithIdRequestHandler(
+            HttpMethod httpMethod,
+            ISnowHttpClientFactory httpClientFactory,
+            string path,
+            IHttpHandler? httpHandler = null,
+            string? clientName = null)
+            : base(httpClientFactory, path, httpHandler, clientName)
         {
             HttpMethod = httpMethod;
         }
@@ -23,17 +28,17 @@
         /// Gets the path to use for the request.
         /// </summary>
         /// <remarks>
-        /// The result returned by this method will be transformed by <see cref="GetTransformedUrlPath(string, TContent)"/> before sending the request.
+        /// The result returned by this method will be transformed by <see cref="GetTransformedUrlPath"/> before sending the request.
         /// </remarks>
-        protected virtual string GetUrlPath(string id, TContent content)
+        protected virtual string GetUrlPath(TKey id, TContent content)
         {
-            return $"{Path}/{id}";
+            return $"{Path}/{GetPathSegmentFromId(id)}";
         }
 
         /// <summary>
         /// Gets the transformed final path to use for the request.
         /// </summary>
-        protected virtual string GetTransformedUrlPath(string id, TContent content)
+        protected virtual string GetTransformedUrlPath(TKey id, TContent content)
         {
             string path = GetUrlPath(id, content);
 
@@ -43,7 +48,7 @@
         /// <summary>
         /// Sends a request with the given content and id, returning the result.
         /// </summary>
-        public async Task<TResult> ExecuteAsync(string id, TContent content, CancellationToken cancellationToken = default)
+        public async Task<TResult> ExecuteAsync(TKey id, TContent content, CancellationToken cancellationToken = default)
         {
             string path = GetTransformedUrlPath(id, content);
             HttpContent httpContent = await GetContent(content, cancellationToken);

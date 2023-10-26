@@ -11,7 +11,7 @@
         /// <returns>
         /// Returns a <see cref="ContinuePreExecutionResult"/> which indicates the command should be executed.
         /// </returns>
-        public static ContinuePreExecutionResult Continue() => new ContinuePreExecutionResult();
+        public static ContinuePreExecutionResult Continue() => new();
 
         /// <summary>
         /// Creates a result that indicates the command should not be executed, and the provided value should be used as the result.
@@ -19,7 +19,7 @@
         /// <returns>
         /// Returns a <see cref="StopPreExecutionResult{T}"/> which indicates the command should not be executed, and the provided value should be used as the result.
         /// </returns>
-        public static StopPreExecutionResult<T> Stop<T>(T value) => new StopPreExecutionResult<T>(value);
+        public static StopPreExecutionResult<T> Stop<T>(T value) => new(value);
 
         /// <summary>
         /// A result that indicates the command should be executed.

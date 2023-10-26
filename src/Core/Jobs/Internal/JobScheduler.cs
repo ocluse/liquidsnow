@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -74,7 +73,7 @@ namespace Ocluse.LiquidSnow.Jobs.Internal
         public IDisposable Schedule(IJob job)
         {
             IDisposable handle;
-            CancellationTokenSource tokenSource = new CancellationTokenSource();
+            CancellationTokenSource tokenSource = new();
 
             if (job is IRoutineJob routineJob)
             {
@@ -89,7 +88,7 @@ namespace Ocluse.LiquidSnow.Jobs.Internal
                     .Subscribe(tick => ExecuteJob(job, tick, tokenSource.Token));
             }
 
-            JobSubscription subscription = new JobSubscription(handle, job, tokenSource);
+            JobSubscription subscription = new(handle, job, tokenSource);
             _subscriptions.Add(job.Id, subscription);
             return subscription;
         }

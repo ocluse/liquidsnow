@@ -3,8 +3,9 @@
     /// <summary>
     /// Represents a query made to a service to retrieve data.
     /// </summary>
+    /// <typeparam name="TKey">The type of the key of the query</typeparam>
     /// <typeparam name="Q">The type of the query to perform</typeparam>
-    public interface IQueryRequest<Q>
+    public interface IQueryRequest<TKey, Q>
     {
         /// <summary>
         /// If specified, the query will be paged using the cursor.
@@ -14,7 +15,7 @@
         /// <summary>
         /// If specified, the query should return only the items with the specified ids.
         /// </summary>
-        IEnumerable<string>? Ids { get; set; }
+        IEnumerable<TKey>? Ids { get; set; }
 
         /// <summary>
         /// If specified, the query will be paged using the offset.
@@ -37,8 +38,8 @@
         int? Size { get; set; }
     }
 
-    ///<inheritdoc cref="IQueryRequest{Q}"/>
-    public interface IQueryRequest : IQueryRequest<QueryType?>
+    ///<inheritdoc cref="IQueryRequest{TKey, Q}"/>
+    public interface IQueryRequest<TKey> : IQueryRequest<TKey, QueryType?>
     {
 
     }

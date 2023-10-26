@@ -14,7 +14,7 @@ namespace Ocluse.LiquidSnow.Cqrs.Internal
     internal static class ExecutionsHelper
     {
         private static readonly ConcurrentDictionary<string, ExecutionDescriptor> _descriptorCache
-            = new ConcurrentDictionary<string, ExecutionDescriptor>();
+            = new();
 
         private static ExecutionDescriptor CreateDescriptor<TResult>(ExecutionKind kind, Type executionType)
         {

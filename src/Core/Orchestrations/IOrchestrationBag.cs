@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Ocluse.LiquidSnow.Orchestrations
 {
@@ -11,12 +10,11 @@ namespace Ocluse.LiquidSnow.Orchestrations
         /// <summary>
         /// Gets a value from the bag.
         /// </summary>
-        [return: MaybeNull]
-        T Get<T>(string key);
+        T? Get<T>(string key);
 
         /// <summary>
         /// Sets a value in the bag.
         /// </summary>
-        void Set<T>(string key, [AllowNull] T value);
+        void Set<T>(string key, T? value);
     }
 }

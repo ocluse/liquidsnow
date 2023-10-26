@@ -15,12 +15,12 @@ namespace Ocluse.LiquidSnow.Http.Client
         /// <summary>
         /// Sends a request to query for a list of resources using offset paging.
         /// </summary>
-        public static async Task<QueryResult<TResult>> QueryAsync<TQuery, TResult>(
+        public static async Task<QueryResult<TResult>> QueryAsync<TKey, TQuery, TResult>(
             this IListRequestBuilder<TQuery, TResult> crudBuilder,
             int page,
             string? search = null,
             int? pageSize = null)
-            where TQuery : ListQuery<TResult>
+            where TQuery : ListQuery<TKey, TResult>
         {
             TQuery query = Activator.CreateInstance<TQuery>();
             query.Page = page;
@@ -34,11 +34,11 @@ namespace Ocluse.LiquidSnow.Http.Client
         /// <summary>
         /// Sends a request to query for a list of resources using cursor paging.
         /// </summary>
-        public static async Task<QueryResult<TResult>> QueryAsync<TQuery, TResult>(
+        public static async Task<QueryResult<TResult>> QueryAsync<TKey, TQuery, TResult>(
             this IListRequestBuilder<TQuery, TResult> crudBuilder,
             string? cursor,
             int? pageSize = null)
-            where TQuery : ListQuery<TResult>
+            where TQuery : ListQuery<TKey, TResult>
         {
             TQuery query = Activator.CreateInstance<TQuery>();
             query.Cursor = cursor;

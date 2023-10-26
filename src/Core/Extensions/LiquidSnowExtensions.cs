@@ -10,15 +10,15 @@ namespace Ocluse.LiquidSnow.Extensions
     public static class LiquidSnowExtensions
     {
         /// <summary>
-        /// Returns a list of entities as their model equivalents
+        /// Returns the models of the provided entities
         /// </summary>
-        /// <remarks>
-        /// If the source is null, an empty list is returned
-        /// </remarks>
-        public static IReadOnlyList<TModel> GetModels<TModel>(this IEnumerable<IEntity<TModel>> entities)
-            where TModel : IModel
+        public static IEnumerable<TModel> Models<TModel>(this IEnumerable<IEntity<TModel>> entities)
         {
-            return entities?.Select(x => x.GetModel()).ToList() ?? new List<TModel>();
+            if(entities == null)
+            {
+                throw new System.ArgumentNullException(nameof(entities));
+            }
+            return entities.Select(x => x.GetModel());
         }
     }
 }

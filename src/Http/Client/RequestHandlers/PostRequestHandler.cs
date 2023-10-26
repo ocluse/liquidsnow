@@ -9,8 +9,8 @@
         /// <summary>
         /// Creates a new instance of the <see cref="PostRequestHandler{TContent,TResult}"/> class
         /// </summary>
-        public PostRequestHandler(ISnowHttpClientFactory httpClientFactory, string path, string? clientName = null, IHttpHandler? httpHandler = null)
-            : base(HttpMethod.Post, httpClientFactory, path, clientName, httpHandler)
+        public PostRequestHandler(ISnowHttpClientFactory httpClientFactory, string path, IHttpHandler? httpHandler = null, string? clientName = null)
+            : base(HttpMethod.Post, httpClientFactory, path, httpHandler, clientName)
         {
         }
     }

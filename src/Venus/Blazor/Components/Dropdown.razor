@@ -40,9 +40,9 @@
     </div>
     <span class="header-label">@Header</span>
 
-    @if (ValidationResult.Message != null)
+    @if (Validation?.Message != null)
     {
-        <span class="@GetValidationClass()">@ValidationResult.Message</span>
+        <span class="@GetValidationClass()">@Validation?.Message</span>
     }
 </div>
 @code {

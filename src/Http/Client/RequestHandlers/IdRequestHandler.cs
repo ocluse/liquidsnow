@@ -2,15 +2,19 @@
 {
     /// <summary>
     /// A request handler used to send a request with an id based path
-    /// </summary>
-    /// <typeparam name="TResult"></typeparam>
-    public class IdRequestHandler<TResult> : RequestHandler<TResult>
+    /// </summary>d
+    public class IdRequestHandler<TKey, TResult> : RequestHandler<TResult>
     {
         /// <summary>
-        /// Creates a new instance of the <see cref="IdRequestHandler{TResult}"/> class
+        /// Creates a new instance of the <see cref="IdRequestHandler{TKey, TResult}"/> class
         /// </summary>
-        public IdRequestHandler(HttpMethod httpMethod, ISnowHttpClientFactory httpClientFactory, string path, string? clientName = null, IHttpHandler? httpHandler = null)
-            : base(httpClientFactory, path, clientName, httpHandler)
+        public IdRequestHandler(
+            HttpMethod httpMethod, 
+            ISnowHttpClientFactory httpClientFactory, 
+            string path, 
+            IHttpHandler? httpHandler = null, 
+            string? clientName = null)
+            : base(httpClientFactory, path, httpHandler, clientName)
         {
             HttpMethod = httpMethod;
         }
@@ -26,15 +30,15 @@
         /// <remarks>
         /// The path returned by this method will be transformed by the <see cref="GetTransformedUrlPath"/> method before making the request.
         /// </remarks>
-        protected virtual string GetUrlPath(string id)
+        protected virtual string GetUrlPath(TKey id)
         {
-            return $"{Path}/{id}";
+            return $"{Path}/{GetPathSegmentFromId(id)}";
         }
 
         /// <summary>
         /// The method used to make the final transformation to the url path before making the request
         /// </summary>
-        protected virtual string GetTransformedUrlPath(string id)
+        protected virtual string GetTransformedUrlPath(TKey id)
         {
             string path = GetUrlPath(id);
 
@@ -44,7 +48,7 @@
         /// <summary>
         /// Sends a request with the given id, returning the result.
         /// </summary>
-        public async Task<TResult> ExecuteAsync(string id, CancellationToken cancellationToken = default)
+        public async Task<TResult> ExecuteAsync(TKey id, CancellationToken cancellationToken = default)
         {
             string path = GetTransformedUrlPath(id);
 

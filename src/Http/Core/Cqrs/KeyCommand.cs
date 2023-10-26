@@ -1,9 +1,9 @@
 ﻿namespace Ocluse.LiquidSnow.Http.Cqrs
 {
-    ///<inheritdoc cref="IKeyCommand{T}"/>
-    public abstract record KeyCommand<T> : IKeyCommand<T>
+    ///<inheritdoc cref="IKeyCommand{TKey, T}"/>
+    public abstract record KeyCommand<TKey, T> : IKeyCommand<TKey, T>
     {
         ///<inheritdoc/>
-        public required string Id { get; init; }
+        public required TKey Id { get; init; }
     }
 }

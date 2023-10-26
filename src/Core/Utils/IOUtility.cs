@@ -224,7 +224,7 @@ namespace Ocluse.LiquidSnow.Utils
                 return $"{(int)readable}{suffix}";
             }
 
-            StringBuilder builder = new StringBuilder("0.");
+            StringBuilder builder = new("0.");
 
             for (int i = 0; i < decimals; i++)
             {

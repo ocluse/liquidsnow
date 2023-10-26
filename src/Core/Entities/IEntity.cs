@@ -5,15 +5,10 @@
     /// </summary>
     public interface IEntity
     {
-        /// <summary>
-        /// The unique identifier of this entity
-        /// </summary>
-        string Id { get; set; }
-
     }
 
     ///<inheritdoc cref="IEntity"/>
-    public interface IEntity<TModel> : IEntity where TModel : IModel
+    public interface IEntity<TModel> : IEntity
     {
         /// <summary>
         /// Returns this entity represented as a model

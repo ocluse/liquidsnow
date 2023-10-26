@@ -3,14 +3,13 @@
     /// <summary>
     /// A handler user to get a resource by id
     /// </summary>
-    /// <typeparam name="TResult"></typeparam>
-    public class ReadRequestHandler<TResult> : GetByIdRequestHandler<TResult>
+    public class ReadRequestHandler<TKey, TResult> : GetByIdRequestHandler<TKey, TResult>
     {
         /// <summary>
-        /// Creates a new instance of the <see cref="ReadRequestHandler{TResult}"/> class
+        /// Creates a new instance of the <see cref="ReadRequestHandler{TKey, TResult}"/> class
         /// </summary>
-        public ReadRequestHandler(ISnowHttpClientFactory httpClientFactory, string path, string? clientName = null, IHttpHandler? httpHandler = null) 
-            : base(httpClientFactory, path, clientName, httpHandler)
+        public ReadRequestHandler(ISnowHttpClientFactory httpClientFactory, string path, IHttpHandler? httpHandler = null, string? clientName = null) 
+            : base(httpClientFactory, path, httpHandler, clientName)
         {
         }
     }

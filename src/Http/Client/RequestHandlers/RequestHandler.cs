@@ -1,5 +1,4 @@
-﻿using Ocluse.LiquidSnow.Entities;
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using System.Reactive;
 using System.Text;
 using System.Text.Json;
@@ -28,6 +27,43 @@ internal static class JsonOptionsCache
 public class RequestHandler<TResult>
 {
     /// <summary>
+    /// Creates a http request handler.
+    /// </summary>
+    /// <param name="httpClientFactory">The factory that will be used to create HTTP clients</param>
+    /// <param name="path">The path that will be used to send the requests</param>
+    /// <param name="clientName">The client name that will be created to send the requests. If none is specified, the default one will be used</param>
+    /// <param name="httpHandler">The handler that will be used to transform requests and responses</param>
+    public RequestHandler(
+        ISnowHttpClientFactory httpClientFactory,
+        string path,
+        IHttpHandler? httpHandler = null,
+        string? clientName = null)
+    {
+        HttpClientFactory = httpClientFactory;
+        Path = path;
+        HttpHandler = httpHandler;
+
+        //Set the client name:
+        if (clientName is null)
+        {
+            var clientNameProvider = HttpHandler.As<IClientNameProvider>();
+
+            if (clientNameProvider != null)
+            {
+                ClientName = clientNameProvider.ClientName;
+            }
+            else
+            {
+                ClientName = null;
+            }
+        }
+        else
+        {
+            ClientName = clientName;
+        }
+    }
+
+    /// <summary>
     /// The factory used to create HTTP clients for sending requests.
     /// </summary>
     public ISnowHttpClientFactory HttpClientFactory { get; }
@@ -48,13 +84,15 @@ public class RequestHandler<TResult>
     public IHttpHandler? HttpHandler { get; }
 
     /// <summary>
-    /// The <see cref="JsonSerializerOptions"/> used to serialize and deserialize the request and response.
+    /// The <see cref="System.Text.Json.JsonSerializerOptions"/> used to serialize and deserialize the request and response.
     /// </summary>
     protected virtual JsonSerializerOptions JsonSerializerOptions
     {
         get
         {
-            if (HttpHandler is IJsonOptionsProvider jsonOptionsProvider)
+            var jsonOptionsProvider = HttpHandler.As<IJsonOptionsProvider>();
+
+            if(jsonOptionsProvider != null)
             {
                 return jsonOptionsProvider.JsonSerializerOptions;
             }
@@ -66,32 +104,17 @@ public class RequestHandler<TResult>
     }
 
     /// <summary>
-    /// Creates a http request handler.
-    /// </summary>
-    /// <param name="httpClientFactory">The factory that will be used to create HTTP clients</param>
-    /// <param name="path">The path that will be used to send the requests</param>
-    /// <param name="clientName">The client name that will be created to send the requests. If none is specified, the default one will be used</param>
-    /// <param name="httpHandler">The handler that will be used to transform requests and responses</param>
-    public RequestHandler(
-        ISnowHttpClientFactory httpClientFactory,
-        string path,
-        string? clientName = null,
-        IHttpHandler? httpHandler = null)
-    {
-        HttpClientFactory = httpClientFactory;
-        ClientName = clientName;
-        Path = path;
-        HttpHandler = httpHandler;
-    }
-    /// <summary>
     /// Transforms a path by using the <see cref="IHttpUrlTransformer"/> if one is specified.
     /// </summary>
     protected virtual string TransformUrlPath(string urlPath)
     {
-        if (HttpHandler is IHttpUrlTransformer urlTransformer)
+        var urlTransformer = HttpHandler.As<IHttpUrlTransformer>();
+
+        if (urlTransformer != null)
         {
             return urlTransformer.Transform(urlPath);
         }
+
         return urlPath;
     }
 
@@ -100,7 +123,9 @@ public class RequestHandler<TResult>
     /// </summary>
     public async Task<TResult> SendAsync(HttpRequestMessage requestMessage, CancellationToken cancellationToken)
     {
-        if (HttpHandler is IHttpRequestHandler httpRequestHandler)
+        var httpRequestHandler = HttpHandler.As<IHttpRequestHandler>();
+
+        if (httpRequestHandler != null)
         {
             await httpRequestHandler.HandleRequestBeforeSend(requestMessage, cancellationToken);
         }
@@ -108,7 +133,9 @@ public class RequestHandler<TResult>
         HttpClient httpClient = await GetClient(cancellationToken);
         HttpResponseMessage response = await httpClient.SendAsync(requestMessage, cancellationToken);
 
-        if (HttpHandler is IHttpResponseHandler httpResponseHandler)
+        var httpResponseHandler = HttpHandler.As<IHttpResponseHandler>();
+
+        if (httpResponseHandler != null)
         {
             await httpResponseHandler.HandleResponseAfterReceive(response, cancellationToken);
         }
@@ -121,10 +148,7 @@ public class RequestHandler<TResult>
     /// </summary>
     protected virtual async Task<HttpClient> GetClient(CancellationToken cancellationToken)
     {
-        string clientName = ClientName ?? HttpHandler?.DefaultClientName
-            ?? throw new InvalidOperationException("No client name specified and no default client name set.");
-
-        return await HttpClientFactory.CreateClient(clientName, cancellationToken);
+        return await HttpClientFactory.CreateClient(ClientName, cancellationToken);
     }
 
     /// <summary>
@@ -133,7 +157,9 @@ public class RequestHandler<TResult>
     /// <exception cref="ResponseContentNullException"></exception>
     public virtual async Task<TResult> GetResult(HttpResponseMessage message, CancellationToken cancellationToken = default)
     {
-        if (HttpHandler is IHttpContentHandler contentHandler)
+        var contentHandler = HttpHandler.As<IHttpContentHandler>();
+
+        if (contentHandler != null)
         {
             return await contentHandler.GetResult<TResult>(message, cancellationToken);
         }
@@ -157,11 +183,13 @@ public class RequestHandler<TResult>
     /// </summary>
     public virtual async Task<HttpContent> GetContent<T>(T value, CancellationToken cancellationToken = default)
     {
-        if (HttpHandler is IHttpContentHandler contentHandler)
+        var contentHandler = HttpHandler.As<IHttpContentHandler>();
+
+        if (contentHandler != null)
         {
-            return await contentHandler.GetContent(value, cancellationToken);
+               return await contentHandler.GetContent(value, cancellationToken);
         }
-        else if(value is HttpContent content)
+        else if (value is HttpContent content)
         {
             return content;
         }
@@ -174,13 +202,30 @@ public class RequestHandler<TResult>
     }
 
     /// <summary>
+    /// Returns the path segment string for the given id, invoking the <see cref="IHttpIdPathSegmentTransformer{TKey}"/> if specified.
+    /// </summary>
+    public virtual string GetPathSegmentFromId<TKey>(TKey id)
+    {
+        if(HttpHandler is IHttpIdPathSegmentTransformer<TKey> idTransformer)
+        {
+            return idTransformer.GetPathStringFromId(id);
+        }
+        else
+        {
+            return id?.ToString() ?? throw new ArgumentNullException(nameof(id), "The automatic conversion of ID to path string returned null");
+        }
+    }
+
+    /// <summary>
     /// Transforms the given value into a query string, invoking the <see cref="IHttpQueryTransformer"/> if specified.
     /// </summary>
     protected string GetQueryString<T>(T value)
     {
-        if (HttpHandler is IHttpQueryTransformer transformer)
+        var queryTransformer = HttpHandler.As<IHttpQueryTransformer>();
+
+        if (queryTransformer != null)
         {
-            return transformer.Transform(value);
+            return queryTransformer.Transform(value);
         }
         else
         {

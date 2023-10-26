@@ -27,7 +27,7 @@ namespace Ocluse.LiquidSnow.Extensions
 
             if (value.Length == 0) return string.Empty;
 
-            StringBuilder builder = new StringBuilder();
+            StringBuilder builder = new();
 
             for (var i = 0; i < value.Length; i++)
             {
@@ -166,7 +166,7 @@ namespace Ocluse.LiquidSnow.Extensions
         {
             if (string.IsNullOrWhiteSpace(value))
                 return string.Empty;
-            StringBuilder newText = new StringBuilder(value.Length * 2);
+            StringBuilder newText = new(value.Length * 2);
             newText.Append(value[0]);
             for (int i = 1; i < value.Length; i++)
             {

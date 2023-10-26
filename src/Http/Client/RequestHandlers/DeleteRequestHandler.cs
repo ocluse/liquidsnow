@@ -1,14 +1,16 @@
-﻿namespace Ocluse.LiquidSnow.Http.Client.RequestHandlers
+﻿using System.Reactive;
+
+namespace Ocluse.LiquidSnow.Http.Client.RequestHandlers
 {
     /// <summary>
-    /// A handler used to send get requests to a resource
+    /// A handler user to delete a resource
     /// </summary>
-    public class GetRequestHandler<TResult> : RequestHandler<TResult>
+    public class DeleteRequestHandler<TResult> : RequestHandler<TResult>
     {
         /// <summary>
-        /// Creates a new instance of the <see cref="GetRequestHandler{TResult}"/> class
+        /// Creates a new instance of the <see cref="DeleteRequestHandler{TResult}"/> class
         /// </summary>
-        public GetRequestHandler(ISnowHttpClientFactory httpClientFactory, string path, IHttpHandler? httpHandler = null, string ? clientName = null)
+        public DeleteRequestHandler(ISnowHttpClientFactory httpClientFactory, string path, IHttpHandler? httpHandler = null, string? clientName = null)
             : base(httpClientFactory, path, httpHandler, clientName)
         {
         }
@@ -41,9 +43,8 @@
         {
             string path = GetTransformedUrlPath();
 
-            using HttpRequestMessage request = new(HttpMethod.Get, path);
+            using HttpRequestMessage request = new(HttpMethod.Delete, path);
             return await SendAsync(request, cancellationToken);
         }
     }
 }
-

@@ -19,7 +19,7 @@ namespace Ocluse.LiquidSnow.Extensions
         public static async Task<TResult> TimeoutAfter<TResult>(this Task<TResult> task, TimeSpan timeout)
         {
 
-            using CancellationTokenSource timeoutCancellationTokenSource = new CancellationTokenSource();
+            using CancellationTokenSource timeoutCancellationTokenSource = new();
 
             Task completedTask = await Task.WhenAny(task, Task.Delay(timeout, timeoutCancellationTokenSource.Token));
             if (completedTask == task)
@@ -46,7 +46,7 @@ namespace Ocluse.LiquidSnow.Extensions
         public static async Task TimeoutAfter(this Task task, TimeSpan timeout)
         {
 
-            using CancellationTokenSource timeoutCancellationTokenSource = new CancellationTokenSource();
+            using CancellationTokenSource timeoutCancellationTokenSource = new();
 
             Task completedTask = await Task.WhenAny(task, Task.Delay(timeout, timeoutCancellationTokenSource.Token));
             if (completedTask == task)

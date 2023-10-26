@@ -8,12 +8,6 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 
         private object? _nextCursor, _previousCursor;
 
-        private object? _cursor;
-
-        private int _page;
-
-        private PaginationState _paginationState = new(0, null, null, Blazor.Ordering.Ascending);
-
         #region Properties
 
         protected virtual string ItemElement { get; } = "div";
@@ -43,6 +37,9 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         public IEnumerable<T>? Items { get; set; }
 
         [Parameter]
+        public EventCallback<IEnumerable<T>?> ItemsChanged { get; set; }
+
+        [Parameter]
         public Func<CursorPaginationState, Task<CursorListViewData<T>>>? CursorFetch { get; set; }
 
         [Parameter]
@@ -52,7 +49,13 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         public object? Cursor { get; set; }
 
         [Parameter]
+        public EventCallback<object?> CursorChanged { get; set; }
+
+        [Parameter]
         public int Page { get; set; }
+
+        [Parameter]
+        public EventCallback<int> PageChanged { get; set; }
 
         [Parameter]
         public int? PageSize { get; set; }
@@ -61,10 +64,19 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         public object? Sort { get; set; }
 
         [Parameter]
+        public EventCallback<object?> SortChanged { get; set; }
+
+        [Parameter]
         public object? Filter { get; set; }
 
         [Parameter]
+        public EventCallback<object?> FilterChanged { get; set; }
+
+        [Parameter]
         public Ordering? Ordering { get; set; }
+
+        [Parameter]
+        public EventCallback<Ordering?> OrderingChanged { get; set; }
 
         [Parameter]
         public string? DisplayMemberPath { get; set; }
@@ -78,27 +90,36 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 
         protected override void OnInitialized()
         {
-            _cursor = Cursor;
-            _page = Page;
-            _paginationState = new(
+            PageSize ??= Resolver.DefaultPageSize;
+            Sort ??= FiltrationOptions?.DefaultSort.Value;
+            Filter ??= FiltrationOptions?.DefaultFilter.Value;
+            Ordering ??= FiltrationOptions?.DefaultSort.Ordering ?? Blazor.Ordering.Ascending;
+
+            base.OnInitialized();
+        }
+
+        protected override async Task OnParametersSetAsync()
+        {
+            await base.OnParametersSetAsync();
+            await ReloadData();
+        }
+
+        protected override async Task<int> FetchDataAsync()
+        {
+            var paginationState = new PaginationState(
                 PageSize: PageSize ?? Resolver.DefaultPageSize,
                 Sort: Sort ?? FiltrationOptions?.DefaultSort.Value,
                 Filter: Filter ?? FiltrationOptions?.DefaultFilter.Value,
                 Ordering: Ordering ?? FiltrationOptions?.DefaultSort.Ordering ?? Blazor.Ordering.Ascending);
 
-            base.OnInitialized();
-        }
-
-        protected override async Task<int> FetchDataAsync()
-        {
             if (CursorFetch != null)
             {
                 CursorPaginationState state = new(
-                    _cursor, 
-                    _paginationState.PageSize, 
-                    _paginationState.Sort, 
-                    _paginationState.Filter, 
-                    _paginationState.Ordering);
+                    Cursor,
+                    paginationState.PageSize,
+                    paginationState.Sort,
+                    paginationState.Filter,
+                    paginationState.Ordering);
 
                 var result = await CursorFetch.Invoke(state);
                 Items = result.Items;
@@ -108,11 +129,11 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
             else if (OffsetFetch != null)
             {
                 OffsetPaginationState state = new(
-                    _page, 
-                    _paginationState.PageSize, 
-                    _paginationState.Sort, 
-                    _paginationState.Filter, 
-                    _paginationState.Ordering);
+                    Page,
+                    paginationState.PageSize,
+                    paginationState.Sort,
+                    paginationState.Filter,
+                    paginationState.Ordering);
 
                 var result = await OffsetFetch.Invoke(state);
                 Items = result.Items;
@@ -148,43 +169,37 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         {
         }
 
-        private async Task FilterChanged(FilterOption? option)
+        private async Task OnFilterChanged(FilterOption? option)
         {
-            _paginationState = _paginationState with { Filter = option?.Value ?? FiltrationOptions?.DefaultFilter.Value };
+            var newFilter = option?.Value ?? FiltrationOptions?.DefaultFilter.Value;
+            await FilterChanged.InvokeAsync(newFilter);
             await ReloadData();
         }
 
-        public async Task SorterChanged(FilterOption? option)
+        public async Task OnSortChanged(FilterOption? option)
         {
-            var sort = option?.Value ?? FiltrationOptions?.DefaultSort.Value;
-            Ordering ordering = Blazor.Ordering.Ascending;
+            var newSort = option?.Value;
+            Ordering? ordering = null;
 
-            if (option != null)
+            if (option is SortOption sortOption)
             {
-                if (option is SortOption sortOption)
-                {
-                    ordering = sortOption.Ordering;
-                }
-                else if (FiltrationOptions?.DefaultSort != null)
-                {
-                    ordering = FiltrationOptions.DefaultSort.Ordering;
-                }
+                ordering = sortOption.Ordering;
             }
 
-            _paginationState = _paginationState with { Sort = sort, Ordering = ordering };
-
+            await SortChanged.InvokeAsync(newSort);
+            await OrderingChanged.InvokeAsync(ordering);
             await ReloadData();
         }
 
         private async Task OnCursorChanged(object newCursor)
         {
-            _cursor = newCursor;
+            await CursorChanged.InvokeAsync(newCursor);
             await ReloadData();
         }
 
         private async Task OnPageChanged(int newPage)
         {
-            _page = newPage;
+            await PageChanged.InvokeAsync(newPage);
             await ReloadData();
         }
 
@@ -249,16 +264,16 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
                     builder.AddAttribute(8, "class", "items-filtration");
                     builder.OpenComponent<FilterDropdown>(9);
                     builder.AddAttribute(10, nameof(FilterDropdown.Icon), FeatherIcons.Filter);
-                    builder.AddAttribute(11, nameof(FilterDropdown.Value), _paginationState.Filter);
+                    builder.AddAttribute(11, nameof(FilterDropdown.Value), Filter);
                     builder.AddAttribute(12, nameof(FilterDropdown.Placeholder), "Filter By");
-                    builder.AddAttribute(13, nameof(FilterDropdown.ValueChanged), FilterChanged);
+                    builder.AddAttribute(13, nameof(FilterDropdown.ValueChanged), OnFilterChanged);
                     builder.CloseComponent();
 
                     builder.OpenComponent<FilterDropdown>(14);
                     builder.AddAttribute(15, nameof(FilterDropdown.Icon), FeatherIcons.List);
-                    builder.AddAttribute(16, nameof(FilterDropdown.Value), _paginationState.Sort);
+                    builder.AddAttribute(16, nameof(FilterDropdown.Value), Sort);
                     builder.AddAttribute(17, nameof(FilterDropdown.Placeholder), "Sort By");
-                    builder.AddAttribute(18, nameof(FilterDropdown.ValueChanged), SorterChanged);
+                    builder.AddAttribute(18, nameof(FilterDropdown.ValueChanged), OnSortChanged);
                     builder.CloseComponent();
                     builder.CloseElement();
                 }
@@ -289,10 +304,10 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
             else if (OffsetFetch != null)
             {
                 builder.OpenComponent<PaginationOffset>(527);
-                builder.AddAttribute(528, nameof(PaginationOffset.CurrentPage), _page);
+                builder.AddAttribute(528, nameof(PaginationOffset.CurrentPage), Page);
                 builder.AddAttribute(529, nameof(PaginationOffset.PageChanged), EventCallback.Factory.Create(this, (Func<int, Task>)OnPageChanged));
                 builder.AddAttribute(530, nameof(PaginationOffset.TotalItems), _totalItems);
-                builder.AddAttribute(531, nameof(PaginationOffset.ItemsPerPage), _paginationState.PageSize);
+                builder.AddAttribute(531, nameof(PaginationOffset.ItemsPerPage), PageSize);
                 builder.CloseComponent();
             }
 
