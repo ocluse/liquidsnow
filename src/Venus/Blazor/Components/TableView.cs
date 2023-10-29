@@ -20,7 +20,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
             builder.Add("table");
         }
 
-        protected override void BuildFound(RenderTreeBuilder builder)
+        protected override void RenderItems(RenderTreeBuilder builder, IEnumerable<T> items)
         {
             if (HeaderTemplate != null)
             {
@@ -30,7 +30,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
             }
 
             builder.OpenElement(32, "tbody");
-            base.BuildFound(builder);
+            base.RenderItems(builder, items);
             builder.CloseElement();
 
             if (FooterTemplate != null)

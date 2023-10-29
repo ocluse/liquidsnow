@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components.Rendering;
+using Microsoft.AspNetCore.Components.Web.Virtualization;
 
 namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 {
@@ -206,42 +207,51 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
             await ReloadData();
         }
 
-        protected override void BuildFound(RenderTreeBuilder builder)
+        protected virtual void RenderFoundCore(RenderTreeBuilder builder, IEnumerable<T> items)
+        {
+            ClassBuilder containerClass = new();
+            StyleBuilder containerStyle = new();
+
+            BuildContainerClass(containerClass);
+            BuildContainerStyles(containerStyle);
+
+            builder.OpenElement(50, ContainerElement);
+            builder.AddAttribute(51, "class", containerClass.Build());
+            builder.AddAttribute(52, "style", containerStyle.Build());
+
+            RenderItems(builder, items);
+
+            builder.CloseElement();
+        }
+
+        protected virtual void RenderItems(RenderTreeBuilder builder, IEnumerable<T> items)
         {
             string itemClass = GetItemClass();
 
+            foreach (var item in items)
+            {
+                builder.OpenElement(53, ItemElement);
+                builder.SetKey(item);
+                builder.AddAttribute(54, "class", itemClass);
+                builder.AddAttribute(55, "onclick", EventCallback.Factory.Create(this, async () => { await ItemClicked.InvokeAsync(item); }));
+                if (ItemTemplate == null)
+                {
+
+                    builder.AddContent(56, item.GetDisplayMember(DisplayMemberFunc, DisplayMemberPath));
+                }
+                else
+                {
+                    builder.AddContent(57, ItemTemplate, item);
+                }
+                builder.CloseElement();
+            }
+        }
+
+        protected override void BuildFound(RenderTreeBuilder builder)
+        {
             if (Items != null && Items.Any())
             {
-                ClassBuilder containerClass = new();
-                StyleBuilder containerStyle = new();
-
-                BuildContainerClass(containerClass);
-                BuildContainerStyles(containerStyle);
-
-                builder.OpenElement(50, ContainerElement);
-                builder.AddAttribute(51, "class", containerClass.Build());
-                builder.AddAttribute(52, "style", containerStyle.Build());
-
-                foreach (var item in Items)
-                {
-                    builder.OpenElement(53, ItemElement);
-                    builder.SetKey(item);
-                    builder.AddAttribute(54, "class", itemClass);
-                    builder.AddAttribute(55, "onclick", EventCallback.Factory.Create(this, async () => { await ItemClicked.InvokeAsync(item); }));
-                    if (ItemTemplate == null)
-                    {
-
-                        builder.AddContent(56, item.GetDisplayMember(DisplayMemberFunc, DisplayMemberPath));
-                    }
-                    else
-                    {
-                        builder.AddContent(57, ItemTemplate, item);
-                    }
-                    builder.CloseElement();
-                }
-
-                builder.CloseElement();
-
+                RenderFoundCore(builder, Items);
             }
             else if (EmptyTemplate != null)
             {
