@@ -212,32 +212,45 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 
             if (Items != null && Items.Any())
             {
+                ClassBuilder containerClass = new();
+                StyleBuilder containerStyle = new();
+
+                BuildContainerClass(containerClass);
+                BuildContainerStyles(containerStyle);
+
+                builder.OpenElement(50, ContainerElement);
+                builder.AddAttribute(51, "class", containerClass.Build());
+                builder.AddAttribute(52, "style", containerStyle.Build());
+
                 foreach (var item in Items)
                 {
-                    builder.OpenElement(52, ItemElement);
+                    builder.OpenElement(53, ItemElement);
                     builder.SetKey(item);
-                    builder.AddAttribute(53, "class", itemClass);
-                    builder.AddAttribute(54, "onclick", EventCallback.Factory.Create(this, async () => { await ItemClicked.InvokeAsync(item); }));
+                    builder.AddAttribute(54, "class", itemClass);
+                    builder.AddAttribute(55, "onclick", EventCallback.Factory.Create(this, async () => { await ItemClicked.InvokeAsync(item); }));
                     if (ItemTemplate == null)
                     {
 
-                        builder.AddContent(55, item.GetDisplayMember(DisplayMemberFunc, DisplayMemberPath));
+                        builder.AddContent(56, item.GetDisplayMember(DisplayMemberFunc, DisplayMemberPath));
                     }
                     else
                     {
-                        builder.AddContent(59, ItemTemplate, item);
+                        builder.AddContent(57, ItemTemplate, item);
                     }
                     builder.CloseElement();
                 }
+
+                builder.CloseElement();
+
             }
             else if (EmptyTemplate != null)
             {
-                builder.AddContent(60, EmptyTemplate);
+                builder.AddContent(58, EmptyTemplate);
             }
             else
             {
                 Type typeToRender = Resolver.ResolveContainerStateToRenderType(ContainerState.Empty);
-                builder.OpenComponent(61, typeToRender);
+                builder.OpenComponent(59, typeToRender);
                 builder.CloseComponent();
             }
         }
@@ -284,17 +297,9 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
                 builder.CloseElement();
             }
 
-            ClassBuilder containerClass = new();
-            StyleBuilder containerStyle = new();
-
-            BuildContainerClass(containerClass);
-            BuildContainerStyles(containerStyle);
-
-            builder.OpenElement(20, ContainerElement);
-            builder.AddAttribute(21, "class", containerClass.Build());
-            builder.AddAttribute(22, "style", containerStyle.Build());
+            
             BuildContainer(builder);
-            builder.CloseElement();
+            
 
             if (EnablePagination)
             {
