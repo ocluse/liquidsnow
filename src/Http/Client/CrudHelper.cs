@@ -19,7 +19,8 @@ namespace Ocluse.LiquidSnow.Http.Client
             this IListRequestBuilder<TQuery, TResult> crudBuilder,
             int page,
             string? search = null,
-            int? pageSize = null)
+            int? pageSize = null,
+            CancellationToken cancellationToken = default)
             where TQuery : ListQuery<TKey, TResult>
         {
             TQuery query = Activator.CreateInstance<TQuery>();
@@ -28,7 +29,7 @@ namespace Ocluse.LiquidSnow.Http.Client
             query.Size = pageSize ?? DefaultPageSize;
             query.QType = QueryType.Offset;
 
-            return await crudBuilder.ListAsync(query);
+            return await crudBuilder.ListAsync(query, cancellationToken);
         }
 
         /// <summary>
@@ -37,7 +38,8 @@ namespace Ocluse.LiquidSnow.Http.Client
         public static async Task<QueryResult<TResult>> QueryAsync<TKey, TQuery, TResult>(
             this IListRequestBuilder<TQuery, TResult> crudBuilder,
             string? cursor,
-            int? pageSize = null)
+            int? pageSize = null,
+            CancellationToken cancellationToken = default)
             where TQuery : ListQuery<TKey, TResult>
         {
             TQuery query = Activator.CreateInstance<TQuery>();
@@ -45,7 +47,7 @@ namespace Ocluse.LiquidSnow.Http.Client
             query.Size = pageSize ?? DefaultPageSize;
             query.QType = QueryType.Cursor;
 
-            return await crudBuilder.ListAsync(query);
+            return await crudBuilder.ListAsync(query, cancellationToken);
         }
     }
 }
