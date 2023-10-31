@@ -1,10 +1,12 @@
-﻿using System.Reactive.Linq;
+﻿using Ocluse.LiquidSnow.Venus.Blazor.Contracts;
+using System.Reactive.Linq;
 
 namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 {
-    public abstract class InputBase<TValue> : ControlBase, IValidatable, IDisposable
+    public abstract class InputBase<TValue> : ControlBase, IValidatable, IInput, IDisposable
     {
         private bool _valueHasChanged;
+        private bool _disposedValue;
         private IDisposable? _debounceSubscription;
 
         [Parameter]
@@ -51,6 +53,15 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 
         [Parameter]
         public EventCallback UserFinished { get; set; }
+
+        [CascadingParameter]
+        public IFormContainer? FormContainer { get; set; }
+
+        protected override void OnInitialized()
+        {
+            base.OnInitialized();
+            FormContainer?.Register(this);
+        }
 
         protected override void OnParametersSet()
         {
@@ -162,9 +173,23 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
                 .Build();
         }
 
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    FormContainer?.Unregister(this);
+                    _debounceSubscription?.Dispose();
+                }
+
+                _disposedValue = true;
+            }
+        }
+
         public void Dispose()
         {
-            _debounceSubscription?.Dispose();
+            Dispose(true);
             GC.SuppressFinalize(this);
         }
     }

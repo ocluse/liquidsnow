@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Components.Rendering;
+using Ocluse.LiquidSnow.Venus.Blazor.Contracts;
 
 namespace Ocluse.LiquidSnow.Venus.Blazor.Components;
 
-public abstract class ButtonBase : ControlBase
+public abstract class ButtonBase : ControlBase, IInput, IDisposable
 {
+    private bool _disposedValue;
+
     [Parameter]
     public EventCallback OnClick { get; set; }
 
@@ -18,6 +21,34 @@ public abstract class ButtonBase : ControlBase
 
     [Parameter]
     public string? DisabledClass { get; set; }
+
+    [CascadingParameter]
+    public IFormContainer? FormContainer { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        FormContainer?.Register(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposedValue)
+        {
+            if (disposing)
+            {
+                FormContainer?.Unregister(this);
+            }
+
+            _disposedValue = true;
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
 
     protected virtual void BuildButtonClass(ClassBuilder classBuilder)
     {
@@ -76,4 +107,6 @@ public abstract class ButtonBase : ControlBase
     }
 
     protected abstract void BuildContent(RenderTreeBuilder builder);
+
+    
 }

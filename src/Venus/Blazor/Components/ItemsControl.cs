@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components.Rendering;
+using Microsoft.AspNetCore.Components.Web.Virtualization;
 
 namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 {
@@ -87,6 +88,9 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         [Parameter]
         public EventCallback<T> ItemClicked { get; set; }
         #endregion
+
+        [Parameter]
+        public bool EnablePagination { get; set; } = true;
 
         protected override void OnInitialized()
         {
@@ -203,38 +207,60 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
             await ReloadData();
         }
 
-        protected override void BuildFound(RenderTreeBuilder builder)
+        protected virtual void RenderFoundCore(RenderTreeBuilder builder, IEnumerable<T> items)
+        {
+            ClassBuilder containerClass = new();
+            StyleBuilder containerStyle = new();
+
+            BuildContainerClass(containerClass);
+            BuildContainerStyles(containerStyle);
+
+            builder.OpenElement(50, ContainerElement);
+            builder.AddAttribute(51, "class", containerClass.Build());
+            builder.AddAttribute(52, "style", containerStyle.Build());
+
+            RenderItems(builder, items);
+
+            builder.CloseElement();
+        }
+
+        protected virtual void RenderItems(RenderTreeBuilder builder, IEnumerable<T> items)
         {
             string itemClass = GetItemClass();
 
+            foreach (var item in items)
+            {
+                builder.OpenElement(53, ItemElement);
+                builder.SetKey(item);
+                builder.AddAttribute(54, "class", itemClass);
+                builder.AddAttribute(55, "onclick", EventCallback.Factory.Create(this, async () => { await ItemClicked.InvokeAsync(item); }));
+                if (ItemTemplate == null)
+                {
+
+                    builder.AddContent(56, item.GetDisplayMember(DisplayMemberFunc, DisplayMemberPath));
+                }
+                else
+                {
+                    builder.AddContent(57, ItemTemplate, item);
+                }
+                builder.CloseElement();
+            }
+        }
+
+        protected override void BuildFound(RenderTreeBuilder builder)
+        {
             if (Items != null && Items.Any())
             {
-                foreach (var item in Items)
-                {
-                    builder.OpenElement(52, ItemElement);
-                    builder.SetKey(item);
-                    builder.AddAttribute(53, "class", itemClass);
-                    builder.AddAttribute(54, "onclick", EventCallback.Factory.Create(this, async () => { await ItemClicked.InvokeAsync(item); }));
-                    if (ItemTemplate == null)
-                    {
-
-                        builder.AddContent(55, item.GetDisplayMember(DisplayMemberFunc, DisplayMemberPath));
-                    }
-                    else
-                    {
-                        builder.AddContent(59, ItemTemplate, item);
-                    }
-                    builder.CloseElement();
-                }
+                RenderFoundCore(builder, Items);
             }
             else if (EmptyTemplate != null)
             {
-                builder.AddContent(60, EmptyTemplate);
+                builder.AddContent(58, EmptyTemplate);
             }
             else
             {
                 Type typeToRender = Resolver.ResolveContainerStateToRenderType(ContainerState.Empty);
-                builder.OpenComponent(61, typeToRender);
+                builder.OpenComponent(59, typeToRender);
                 builder.CloseComponent();
             }
         }
@@ -281,34 +307,29 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
                 builder.CloseElement();
             }
 
-            ClassBuilder containerClass = new();
-            StyleBuilder containerStyle = new();
-
-            BuildContainerClass(containerClass);
-            BuildContainerStyles(containerStyle);
-
-            builder.OpenElement(20, ContainerElement);
-            builder.AddAttribute(21, "class", containerClass.Build());
-            builder.AddAttribute(22, "style", containerStyle.Build());
+            
             BuildContainer(builder);
-            builder.CloseElement();
+            
 
-            if (CursorFetch != null)
+            if (EnablePagination)
             {
-                builder.OpenComponent<PaginationCursor>(520);
-                builder.AddAttribute(522, nameof(PaginationCursor.CursorChanged), EventCallback.Factory.Create(this, OnCursorChanged));
-                builder.AddAttribute(523, nameof(PaginationCursor.NextCursor), _nextCursor);
-                builder.AddAttribute(524, nameof(PaginationCursor.PreviousCursor), _previousCursor);
-                builder.CloseComponent();
-            }
-            else if (OffsetFetch != null)
-            {
-                builder.OpenComponent<PaginationOffset>(527);
-                builder.AddAttribute(528, nameof(PaginationOffset.CurrentPage), Page);
-                builder.AddAttribute(529, nameof(PaginationOffset.PageChanged), EventCallback.Factory.Create(this, (Func<int, Task>)OnPageChanged));
-                builder.AddAttribute(530, nameof(PaginationOffset.TotalItems), _totalItems);
-                builder.AddAttribute(531, nameof(PaginationOffset.ItemsPerPage), PageSize);
-                builder.CloseComponent();
+                if (CursorFetch != null)
+                {
+                    builder.OpenComponent<PaginationCursor>(520);
+                    builder.AddAttribute(522, nameof(PaginationCursor.CursorChanged), EventCallback.Factory.Create(this, OnCursorChanged));
+                    builder.AddAttribute(523, nameof(PaginationCursor.NextCursor), _nextCursor);
+                    builder.AddAttribute(524, nameof(PaginationCursor.PreviousCursor), _previousCursor);
+                    builder.CloseComponent();
+                }
+                else if (OffsetFetch != null)
+                {
+                    builder.OpenComponent<PaginationOffset>(527);
+                    builder.AddAttribute(528, nameof(PaginationOffset.CurrentPage), Page);
+                    builder.AddAttribute(529, nameof(PaginationOffset.PageChanged), EventCallback.Factory.Create(this, (Func<int, Task>)OnPageChanged));
+                    builder.AddAttribute(530, nameof(PaginationOffset.TotalItems), _totalItems);
+                    builder.AddAttribute(531, nameof(PaginationOffset.ItemsPerPage), PageSize);
+                    builder.CloseComponent();
+                }
             }
 
             builder.CloseElement();
