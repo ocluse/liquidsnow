@@ -31,11 +31,6 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         [Parameter]
         public RenderFragment? ReauthenticationRequiredTemplate { get; set; }
 
-        protected override async Task OnInitializedAsync()
-        {
-            await ReloadData();
-        }
-
         protected void BuildContainer(RenderTreeBuilder builder)
         {
             if (State == ContainerState.Found)

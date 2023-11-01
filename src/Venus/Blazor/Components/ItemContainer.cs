@@ -14,14 +14,29 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         [Parameter]
         public Func<Task<T>>? Fetch { get; set; }
 
-        protected override async Task OnInitializedAsync()
+        public override async Task SetParametersAsync(ParameterView parameters)
         {
-            await ReloadData();
-        }
+            bool reloadRequired = false;
 
-        protected override async Task OnParametersSetAsync()
-        {
-            if (Fetch == null)
+            if (parameters.TryGetValue<Func<Task<T>>?>(nameof(Fetch), out var fetch))
+            {
+                if(Fetch != fetch)
+                {
+                    reloadRequired = true;
+                }
+            }
+
+            if (parameters.TryGetValue<T?>(nameof(Item), out var item))
+            {
+                if (!EqualityComparer<T>.Default.Equals(Item, item))
+                {
+                    reloadRequired = true;
+                }
+            }
+
+            await base.SetParametersAsync(parameters);
+
+            if (reloadRequired)
             {
                 await ReloadData();
             }

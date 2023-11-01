@@ -92,20 +92,97 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         [Parameter]
         public bool EnablePagination { get; set; } = true;
 
-        protected override void OnInitialized()
+        public override async Task SetParametersAsync(ParameterView parameters)
         {
-            PageSize ??= Resolver.DefaultPageSize;
-            Sort ??= FiltrationOptions?.DefaultSort.Value;
-            Filter ??= FiltrationOptions?.DefaultFilter.Value;
-            Ordering ??= FiltrationOptions?.DefaultSort.Ordering ?? Blazor.Ordering.Ascending;
+            bool reloadRequired = false;
 
-            base.OnInitialized();
-        }
+            //check page size:
+            if (parameters.TryGetValue(nameof(PageSize), out int? pageSize))
+            {
+                if (PageSize != pageSize)
+                {
+                    reloadRequired = true;
+                }
+            }
 
-        protected override async Task OnParametersSetAsync()
-        {
-            await base.OnParametersSetAsync();
-            await ReloadData();
+            //check sort:
+            if (parameters.TryGetValue(nameof(Sort), out object? sort))
+            {
+                if (Sort != sort)
+                {
+                    reloadRequired = true;
+                }
+            }
+
+            //check filter:
+            if (parameters.TryGetValue(nameof(Filter), out object? filter))
+            {
+                if (Filter != filter)
+                {
+                    reloadRequired = true;
+                }
+            }
+
+            //check ordering:
+            if (parameters.TryGetValue(nameof(Ordering), out Ordering? ordering))
+            {
+                if (Ordering != ordering)
+                {
+                    reloadRequired = true;
+                }
+            }
+
+            //check cursor fetch:
+            if (parameters.TryGetValue(nameof(CursorFetch), out Func<CursorPaginationState, Task<CursorListViewData<T>>>? cursorFetch))
+            {
+                if (CursorFetch != cursorFetch)
+                {
+                    reloadRequired = true;
+                }
+            }
+
+            //check offset fetch:
+            if (parameters.TryGetValue(nameof(OffsetFetch), out Func<OffsetPaginationState, Task<OffsetListViewData<T>>>? offsetFetch))
+            {
+                if (OffsetFetch != offsetFetch)
+                {
+                    reloadRequired = true;
+                }
+            }
+
+            //check cursor:
+            if (parameters.TryGetValue(nameof(Cursor), out object? cursor))
+            {
+                if (Cursor != cursor)
+                {
+                    reloadRequired = true;
+                }
+            }
+
+            //check page:
+            if (parameters.TryGetValue(nameof(Page), out int? page))
+            {
+                if (Page != page)
+                {
+                    reloadRequired = true;
+                }
+            }
+
+            //check items:
+            if (parameters.TryGetValue(nameof(Items), out IEnumerable<T>? items))
+            {
+                if (Items != items)
+                {
+                    reloadRequired = true;
+                }
+            }
+
+            await base.SetParametersAsync(parameters);
+
+            if (reloadRequired)
+            {
+                await ReloadData();
+            }
         }
 
         protected override async Task<int> FetchDataAsync()
@@ -177,7 +254,6 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         {
             var newFilter = option?.Value ?? FiltrationOptions?.DefaultFilter.Value;
             await FilterChanged.InvokeAsync(newFilter);
-            await ReloadData();
         }
 
         public async Task OnSortChanged(FilterOption? option)
@@ -198,13 +274,11 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         private async Task OnCursorChanged(object newCursor)
         {
             await CursorChanged.InvokeAsync(newCursor);
-            await ReloadData();
         }
 
         private async Task OnPageChanged(int newPage)
         {
             await PageChanged.InvokeAsync(newPage);
-            await ReloadData();
         }
 
         protected virtual void RenderFoundCore(RenderTreeBuilder builder, IEnumerable<T> items)
@@ -327,7 +401,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
                     builder.AddAttribute(528, nameof(PaginationOffset.CurrentPage), Page);
                     builder.AddAttribute(529, nameof(PaginationOffset.PageChanged), EventCallback.Factory.Create(this, (Func<int, Task>)OnPageChanged));
                     builder.AddAttribute(530, nameof(PaginationOffset.TotalItems), _totalItems);
-                    builder.AddAttribute(531, nameof(PaginationOffset.ItemsPerPage), PageSize);
+                    builder.AddAttribute(531, nameof(PaginationOffset.ItemsPerPage), PageSize ?? Resolver.DefaultPageSize);
                     builder.CloseComponent();
                 }
             }
