@@ -3,7 +3,7 @@ using System.Numerics;
 
 namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 {
-    public class NumberPicker<T> : InputControlBase<T> where T : INumber<T>
+    public class NumberPicker<T> : InputControlBase<T> where T : struct, INumber<T>
     {
         [Parameter]
         public T? Min { get; set; }
@@ -13,10 +13,10 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 
         protected override string InputType { get; } = "number";
 
-        protected override T? GetValue(object? value)
+        protected override T GetValue(object? value)
         {
             string? s = value?.ToString();
-            return string.IsNullOrWhiteSpace(s) ? Min ?? default : ParseValue(s);
+            return string.IsNullOrWhiteSpace(s) ? Min ?? default : ParseValue(s) ?? default;
         }
 
         private T? ParseValue(string? value)
