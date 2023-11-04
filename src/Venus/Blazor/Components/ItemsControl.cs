@@ -1,19 +1,46 @@
 ﻿using Microsoft.AspNetCore.Components.Rendering;
-using Microsoft.AspNetCore.Components.Web.Virtualization;
+using System.Collections.Specialized;
 
 namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 {
-    public class ItemsControl<T> : ContainerBase
+    public class ItemsControl<T> : ContainerBase, IDisposable
     {
         private int _totalItems;
 
         private object? _nextCursor, _previousCursor;
+
+        private IEnumerable<T>? _renderedItems;
+
+        private bool _disposedValue;
 
         #region Properties
 
         protected virtual string ItemElement { get; } = "div";
 
         protected virtual string ContainerElement { get; } = "div";
+
+        protected virtual IEnumerable<T>? RenderedItems
+        {
+            get => _renderedItems;
+            set
+            {
+                if (_renderedItems != value)
+                {
+                    if (_renderedItems is INotifyCollectionChanged oldNotify)
+                    {
+                        oldNotify.CollectionChanged -= OnItemsCollectionChanged;
+                    }
+
+                    _renderedItems = value;
+
+                    if (_renderedItems is INotifyCollectionChanged newNotify)
+                    {
+                        newNotify.CollectionChanged += OnItemsCollectionChanged;
+                    }
+                }
+                
+            }
+        }
 
         #endregion
 
@@ -179,6 +206,11 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 
             await base.SetParametersAsync(parameters);
 
+            if (OffsetFetch == null && CursorFetch == null && RenderedItems != Items)
+            {
+                reloadRequired = true;
+            }
+
             if (reloadRequired)
             {
                 await ReloadData();
@@ -203,7 +235,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
                     paginationState.Ordering);
 
                 var result = await CursorFetch.Invoke(state);
-                Items = result.Items;
+                RenderedItems = result.Items;
                 _nextCursor = result.NextCursor;
                 _previousCursor = result.PreviousCursor;
             }
@@ -217,11 +249,15 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
                     paginationState.Ordering);
 
                 var result = await OffsetFetch.Invoke(state);
-                Items = result.Items;
+                RenderedItems = result.Items;
                 _totalItems = result.TotalCount;
             }
+            else
+            {
+                RenderedItems = Items;
+            }
 
-            return Items?.Any() == true ? ContainerState.Found : ContainerState.Empty;
+            return RenderedItems?.Any() == true ? ContainerState.Found : ContainerState.Empty;
         }
 
         protected override void BuildClass(ClassBuilder classBuilder)
@@ -323,9 +359,9 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 
         protected override void BuildFound(RenderTreeBuilder builder)
         {
-            if (Items != null && Items.Any())
+            if (RenderedItems != null && RenderedItems.Any())
             {
-                RenderFoundCore(builder, Items);
+                RenderFoundCore(builder, RenderedItems);
             }
             else if (EmptyTemplate != null)
             {
@@ -381,9 +417,9 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
                 builder.CloseElement();
             }
 
-            
+
             BuildContainer(builder);
-            
+
 
             if (EnablePagination)
             {
@@ -407,6 +443,30 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
             }
 
             builder.CloseElement();
+        }
+
+        private async void OnItemsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            await ReloadData();
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue && disposing)
+            {
+                if (RenderedItems is INotifyCollectionChanged notify)
+                {
+                    notify.CollectionChanged -= OnItemsCollectionChanged;
+                }
+
+                _disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }

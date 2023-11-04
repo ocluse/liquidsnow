@@ -175,13 +175,10 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!_disposedValue)
+            if (!_disposedValue && disposing)
             {
-                if (disposing)
-                {
-                    FormContainer?.Unregister(this);
-                    _debounceSubscription?.Dispose();
-                }
+                FormContainer?.Unregister(this);
+                _debounceSubscription?.Dispose();
 
                 _disposedValue = true;
             }
