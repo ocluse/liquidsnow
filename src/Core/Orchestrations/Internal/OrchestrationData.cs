@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Ocluse.LiquidSnow.Orchestrations.Internal
+﻿namespace Ocluse.LiquidSnow.Orchestrations.Internal
 {
     internal class OrchestrationData<T> : IOrchestrationData<T>
     {
@@ -15,7 +13,7 @@ namespace Ocluse.LiquidSnow.Orchestrations.Internal
 
         public OrchestrationData(T value)
         {
-            _results = new List<IOrchestrationStepResult>();
+            _results = [];
             Bag = new OrchestrationBag();
             Orchestration = value;
         }

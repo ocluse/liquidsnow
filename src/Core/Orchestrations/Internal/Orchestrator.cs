@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Threading.Tasks;
-using System.Threading;
+﻿using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
-using System.Linq;
 
 namespace Ocluse.LiquidSnow.Orchestrations.Internal
 {
@@ -31,7 +26,7 @@ namespace Ocluse.LiquidSnow.Orchestrations.Internal
         {
             Type orchestrationType = value.GetType();
 
-            Type[] typeArgs = { orchestrationType, typeof(TResult) };
+            Type[] typeArgs = [orchestrationType, typeof(TResult)];
 
             Type orchestrationStepType = typeof(IOrchestrationStep<,>).MakeGenericType(typeArgs);
 
@@ -147,13 +142,13 @@ namespace Ocluse.LiquidSnow.Orchestrations.Internal
         {
             Type orchestrationType = value.GetType();
 
-            Type[] typeArgs = { orchestrationType, typeof(T) };
+            Type[] typeArgs = [orchestrationType, typeof(T)];
 
             var methodInfo = GetType().GetMethod(nameof(Execute), BindingFlags.NonPublic | BindingFlags.Instance);
 
             var genericMethodInfo = methodInfo!.MakeGenericMethod(typeArgs);
 
-            return (Task<T>)genericMethodInfo.Invoke(this, new object[] { value, cancellationToken })!;
+            return (Task<T>)genericMethodInfo.Invoke(this, [value, cancellationToken])!;
         }
     }
 }

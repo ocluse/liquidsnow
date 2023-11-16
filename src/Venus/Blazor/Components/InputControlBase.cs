@@ -15,7 +15,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         [Parameter]
         public EventCallback OnReturn { get; set; }
 
-        protected virtual string InputType { get; } = "text";
+        protected virtual string InputType => "text";
 
         protected override void BuildInputClass(ClassBuilder classBuilder)
         {
@@ -51,12 +51,12 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
             }
 
             //Validation message
-            if (Validation != null && !string.IsNullOrEmpty(Validation.Value.Message))
+            if (Validation != null && !string.IsNullOrEmpty(Validation.Message))
             {
                 builder.OpenElement(53, "span");
                 builder.AddAttribute(54, "class", GetValidationClass());
                 builder.AddAttribute(55, "role", "alert");
-                builder.AddContent(56, Validation.Value.Message);
+                builder.AddContent(56, Validation.Message);
                 builder.CloseElement();
             }
 

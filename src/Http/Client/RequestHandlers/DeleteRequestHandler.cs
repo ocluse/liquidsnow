@@ -1,6 +1,4 @@
-﻿using System.Reactive;
-
-namespace Ocluse.LiquidSnow.Http.Client.RequestHandlers
+﻿namespace Ocluse.LiquidSnow.Http.Client.RequestHandlers
 {
     /// <summary>
     /// A handler user to delete a resource

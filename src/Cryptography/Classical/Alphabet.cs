@@ -1,7 +1,5 @@
 ﻿using Ocluse.LiquidSnow.Cryptography.Classical.Ciphers;
 using Ocluse.LiquidSnow.Extensions;
-using System;
-using System.Collections.Generic;
 using System.Text;
 
 namespace Ocluse.LiquidSnow.Cryptography.Classical
@@ -132,7 +130,7 @@ namespace Ocluse.LiquidSnow.Cryptography.Classical
         /// </summary>
         public Alphabet()
         {
-            _items = new List<char>();
+            _items = [];
         }
 
         /// <summary>
@@ -141,7 +139,7 @@ namespace Ocluse.LiquidSnow.Cryptography.Classical
         /// <param name="characters"></param>
         public Alphabet(string characters)
         {
-            _items = new List<char>();
+            _items = [];
 
             AddAll(characters);
         }
@@ -152,7 +150,7 @@ namespace Ocluse.LiquidSnow.Cryptography.Classical
         /// <param name="characters"></param>
         public Alphabet(IEnumerable<char> characters)
         {
-            _items = new List<char>();
+            _items = [];
             AddAll(characters);
 
         }

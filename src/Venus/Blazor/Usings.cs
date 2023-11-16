@@ -4,4 +4,3 @@ global using Microsoft.AspNetCore.Components;
 global using Ocluse.LiquidSnow.Venus.Values;
 global using Ocluse.LiquidSnow.Venus.Blazor.Models;
 global using Ocluse.LiquidSnow.Venus.Blazor.Services;
-global using Ocluse.LiquidSnow.Venus.Icons.Feather;

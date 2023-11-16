@@ -1,9 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Ocluse.LiquidSnow.Cryptography.IO
+﻿namespace Ocluse.LiquidSnow.Cryptography.IO
 {
     /// <summary>
     /// Contains functionality for encrypting and decrypting a file

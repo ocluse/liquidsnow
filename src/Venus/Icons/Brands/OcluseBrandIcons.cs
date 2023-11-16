@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Ocluse.LiquidSnow.Venus.Icons.Brands
+﻿namespace Ocluse.LiquidSnow.Venus.Icons.Brands
 {
     public static class OcluseBrandIcons
     {

@@ -29,7 +29,14 @@
             }
             else
             {
-                <FeatherIcon Icon="@FeatherIcons.ChevronLeft" Size="DefaultSize.Size18" />
+                if(Resolver.IconStyle == IconStyle.Fluent)
+                {
+                    <FluentIcon Icon="@ComponentIcons.Fluent.ChevronLeft" Size="Resolver.DefaultButtonIconSize" />
+                }
+                else
+                {
+                    <FeatherIcon Icon="@ComponentIcons.Feather.ChevronLeft" Size="Resolver.DefaultButtonIconSize" />
+                }
             }
 
         </button>
@@ -59,7 +66,14 @@
             }
             else
             {
-                <FeatherIcon Icon="@FeatherIcons.ChevronRight" Size="DefaultSize.Size18" />
+                if(Resolver.IconStyle == IconStyle.Fluent)
+                {
+                    <FluentIcon Icon="@ComponentIcons.Fluent.ChevronRight" Size="Resolver.DefaultButtonIconSize" />
+                }
+                else
+                {
+                    <FeatherIcon Icon="@ComponentIcons.Feather.ChevronRight" Size="Resolver.DefaultButtonIconSize" />
+                }
             }
         </button>
     }
@@ -100,10 +114,10 @@
         return sb.ToString();
     }
 
-    protected override async Task OnParametersSetAsync()
+    protected override void OnParametersSet()
     {
         _totalPages = (int)Math.Ceiling(TotalItems / (double)ItemsPerPage);
-        await base.OnParametersSetAsync();
+        base.OnParametersSet();
     }
 
     private async Task ChangePage(int page)

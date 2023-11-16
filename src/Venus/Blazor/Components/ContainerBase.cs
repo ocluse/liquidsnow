@@ -4,9 +4,6 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 {
     public abstract class ContainerBase : ControlBase
     {
-        [Inject]
-        public IBlazorResolver Resolver { get; set; } = null!;
-
         [Parameter]
         public int State { get; set; } = ContainerState.Found;
 

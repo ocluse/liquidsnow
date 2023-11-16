@@ -70,17 +70,20 @@ public abstract class ButtonBase : ControlBase, IInput, IDisposable
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
         builder.OpenElement(0, "a");
-        Dictionary<string, object> attributes = new()
-        {
-            {"onclick", OnClick },
-        };
 
-        foreach(var attr in GetClassAndStyle())
+        Dictionary<string, object> attributes = [];
+
+        if (!Disabled)
+        {
+            attributes.Add("onclick", OnClick);
+        }
+
+        foreach (var attr in GetClassAndStyle())
         {
             attributes.Add(attr.Key, attr.Value);
         }
 
-        if(Disabled)
+        if (Disabled)
         {
             attributes.Add("disabled", "disabled");
         }
@@ -89,8 +92,9 @@ public abstract class ButtonBase : ControlBase, IInput, IDisposable
         {
             attributes.Add("role", "button");
         }
-        else
+        else if (!Disabled)
         {
+
             attributes.Add("href", Href);
 
             if (!string.IsNullOrEmpty(Target))
@@ -108,5 +112,5 @@ public abstract class ButtonBase : ControlBase, IInput, IDisposable
 
     protected abstract void BuildContent(RenderTreeBuilder builder);
 
-    
+
 }

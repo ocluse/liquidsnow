@@ -1,6 +1,4 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-using System.Reactive;
+﻿using System.Reactive;
 
 namespace Ocluse.LiquidSnow.Cqrs
 {

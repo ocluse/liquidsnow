@@ -8,7 +8,7 @@ public class FluentIconButtonBase<T> : ButtonBase where T : FluentIcon
     public string? Icon { get; set; }
 
     [Parameter]
-    public int Size { get; set; } = DefaultSize.Size18;
+    public int? Size { get; set; }
 
     protected override void BuildButtonClass(ClassBuilder classBuilder)
     {
@@ -18,7 +18,7 @@ public class FluentIconButtonBase<T> : ButtonBase where T : FluentIcon
     protected override void BuildContent(RenderTreeBuilder builder)
     {
         builder.OpenComponent<T>(2);
-        builder.AddAttribute(3, nameof(FluentIcon.Size), Size);
+        builder.AddAttribute(3, nameof(FluentIcon.Size), Size ?? Resolver.DefaultButtonIconSize);
         builder.AddAttribute(4, nameof(FluentIcon.Icon), Icon);
         builder.CloseComponent();
     }

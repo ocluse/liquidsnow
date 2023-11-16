@@ -35,4 +35,10 @@
         OnChange,
         OnInput
     }
+
+    public enum IconStyle
+    {
+        Feather,
+        Fluent,        
+    }
 }

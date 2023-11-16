@@ -1,7 +1,4 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-
-namespace Ocluse.LiquidSnow.Events
+﻿namespace Ocluse.LiquidSnow.Events
 {
     /// <summary>
     /// Provides utility method of handling an event upon publishing.

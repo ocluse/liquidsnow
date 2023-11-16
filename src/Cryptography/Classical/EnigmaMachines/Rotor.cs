@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Ocluse.LiquidSnow.Cryptography.Classical.EnigmaMachines
+﻿namespace Ocluse.LiquidSnow.Cryptography.Classical.EnigmaMachines
 {
     /// <summary>
     /// A rotor provides utility methods for scrambling an enigma message.
@@ -24,7 +21,7 @@ namespace Ocluse.LiquidSnow.Cryptography.Classical.EnigmaMachines
         /// <param name="turnOver">The turnover point f the wheel</param>
         public Rotor(Alphabet indexing, Alphabet wiring, char turnOver) : base(indexing, wiring)
         {
-            TurnOver = new List<char>() { turnOver };
+            TurnOver = [turnOver];
         }
 
         /// <summary>
@@ -46,7 +43,7 @@ namespace Ocluse.LiquidSnow.Cryptography.Classical.EnigmaMachines
         /// <param name="turnOver">The turnover point f the wheel</param>
         public Rotor(string indexing, string wiring, char turnOver) : base(indexing, wiring)
         {
-            TurnOver = new List<char>() { turnOver };
+            TurnOver = [turnOver];
         }
 
 

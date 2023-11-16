@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Ocluse.LiquidSnow.Jobs
+﻿namespace Ocluse.LiquidSnow.Jobs
 {
     /// <summary>
     /// Provides utility methods for scheduling and dispatching jobs.

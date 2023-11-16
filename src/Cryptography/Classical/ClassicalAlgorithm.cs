@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Ocluse.LiquidSnow.Cryptography.Classical.DictionaryAttack;
+﻿using Ocluse.LiquidSnow.Cryptography.Classical.DictionaryAttack;
 
 namespace Ocluse.LiquidSnow.Cryptography.Classical
 {
@@ -65,7 +60,7 @@ namespace Ocluse.LiquidSnow.Cryptography.Classical
         {
             return Task.Run(() =>
             {
-                List<AttackPossibility> result = new List<AttackPossibility>();
+                List<AttackPossibility> result = [];
                 float index = 0;
                 float size = keyDictionary.Count();
                 foreach (var key in keyDictionary)

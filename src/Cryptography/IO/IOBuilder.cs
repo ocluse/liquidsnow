@@ -1,6 +1,5 @@
 ﻿using Ocluse.LiquidSnow.Cryptography.IO.Internals;
 using Ocluse.LiquidSnow.Cryptography.Symmetrics;
-using System.IO;
 
 namespace Ocluse.LiquidSnow.Cryptography.IO
 {

@@ -4,12 +4,26 @@
 
 <div class="@GetClass()" style="@GetStyle()" @onclick="Clicked" @onclick:stopPropagation=true>
     <div class="dropdown-content">
-        <FeatherIcon Size="DefaultSize.Size18" Icon="@Icon" />
+        @if(Resolver.IconStyle == IconStyle.Fluent)
+        {
+            <FluentIcon Size="Resolver.DefaultButtonIconSize" Icon="@Icon" />
+        }
+        else
+        {
+            <FeatherIcon Size="Resolver.DefaultButtonIconSize" Icon="@Icon" />
+        }
         @if (Value != null)
         {
             <TextBlock Class="filter-name">@Value.Name</TextBlock>
             <div class="filter-clear" @onclick:stopPropagation=true @onclick="()=>ItemClicked(null)">
-                <FeatherIcon Size="DefaultSize.Size18" Icon="@FeatherIcons.X"/>
+                @if(Resolver.IconStyle == IconStyle.Fluent)
+                {
+                    <FluentIcon Size="Resolver.DefaultButtonIconSize" Icon="@ComponentIcons.Fluent.Close"/>
+                }
+                else
+                {
+                    <FeatherIcon Size="Resolver.DefaultButtonIconSize" Icon="@ComponentIcons.Feather.Close"/>
+                }
             </div>
         }
         else

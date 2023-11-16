@@ -7,9 +7,8 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         [Parameter]
         public string? Icon { get; set; }
 
-
         [Parameter]
-        public int IconSize { get; set; } = DefaultSize.Size18;
+        public int? IconSize { get; set; } = DefaultSize.Size18;
 
         [Parameter]
         public int? IconColor { get; set; }

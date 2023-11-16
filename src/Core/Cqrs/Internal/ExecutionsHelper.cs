@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Collections.Concurrent;
 
 namespace Ocluse.LiquidSnow.Cqrs.Internal
 {
@@ -68,13 +65,13 @@ namespace Ocluse.LiquidSnow.Cqrs.Internal
 
             if (preExecutionHandler != null)
             {
-                var preExecutionResult = await (Task<PreExecutionResult>)descriptor.PreExecute.Invoke(preExecutionHandler, new object[] { execution, cancellationToken });
+                var preExecutionResult = await (Task<PreExecutionResult>)descriptor.PreExecute.Invoke(preExecutionHandler, [execution, cancellationToken])!;
 
                 var preExecutionResultType = preExecutionResult.GetType();
 
                 if (preExecutionResultType == descriptor.StopExecutionResultType)
                 {
-                    return (TResult)descriptor.StopExecutionResultValuePropertyInfo.GetValue(preExecutionResult);
+                    return (TResult)descriptor.StopExecutionResultValuePropertyInfo.GetValue(preExecutionResult)!;
                 }
                 else if (preExecutionResultType != typeof(PreExecutionResult.ContinuePreExecutionResult))
                 {
@@ -87,13 +84,13 @@ namespace Ocluse.LiquidSnow.Cqrs.Internal
                 ?? throw new InvalidOperationException($"No handler has been registered for the type {descriptor.ExecutionType.Name}");
 
             //execute the handler
-            TResult result = await (Task<TResult>)descriptor.Execute.Invoke(executionHandler, new object[] { execution, cancellationToken });
+            TResult result = await (Task<TResult>)descriptor.Execute.Invoke(executionHandler, [execution, cancellationToken])!;
 
             //do we have a post execution handler?
             var postExecutionHandler = serviceProvider.GetService(descriptor.PostExecutionHandler);
             if (postExecutionHandler != null)
             {
-                result = await (Task<TResult>)descriptor.PostExecute.Invoke(postExecutionHandler, new object[] { execution, result!, cancellationToken });
+                result = await (Task<TResult>)descriptor.PostExecute.Invoke(postExecutionHandler, [execution, result!, cancellationToken])!;
             }
 
             return result;

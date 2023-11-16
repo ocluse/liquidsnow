@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Ocluse.LiquidSnow.Jobs
+﻿namespace Ocluse.LiquidSnow.Jobs
 {
     /// <summary>
     /// Represents a job that can be run by a <see cref="IJobHandler{T}"/> at a particular time.

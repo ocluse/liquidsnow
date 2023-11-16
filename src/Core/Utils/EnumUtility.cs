@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace Ocluse.LiquidSnow.Utils
+﻿namespace Ocluse.LiquidSnow.Utils
 {
     /// <summary>
     /// Utility methods for working with enums.

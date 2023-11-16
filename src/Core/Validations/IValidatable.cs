@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace Ocluse.LiquidSnow.Validations
+﻿namespace Ocluse.LiquidSnow.Validations
 {
     /// <summary>
     /// Represents an object whose state can be validated.

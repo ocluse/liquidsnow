@@ -8,7 +8,7 @@
         /// <summary>
         /// The list of items in the builder.
         /// </summary>
-        protected List<string> Items { get; }= new();
+        protected List<string> Items { get; }= [];
 
         /// <summary>
         /// Adds a class to the builder.

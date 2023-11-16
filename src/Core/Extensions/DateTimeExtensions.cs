@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Ocluse.LiquidSnow.Extensions
+﻿namespace Ocluse.LiquidSnow.Extensions
 {
     /// <summary>
     /// Adds extensions to <see cref="DateTime"/>

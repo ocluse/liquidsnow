@@ -1,15 +1,16 @@
 @implements IDialogHost
 @inject IDialogService DialogService
+@inject IBlazorResolver Resolver
 
 <CascadingValue Value="this">
-    @if (_showDialog || _showDialog)
+    @if (_showDialog || _showLoading)
     {
         <div class="dialog-host">
             @if (_dialogType != null && _showDialog)
             {
                 <div class="dialog-container" @onclick="OnDismiss">
                     <div class="dialog-content" @onclick:stopPropagation="true">
-                        @if (!string.IsNullOrEmpty(_dialogHeader) || _showDialog)
+                        @if (!string.IsNullOrEmpty(_dialogHeader) || _showClose)
                         {
                             <div class="header-section">
                                 @if (string.IsNullOrEmpty(_dialogHeader))
@@ -22,7 +23,15 @@
                                 }
                                 @if (_showClose)
                                 {
-                                    <IconButton Icon="@FeatherIcons.X" OnClick="()=>CloseDialog()" />
+                                    @if(Resolver.IconStyle == IconStyle.Fluent)
+                                    {
+                                        <FluentIconButton Class="dialog-close" Icon="@ComponentIcons.Fluent.Close" OnClick="()=>CloseDialog()" />
+                                    }
+                                    else
+                                    {
+                                        <IconButton Class="dialog-close" Icon="@ComponentIcons.Feather.Close" OnClick="()=>CloseDialog()" />
+                                    }
+                                    
                                 }
                             </div>
                         }

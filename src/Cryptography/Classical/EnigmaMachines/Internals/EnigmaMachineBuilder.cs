@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Ocluse.LiquidSnow.Cryptography.Classical.EnigmaMachines.Internals
+﻿namespace Ocluse.LiquidSnow.Cryptography.Classical.EnigmaMachines.Internals
 {
 
     internal class EnigmaMachineBuilder : IEnigmaMachineBuilder
@@ -23,7 +21,7 @@ namespace Ocluse.LiquidSnow.Cryptography.Classical.EnigmaMachines.Internals
             _reflector = new EnigmaWheel(_alphabet.ToString(), shuffle.ToString());
             _reflector.Reflect();
 
-            _rotors = new List<Rotor>();
+            _rotors = [];
             for (int i = 0; i < _rotorCount; i++)
             {
                 string notches = "";

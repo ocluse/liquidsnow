@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Ocluse.LiquidSnow.Trees
+﻿namespace Ocluse.LiquidSnow.Trees
 {
     /// <summary>
     /// A contract for a tree data structure.

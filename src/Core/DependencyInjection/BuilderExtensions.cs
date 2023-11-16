@@ -1,11 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
 using System.Reflection;
 using Ocluse.LiquidSnow.Cqrs.Internal;
 using Ocluse.LiquidSnow.Cqrs;
 using Ocluse.LiquidSnow.Events;
-using System.Linq;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Ocluse.LiquidSnow.Extensions;
 using Ocluse.LiquidSnow.Orchestrations.Internal;
@@ -132,7 +129,7 @@ namespace Ocluse.LiquidSnow.DependencyInjection
             ServiceLifetime lifetime, 
             bool doNotAddDuplicates = true)
         {
-            List<ServiceDescriptor> descriptors = new();
+            List<ServiceDescriptor> descriptors = [];
             assembly.GetTypes()
                 .Where(item => item.GetInterfaces()
                 .Where(i => i.IsGenericType).Any(i => i.GetGenericTypeDefinition() == type) && !item.IsAbstract && !item.IsInterface)

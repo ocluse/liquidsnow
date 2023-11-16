@@ -1,28 +1,26 @@
-﻿using Ocluse.LiquidSnow.Extensions;
-using System;
-using System.IO;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Security.Cryptography;
 
 namespace Ocluse.LiquidSnow.Cryptography.Symmetrics
 {
     internal class Symmetric : ISymmetric
     {
-        public EncryptionAlgorithm Algorithm { get; set; }
+        public HashAlgorithmName Hash { get; set; }
 
-        public string? Salt { get; set; }
+        public EncryptionAlgorithm Algorithm { get; set; }
 
         public PaddingMode PaddingMode { get; set; } = PaddingMode.PKCS7;
 
         public CipherMode CipherMode { get; set; } = CipherMode.CBC;
+
+        public required byte[] Salt { get; set; }
 
         public int KeySize { get; set; }
 
         public int Iterations { get; set; }
 
         public int BlockSize { get; set; }
+
+        ReadOnlySpan<byte> ISymmetric.Salt => Salt;
 
         public async Task EncryptAsync(Stream input, Stream output, byte[] password, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
         {
@@ -36,9 +34,10 @@ namespace Ocluse.LiquidSnow.Cryptography.Symmetrics
 
         public void Run(Stream input, Stream output, byte[] password, bool forward)
         {
-            using SymmetricAlgorithm alg = FromEncryptionAlgorithm(Algorithm);
+            using SymmetricAlgorithm alg = GetEncryptionAlgorithm();
 
-            Rfc2898DeriveBytes rdb = new Rfc2898DeriveBytes(password, Salt.GetBytes<UTF8Encoding>(), Iterations);
+            using Rfc2898DeriveBytes rdb = new(password, Salt, Iterations, Hash);
+            
             byte[] key = rdb.GetBytes(KeySize / 8);
             byte[] iv = rdb.GetBytes(BlockSize / 8);
 
@@ -48,7 +47,7 @@ namespace Ocluse.LiquidSnow.Cryptography.Symmetrics
             alg.IV = iv;
 
             ICryptoTransform trans = forward ? alg.CreateEncryptor() : alg.CreateDecryptor();
-            using CryptoStream csInput = new CryptoStream(input, trans, CryptoStreamMode.Read, true);
+            using CryptoStream csInput = new(input, trans, CryptoStreamMode.Read, true);
 
             while (true)
             {
@@ -64,8 +63,10 @@ namespace Ocluse.LiquidSnow.Cryptography.Symmetrics
 
         public Task RunAsync(Stream input, Stream output, byte[] password, bool forward, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
         {
-            using SymmetricAlgorithm alg = FromEncryptionAlgorithm(Algorithm);
-            Rfc2898DeriveBytes rdb = new Rfc2898DeriveBytes(password, Salt.GetBytes<UTF8Encoding>(), Iterations);
+            using SymmetricAlgorithm alg = GetEncryptionAlgorithm();
+
+            using Rfc2898DeriveBytes rdb = new(password, Salt, Iterations, Hash);
+
             byte[] key = rdb.GetBytes(KeySize / 8);
             byte[] iv = rdb.GetBytes(BlockSize / 8);
 
@@ -77,7 +78,7 @@ namespace Ocluse.LiquidSnow.Cryptography.Symmetrics
             long workedOn = 0;
             ICryptoTransform trans = forward ? alg.CreateEncryptor() : alg.CreateDecryptor();
 
-            using CryptoStream csInput = new CryptoStream(input, trans, CryptoStreamMode.Read, true);
+            using CryptoStream csInput = new(input, trans, CryptoStreamMode.Read, true);
 
             while (true)
             {
@@ -106,12 +107,14 @@ namespace Ocluse.LiquidSnow.Cryptography.Symmetrics
             return Task.CompletedTask;
         }
 
-        private static SymmetricAlgorithm FromEncryptionAlgorithm(EncryptionAlgorithm algorithm)
+        private SymmetricAlgorithm GetEncryptionAlgorithm()
         {
-            return algorithm switch
+            return Algorithm switch
             {
-                EncryptionAlgorithm.Aes => new AesManaged(),
-                EncryptionAlgorithm.Rijndael => new RijndaelManaged(),
+                EncryptionAlgorithm.AES => Aes.Create(),
+                EncryptionAlgorithm.DES => DES.Create(),
+                EncryptionAlgorithm.TripleDES => TripleDES.Create(),
+                EncryptionAlgorithm.RC2 => RC2.Create(),
                 _ => throw new NotImplementedException("Algorithm unknown or unsupported")
             };
         }

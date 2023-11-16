@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Ocluse.LiquidSnow.Orchestrations
+﻿namespace Ocluse.LiquidSnow.Orchestrations
 {
     /// <summary>
     /// A bag of data that is passed between steps in an orchestration.

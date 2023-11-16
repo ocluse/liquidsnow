@@ -8,7 +8,7 @@ public class FluentIcon : ControlBase
     public string? Icon { get; set; }
 
     [Parameter]
-    public int Size { get; set; } = DefaultSize.Size24;
+    public int? Size { get; set; }
 
     protected virtual int ViewBox { get; } = 24;
 
@@ -20,8 +20,8 @@ public class FluentIcon : ControlBase
 
             Dictionary<string, object> attributes = new()
             {
-                { "height", Size},
-                { "width", Size},
+                { "height", Size ?? Resolver.DefaultIconSize},
+                { "width", Size ?? Resolver.DefaultIconSize},
                 { "xmlns", "http://www.w3.org/2000/svg" },
                 { "viewBox", $"0 0 {ViewBox} {ViewBox}" },
                 { "fill", "currentColor" }

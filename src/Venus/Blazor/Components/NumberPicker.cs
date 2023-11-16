@@ -11,7 +11,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         [Parameter]
         public T? Max { get; set; }
 
-        protected override string InputType { get; } = "number";
+        protected override string InputType => "number";
 
         protected override T GetValue(object? value)
         {

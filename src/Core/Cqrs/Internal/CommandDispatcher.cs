@@ -1,8 +1,4 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Ocluse.LiquidSnow.Cqrs.Internal
+﻿namespace Ocluse.LiquidSnow.Cqrs.Internal
 {
     internal class CommandDispatcher : ICommandDispatcher
     {

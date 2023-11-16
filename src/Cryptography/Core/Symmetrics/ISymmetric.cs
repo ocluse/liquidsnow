@@ -1,8 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Security.Cryptography;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Security.Cryptography;
 
 namespace Ocluse.LiquidSnow.Cryptography.Symmetrics
 {
@@ -12,9 +8,14 @@ namespace Ocluse.LiquidSnow.Cryptography.Symmetrics
     public interface ISymmetric
     {
         /// <summary>
+        /// The hashing algorithm used to derive the Key and IV.
+        /// </summary>
+        public HashAlgorithmName Hash { get; set; }
+
+        /// <summary>
         /// The algorithm used in the cryptographic operation
         /// </summary>
-        EncryptionAlgorithm Algorithm { get; set; }
+        public EncryptionAlgorithm Algorithm { get; set; }
 
         /// <summary>
         /// The block size of the cryptographic operation.
@@ -44,7 +45,7 @@ namespace Ocluse.LiquidSnow.Cryptography.Symmetrics
         /// <summary>
         /// The value used to salt the Key and IV derivation.
         /// </summary>
-        string? Salt { get; set; }
+        ReadOnlySpan<byte> Salt { get; }
 
         /// <summary>
         /// Decrypts the contents of the <paramref name="input"/> and writes them to the <paramref name="output"/>

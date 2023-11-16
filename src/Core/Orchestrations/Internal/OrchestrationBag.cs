@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Ocluse.LiquidSnow.Orchestrations.Internal
+﻿namespace Ocluse.LiquidSnow.Orchestrations.Internal
 {
     internal class OrchestrationBag : Dictionary<string, object?>, IOrchestrationBag
     {

@@ -1,10 +1,23 @@
-﻿using Ocluse.LiquidSnow.Venus.Blazor.Components.ContainerStates;
+﻿using Ocluse.LiquidSnow.Venus.Blazor.Components;
+using Ocluse.LiquidSnow.Venus.Blazor.Components.ContainerStates;
 
 namespace Ocluse.LiquidSnow.Venus.Blazor.Services.Implementations
 {
     public class BlazorResolver : IBlazorResolver
     {
-        public int DefaultPageSize => 10;
+        public virtual int DefaultPageSize => 10;
+
+        public virtual int DefaultButtonIconSize => DefaultSize.Size18;
+
+        public virtual int DefaultIconSize => DefaultSize.Size24;
+
+        public virtual int DefaultAvatarSize => DefaultSize.Size48;
+
+        public virtual int SnackbarIconSize => DefaultSize.Size18;
+
+        public virtual IconStyle IconStyle => IconStyle.Feather;
+
+        public virtual int DefaultFeatherStokeWidth => FeatherIcon.STROKE_WIDTH;
 
         public virtual Type ResolveContainerStateToRenderType(int containerState)
         {
@@ -22,12 +35,33 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Services.Implementations
 
         public virtual string ResolveSnackbarStatusToIcon(int status)
         {
+            return IconStyle switch
+            {
+                IconStyle.Fluent => GetFluentIconForStatus(status),
+                _ => GetFeatherIconForStatus(status)
+            };
+        }
+
+        private static string GetFeatherIconForStatus(int status)
+        {
             return status switch
             {
-                MessageStatus.Error => FeatherIcons.XCircle,
-                MessageStatus.Information => FeatherIcons.Info,
-                MessageStatus.Success => FeatherIcons.CheckCircle,
-                MessageStatus.Warning => FeatherIcons.AlertTriangle,
+                MessageStatus.Error => ComponentIcons.Feather.Error,
+                MessageStatus.Information => ComponentIcons.Feather.Information,
+                MessageStatus.Success => ComponentIcons.Feather.Success,
+                MessageStatus.Warning => ComponentIcons.Feather.Warning,
+                _ => throw new NotImplementedException()
+            };
+        }
+
+        private static string GetFluentIconForStatus(int status)
+        {
+            return status switch
+            {
+                MessageStatus.Error => ComponentIcons.Fluent.Error,
+                MessageStatus.Information => ComponentIcons.Fluent.Information,
+                MessageStatus.Success => ComponentIcons.Fluent.Success,
+                MessageStatus.Warning => ComponentIcons.Fluent.Warning,
                 _ => throw new NotImplementedException()
             };
         }

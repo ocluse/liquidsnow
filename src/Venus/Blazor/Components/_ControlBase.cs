@@ -11,6 +11,9 @@
         [Inject]
         public required IVenusResolver VenusResolver { get; set; }
 
+        [Inject]
+        public required IBlazorResolver Resolver { get; set; }
+
         protected override void BuildStyle(StyleBuilder styleBuilder)
         {
             base.BuildStyle(styleBuilder);

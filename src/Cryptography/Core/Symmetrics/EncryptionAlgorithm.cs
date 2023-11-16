@@ -8,11 +8,21 @@
         /// <summary>
         /// The Advanced Encryption Standard algorithm
         /// </summary>
-        Aes,
+        AES,
 
         /// <summary>
-        /// The Rijndael algorithm
+        /// The DES algorithm
         /// </summary>
-        Rijndael
+        DES,
+
+        /// <summary>
+        /// The RC2 algorithm
+        /// </summary>
+        RC2,
+
+        /// <summary>
+        /// The TripleDES algorithm
+        /// </summary>
+        TripleDES
     }
 }
