@@ -4,9 +4,9 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 {
     public class TableView<T> : ItemsControl<T>
     {
-        protected override string ItemElement { get; } = "tr";
+        protected override string ItemElement => "tr";
 
-        protected override string ContainerElement { get; } = "table";
+        protected override string ContainerElement => "table";
 
         [Parameter]
         public RenderFragment? HeaderTemplate { get; set; }

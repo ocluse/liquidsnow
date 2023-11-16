@@ -2,7 +2,7 @@
 {
     public class DatePicker : InputControlBase<DateOnly?>
     {
-        protected override string InputType { get; } = "date";
+        protected override string InputType => "date";
 
         protected override DateOnly? GetValue(object? value)
         {

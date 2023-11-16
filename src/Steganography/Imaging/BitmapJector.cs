@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using SkiaSharp;
+﻿using SkiaSharp;
 using System.Collections;
-using System.Threading.Tasks;
-using System.IO;
-using System.Threading;
 using Ocluse.LiquidSnow.Extensions;
 
 namespace Ocluse.LiquidSnow.Steganography.Imaging
@@ -36,9 +31,7 @@ namespace Ocluse.LiquidSnow.Steganography.Imaging
             int width = inputImage.Width;
             int height = inputImage.Height;
 
-            List<byte> ls_data = new List<byte>();
-
-            ls_data.AddRange(data.ReadAllBytes());
+            List<byte> ls_data = [.. data.ReadAllBytes()];
 
             if (Eof != null)
             {
@@ -169,7 +162,7 @@ namespace Ocluse.LiquidSnow.Steganography.Imaging
             }
             else
             {
-                result = new List<byte>();
+                result = [];
                 bool success = false;
 
                 for (int i = 0; i < bytes.Length; i++)

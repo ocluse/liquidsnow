@@ -1,8 +1,5 @@
 ﻿using Ocluse.LiquidSnow.Extensions;
-using System;
 using System.Globalization;
-using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -49,7 +46,7 @@ namespace Ocluse.LiquidSnow.Cryptography
 
         private static string GenerateStandardId(int count)
         {
-            StringBuilder builder = new StringBuilder();
+            StringBuilder builder = new();
             Enumerable
                 .Range(65, 26)
                 .Select(e => ((char)e).ToString())
@@ -70,12 +67,13 @@ namespace Ocluse.LiquidSnow.Cryptography
         private static string GenerateHashedId()
         {
             string start = GenerateId();
-            return GetHash(start);
+            var result = SHA256.HashData(start.GetBytes());
+            return Convert.ToHexString(result);
         }
         #endregion
 
         #region Randomnization
-        private static readonly Random _random = new Random();
+        private static readonly Random _random = new();
 
         /// <summary>
         /// Generates a random integer
@@ -104,7 +102,7 @@ namespace Ocluse.LiquidSnow.Cryptography
         /// <returns>A randomly generated string</returns>
         public static string Random(int length, bool lowerCase = false)
         {
-            StringBuilder builder = new StringBuilder(length);
+            StringBuilder builder = new(length);
 
             char offset = lowerCase ? 'a' : 'A';
             const int lettersOffset = 26;
@@ -132,90 +130,5 @@ namespace Ocluse.LiquidSnow.Cryptography
 
         #endregion
 
-        #region Hash
-
-        /// <summary>
-        /// Computes the hash value of file
-        /// </summary>
-        /// <param name="path">The path of the file whose hash value is to be computed</param>
-        /// <param name="algorithm">The algorithm to use when computing the hash</param>
-        /// <param name="returnHexString">If true, a hexadecimal notated string will be return, else, a base64 string is returned instead</param>
-        public static string ComputeFileHash(string path, HashAlgorithmKind algorithm = HashAlgorithmKind.Sha256, bool returnHexString = false)
-        {
-            byte[] bytes = ComputeFileHash(path, algorithm);
-
-            return returnHexString ? GetHexString(bytes) : Convert.ToBase64String(bytes);
-        }
-
-        /// <summary>
-        /// Computes the hash value of file
-        /// </summary>
-        /// <param name="path">The path of the file whose hash value is to be computed</param>
-        /// <param name="algorithm">The algorithm to use when computing the hash</param>
-        public static byte[] ComputeFileHash(string path, HashAlgorithmKind algorithm = HashAlgorithmKind.Sha256)
-        {
-            using FileStream stream = File.OpenRead(path);
-            return GetHash(stream, algorithm);
-        }
-
-        /// <summary>
-        /// Computes the hash of an array of bytes
-        /// </summary>
-        /// <param name="data">The data to be hashed</param>
-        /// <param name="algorithm">The algorithm to use when computing the hash</param>
-        public static byte[] GetHash(byte[] data, HashAlgorithmKind algorithm = HashAlgorithmKind.Sha256)
-        {
-            using MemoryStream msData = new MemoryStream(data);
-            return GetHash(msData, algorithm);
-        }
-
-        /// <summary>
-        /// Computes the hash of a stream
-        /// </summary>
-        /// <param name="inputStream">The input stream</param>
-        /// <param name="algorithm">The algorithm to use when computing the hash</param>
-        /// <exception cref="NotImplementedException"> When the algorithm is not implemented</exception>
-        public static byte[] GetHash(Stream inputStream, HashAlgorithmKind algorithm = HashAlgorithmKind.Sha256)
-        {
-            using HashAlgorithm alg = algorithm switch
-            {
-                HashAlgorithmKind.MD5 => MD5.Create(),
-                HashAlgorithmKind.Sha256 => SHA256.Create(),
-                HashAlgorithmKind.Sha512 => SHA512.Create(),
-                _ => throw new NotImplementedException("Unknown Hash Algorithm kind.")
-            };
-
-            return alg.ComputeHash(inputStream);
-        }
-
-        /// <summary>
-        /// Computes the hash of a string
-        /// </summary>
-        /// <param name="input">The string to be hashed</param>
-        /// <param name="algorithm">The algorithm to use when computing the hash</param>
-        /// <param name="returnHexString">If true, a hexadecimal notated string will be return, else, a base64 string is returned instead</param>
-        public static string GetHash(string input, HashAlgorithmKind algorithm = HashAlgorithmKind.Sha256, bool returnHexString = false)
-        {
-            byte[] bytes = GetHash(input.GetBytes<UTF8Encoding>(), algorithm);
-
-            return returnHexString ? GetHexString(bytes) : Convert.ToBase64String(bytes);
-        }
-
-        /// <summary>
-        /// Returns a hexadecimal notation string of the input.
-        /// </summary>
-        public static string GetHexString(byte[] bytes)
-        {
-            StringBuilder sb = new StringBuilder();
-
-            foreach (byte b in bytes)
-            {
-                sb.Append(b.ToString("X2"));
-            }
-
-            return sb.ToString();
-        }
-
-        #endregion
     }
 }

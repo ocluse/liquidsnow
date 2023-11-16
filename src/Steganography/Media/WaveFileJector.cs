@@ -1,11 +1,6 @@
 ﻿using Ocluse.LiquidSnow.Extensions;
 using Ocluse.LiquidSnow.Steganography.Media.Internals;
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Ocluse.LiquidSnow.Steganography.Media
 {
@@ -125,7 +120,7 @@ namespace Ocluse.LiquidSnow.Steganography.Media
             }
             else
             {
-                result = new List<byte>();
+                result = [];
                 bool success = false;
 
                 for (int i = 0; i < bytes.Length; i++)

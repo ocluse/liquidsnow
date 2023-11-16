@@ -122,7 +122,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
             {
                 var validationResult = await Validate.Invoke(Value);
                 await ValidationChanged.InvokeAsync(validationResult);
-                result = validationResult.Success;
+                result = validationResult.IsValid;
             }
             else
             {
@@ -139,7 +139,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 
             BuildInputClass(classBuilder);
 
-            if (Validation?.Success == false)
+            if (Validation?.IsValid == false)
             {
                 classBuilder.Add("error");
             }
@@ -168,8 +168,8 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         protected string GetValidationClass()
         {
             return new ClassBuilder()
-                .AddIf(Validation?.Success == true, "validation-success")
-                .AddIf(Validation?.Success == false, "validation-error")
+                .AddIf(Validation?.IsValid == true, "validation-success")
+                .AddIf(Validation?.IsValid == false, "validation-error")
                 .Build();
         }
 

@@ -1,4 +1,7 @@
-﻿namespace Ocluse.LiquidSnow.Cryptography.Symmetrics
+﻿using Ocluse.LiquidSnow.Extensions;
+using System.Security.Cryptography;
+
+namespace Ocluse.LiquidSnow.Cryptography.Symmetrics
 {
     /// <summary>
     /// Used to create instances of <see cref="ISymmetric"/>
@@ -16,10 +19,7 @@
         /// <summary>
         /// Creates a <see cref="ISymmetric"/> of the algorithm and salt
         /// </summary>
-        /// <param name="algorithm">The algorithm used for the cryptographic operations</param>
-        /// <param name="salt">The salt used in derivation of Key and IV during the cryptographic operation</param>
-        /// <returns>An <see cref="ISymmetric"/> instance initialized with the specified algorithm and salt that can be used for cryptographic operations</returns>
-        public static ISymmetric Create(EncryptionAlgorithm algorithm, string salt)
+        public static ISymmetric Create(EncryptionAlgorithm algorithm, byte[] salt, HashAlgorithmName hash)
         {
             return new Symmetric()
             {
@@ -27,30 +27,31 @@
                 Algorithm = algorithm,
                 BlockSize = _blockSize,
                 Salt = salt,
-                CipherMode = System.Security.Cryptography.CipherMode.CBC,
-                PaddingMode = System.Security.Cryptography.PaddingMode.PKCS7,
-                Iterations = _iterations
+                CipherMode = CipherMode.CBC,
+                PaddingMode = PaddingMode.PKCS7,
+                Iterations = _iterations,
+                Hash = hash
             };
+        }
+
+        /// <summary>
+        /// Creates a <see cref="ISymmetric"/> i of the algorithm ans salt, using the <see cref="HashAlgorithmName.SHA256"/> hash by default.
+        /// </summary>
+        public static ISymmetric Create(EncryptionAlgorithm algorithm, byte[] salt)
+        {
+            return Create(algorithm, salt, HashAlgorithmName.SHA256);
         }
 
         /// <summary>
         /// Creates a <see cref="ISymmetric"/> instance using the AES algorithm with a randomly generated salt. The salt must be stored for future use.
         /// </summary>
-        /// <returns>An <see cref="ISymmetric"/> instance using the AES algorithm with a random salt.</returns>
-        public static ISymmetric CreateAes(out string salt)
+        /// <remarks>
+        /// The Salt is generated using <see cref="CryptoUtility.GenerateId(IdKind, int)"/> with the <see cref="IdKind.Guid"/> kind and the hashing algorithm used is <see cref="HashAlgorithmName.SHA256"/>.
+        /// </remarks>
+        public static ISymmetric CreateAes(out byte[] salt)
         {
-            salt = CryptoUtility.GenerateId(IdKind.Standard, 16);
-            return Create(EncryptionAlgorithm.Aes, salt);
-        }
-
-        /// <summary>
-        /// Creates a <see cref="ISymmetric"/> instance using the Rijndael algorithm with a randomly generated salt. The salt must be stored for future use.
-        /// </summary>
-        /// <returns>An <see cref="ISymmetric"/> instance using the Rijndael algorithm with a random salt.</returns>
-        public static ISymmetric CreateRijndael(out string salt)
-        {
-            salt = CryptoUtility.GenerateId(IdKind.Standard, 16);
-            return Create(EncryptionAlgorithm.Rijndael, salt);
+            salt = CryptoUtility.GenerateId(IdKind.Guid).GetBytes();
+            return Create(EncryptionAlgorithm.AES, salt, HashAlgorithmName.SHA256);
         }
         #endregion
     }

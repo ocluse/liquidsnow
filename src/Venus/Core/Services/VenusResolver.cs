@@ -18,32 +18,31 @@ namespace Ocluse.LiquidSnow.Venus.Services
         ///<inheritdoc/>
         public virtual string ResolveColor(int color)
         {
-
             string colorStr = color switch
             {
-                Color.Primary => nameof(Color.Primary).PascalToKebabCase(),
-                Color.Secondary => nameof(Color.Secondary).PascalToKebabCase(),
-                Color.Tertiary => nameof(Color.Tertiary).PascalToKebabCase(),
-                Color.Error => nameof(Color.Error).PascalToKebabCase(),
-                Color.Warning => nameof(Color.Warning).PascalToKebabCase(),
-                Color.Success => nameof(Color.Success).PascalToKebabCase(),
-                Color.PrimaryContainer => nameof(Color.PrimaryContainer).PascalToKebabCase(),
-                Color.SecondaryContainer => nameof(Color.SecondaryContainer).PascalToKebabCase(),
-                Color.TertiaryContainer => nameof(Color.TertiaryContainer).PascalToKebabCase(),
-                Color.ErrorContainer => nameof(Color.ErrorContainer).PascalToKebabCase(),
-                Color.WarningContainer => nameof(Color.WarningContainer).PascalToKebabCase(),
-                Color.SuccessContainer => nameof(Color.SuccessContainer).PascalToKebabCase(),
-                Color.Background => nameof(Color.Background).PascalToKebabCase(),
-                Color.OnBackground => nameof(Color.OnBackground).PascalToKebabCase(),
-                Color.Surface => nameof(Color.Surface).PascalToKebabCase(),
-                Color.OnSurface => nameof(Color.OnSurface).PascalToKebabCase(),
-                Color.Outline => nameof(Color.Outline).PascalToKebabCase(),
-                Color.SurfaceVariant => nameof(Color.SurfaceVariant).PascalToKebabCase(),
-                Color.OnSurfaceVariant => nameof(Color.OnSurfaceVariant).PascalToKebabCase(),
+                Color.Primary => nameof(Color.Primary),
+                Color.Secondary => nameof(Color.Secondary),
+                Color.Tertiary => nameof(Color.Tertiary),
+                Color.Error => nameof(Color.Error),
+                Color.Warning => nameof(Color.Warning),
+                Color.Success => nameof(Color.Success),
+                Color.PrimaryContainer => nameof(Color.PrimaryContainer),
+                Color.SecondaryContainer => nameof(Color.SecondaryContainer),
+                Color.TertiaryContainer => nameof(Color.TertiaryContainer),
+                Color.ErrorContainer => nameof(Color.ErrorContainer),
+                Color.WarningContainer => nameof(Color.WarningContainer),
+                Color.SuccessContainer => nameof(Color.SuccessContainer),
+                Color.Background => nameof(Color.Background),
+                Color.OnBackground => nameof(Color.OnBackground),
+                Color.Surface => nameof(Color.Surface),
+                Color.OnSurface => nameof(Color.OnSurface),
+                Color.Outline => nameof(Color.Outline),
+                Color.SurfaceVariant => nameof(Color.SurfaceVariant),
+                Color.OnSurfaceVariant => nameof(Color.OnSurfaceVariant),
                 _ => throw new NotImplementedException()
             };
 
-            return $"var(--color-{colorStr})";
+            return $"var(--{colorStr.PascalToKebabCase()})";
         }
 
         ///<inheritdoc/>
@@ -71,19 +70,21 @@ namespace Ocluse.LiquidSnow.Venus.Services
         ///<inheritdoc/>
         public virtual string ResolveTextHierarchy(int textHierarchy)
         {
-            return textHierarchy switch
+            string result = textHierarchy switch
             {
-                TextHierarchy.H1 => nameof(TextHierarchy.H1).ToLower(),
-                TextHierarchy.H2 => nameof(TextHierarchy.H2).ToLower(),
-                TextHierarchy.H3 => nameof(TextHierarchy.H3).ToLower(),
-                TextHierarchy.H4 => nameof(TextHierarchy.H4).ToLower(),
-                TextHierarchy.H5 => nameof(TextHierarchy.H5).ToLower(),
-                TextHierarchy.H6 => nameof(TextHierarchy.H6).ToLower(),
-                TextHierarchy.Span => nameof(TextHierarchy.Span).ToLower(),
-                TextHierarchy.P => nameof(TextHierarchy.P).ToLower(),
-                TextHierarchy.DFN => nameof(TextHierarchy.DFN).ToLower(),
+                TextHierarchy.H1 => nameof(TextHierarchy.H1),
+                TextHierarchy.H2 => nameof(TextHierarchy.H2),
+                TextHierarchy.H3 => nameof(TextHierarchy.H3),
+                TextHierarchy.H4 => nameof(TextHierarchy.H4),
+                TextHierarchy.H5 => nameof(TextHierarchy.H5),
+                TextHierarchy.H6 => nameof(TextHierarchy.H6),
+                TextHierarchy.Span => nameof(TextHierarchy.Span),
+                TextHierarchy.P => nameof(TextHierarchy.P),
+                TextHierarchy.DFN => nameof(TextHierarchy.DFN),
                 _ => throw new NotImplementedException()
             };
+
+            return result.ToLowerInvariant();
         }
 
         ///<inheritdoc/>
@@ -91,19 +92,19 @@ namespace Ocluse.LiquidSnow.Venus.Services
         {
             string style = textStyle switch
             {
-                TextStyle.Caption => nameof(TextStyle.Caption).PascalToKebabCase(),
-                TextStyle.CaptionStrong => nameof(TextStyle.CaptionStrong).PascalToKebabCase(),
-                TextStyle.Body => nameof(TextStyle.Body).PascalToKebabCase(),
-                TextStyle.BodyStrong => nameof(TextStyle.BodyStrong).PascalToKebabCase(),
-                TextStyle.BodyLarge => nameof(TextStyle.BodyLarge).PascalToKebabCase(),
-                TextStyle.Subtitle => nameof(TextStyle.Subtitle).PascalToKebabCase(),
-                TextStyle.Title => nameof(TextStyle.Title).PascalToKebabCase(),
-                TextStyle.TitleLarge => nameof(TextStyle.TitleLarge).PascalToKebabCase(),
-                TextStyle.Display => nameof(TextStyle.Display).PascalToKebabCase(),
+                TextStyle.Caption => nameof(TextStyle.Caption),
+                TextStyle.CaptionStrong => nameof(TextStyle.CaptionStrong),
+                TextStyle.Body => nameof(TextStyle.Body),
+                TextStyle.BodyStrong => nameof(TextStyle.BodyStrong),
+                TextStyle.BodyLarge => nameof(TextStyle.BodyLarge),
+                TextStyle.Subtitle => nameof(TextStyle.Subtitle),
+                TextStyle.Title => nameof(TextStyle.Title),
+                TextStyle.TitleLarge => nameof(TextStyle.TitleLarge),
+                TextStyle.Display => nameof(TextStyle.Display),
                 _ => throw new NotImplementedException()
             };
 
-            return $"text-{style}";
+            return $"text-{style.PascalToKebabCase()}";
         }
     }
 }

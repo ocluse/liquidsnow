@@ -1,7 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Threading.Tasks;
-
-namespace Ocluse.LiquidSnow.Validations
+﻿namespace Ocluse.LiquidSnow.Validations
 {
     /// <summary>
     /// Represents an entity that can validate a value.
@@ -12,6 +9,6 @@ namespace Ocluse.LiquidSnow.Validations
         /// <summary>
         /// Validates a value and returns the result.
         /// </summary>
-        Task<ValidationResult> Validate([MaybeNull] T value);
+        Task<ValidationResult> Validate(T? value);
     }
 }

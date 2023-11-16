@@ -1,15 +1,11 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace Ocluse.LiquidSnow.Validations
+﻿namespace Ocluse.LiquidSnow.Validations
 {
     /// <summary>
     /// An object that is used to run multiple validations at once.
     /// </summary>
     public class ValidationSet
     {
-        private readonly List<IValidatable> _items = new();
+        private readonly List<IValidatable> _items = [];
 
         /// <summary>
         /// Creates a new instance of <see cref="ValidationSet"/>.
@@ -18,10 +14,7 @@ namespace Ocluse.LiquidSnow.Validations
         {
             foreach (var item in items)
             {
-                if (item != null)
-                {
-                    _items.Add(item);
-                }
+                Add(item);
             }
         }
 
@@ -30,32 +23,141 @@ namespace Ocluse.LiquidSnow.Validations
         /// </summary>
         public async Task<bool> Validate()
         {
-            List<bool> results = new();
+            bool result = true;
 
             foreach (var item in _items)
             {
-                if (item != null)
+                var isValid = await item.InvokeValidate();
+
+                if (!isValid)
                 {
-                    var result = await item.InvokeValidate();
-                    results.Add(result);
+                    result = false;
                 }
             }
 
-            return !results.Any() || results.All(x => x == true);
+            return result;
+        }
+
+        /// <summary>
+        /// Adds as a validation to the set.
+        /// </summary>
+        public ValidationSet Add(IValidatable? item)
+        {
+            if(item != null)
+            {
+                _items.Add(item);
+            }
+
+            return this;
         }
 
         /// <summary>
         /// Adds additional validations to the set.
         /// </summary>
-        public void Add(params IValidatable?[] items)
+        public ValidationSet Add(params IValidatable?[] items)
+        {
+            return AddRange(items);
+        }
+
+        /// <summary>
+        /// Adds additional validations to the set if the condition is true.
+        /// </summary>
+        public ValidationSet AddIf(bool condition, params IValidatable?[] items)
+        {
+            if (condition)
+            {
+                return AddRange(items);
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// Adds a validation to the set if the condition is true, otherwise adds the else validation.
+        /// </summary>
+        public ValidationSet AddIfElse(bool condition, IValidatable item, IValidatable elseItem)
+        {
+            if (condition)
+            {
+                return Add(item);
+            }
+            else
+            {
+                return Add(elseItem);
+            }
+        }
+
+        /// <summary>
+        /// Adds a range of validations to the set.
+        /// </summary>
+        public ValidationSet AddRange(IEnumerable<IValidatable?> items)
         {
             foreach (var item in items)
             {
-                if (item != null)
-                {
-                    _items.Add(item);
-                }
+                Add(item);
             }
+
+            return this;
+        }
+
+        /// <summary>
+        /// Removes all validations from the set.
+        /// </summary>
+        public ValidationSet Clear()
+        {
+            _items.Clear();
+            return this;
+        }
+
+        /// <summary>
+        /// Executes the provided action if all validations in the set are valid.
+        /// </summary>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        public async Task Run(Action action)
+        {
+            if (await Validate())
+            {
+                action();
+            }
+        }
+
+        /// <summary>
+        /// Executes the provided function if all validations in the set are valid and returns the result.
+        /// Otherwise it returns the default value of the type.
+        /// </summary>
+        public async Task<T?> Run<T>(Func<T> func)
+        {
+            if (await Validate())
+            {
+                return func();
+            }
+            return default;
+        }
+
+        /// <summary>
+        /// Executes the provided function if all validations in the set are valid.
+        /// </summary>
+        public async Task<bool> RunAsync(Func<Task> action)
+        {
+            if (await Validate())
+            {
+                await action();
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Executes the provided function asynchronously if all validations in the set are valid and returns the result.
+        /// Otherwise it returns the default value of the type.
+        /// </summary>
+        public async Task<T?> RunAsync<T>(Func<Task<T?>> action)
+        {
+            if (await Validate())
+            {
+                return await action();
+            }
+            return default;
         }
     }
 }

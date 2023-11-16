@@ -2,7 +2,7 @@
 {
     public class DateTimePicker : InputControlBase<DateTimeOffset?>
     {
-        protected override string InputType { get; } = "datetime-local";
+        protected override string InputType => "datetime-local";
 
         protected override DateTimeOffset? GetValue(object? value)
         {

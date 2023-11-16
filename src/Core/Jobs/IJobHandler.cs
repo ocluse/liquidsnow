@@ -1,7 +1,4 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-
-namespace Ocluse.LiquidSnow.Jobs
+﻿namespace Ocluse.LiquidSnow.Jobs
 {
     /// <summary>
     /// Provides a contract for creating handlers for jobs, which will execute the job.

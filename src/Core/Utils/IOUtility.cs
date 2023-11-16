@@ -1,9 +1,5 @@
 ﻿using Ocluse.LiquidSnow.Extensions;
-using System;
-using System.IO;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Ocluse.LiquidSnow.Utils
 {
@@ -263,7 +259,12 @@ namespace Ocluse.LiquidSnow.Utils
         /// <param name="newName"></param>
         public static void Rename(this FileInfo fileInfo, string newName)
         {
-            fileInfo.MoveTo(fileInfo.Directory.FullName + Path.DirectorySeparatorChar + newName);
+            string directoryPath = Path.GetDirectoryName(fileInfo.FullName)
+                ?? throw new ArgumentException("The provided value seems to be a directory path and not a file path", nameof(fileInfo));
+
+            string path = Path.Combine(directoryPath, newName);
+
+            fileInfo.MoveTo(path);
         }
     }
 }

@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace Ocluse.LiquidSnow.Trees
+﻿namespace Ocluse.LiquidSnow.Trees
 {
     internal class Tree<T> : ITree<T>
     {

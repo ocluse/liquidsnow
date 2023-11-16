@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace Ocluse.LiquidSnow.Extensions
+﻿namespace Ocluse.LiquidSnow.Extensions
 {
     /// <summary>
     /// Extension methods for the System.Collections.ObjectModel namespace.
@@ -45,7 +41,7 @@ namespace Ocluse.LiquidSnow.Extensions
             HashSet<T> checkBuffer;
             if (comparer == null)
             {
-                checkBuffer = new HashSet<T>();
+                checkBuffer = [];
             }
             else
             {
@@ -81,8 +77,8 @@ namespace Ocluse.LiquidSnow.Extensions
 
             if (comparer == null)
             {
-                checkBuffer = new HashSet<T>();
-                result = new HashSet<T>();
+                checkBuffer = [];
+                result = [];
             }
             else
             {

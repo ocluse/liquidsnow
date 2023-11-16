@@ -2,7 +2,7 @@
 {
     public class TimePicker : InputControlBase<TimeOnly?>
     {
-        protected override string InputType { get; } = "time";
+        protected override string InputType => "time";
 
         protected override TimeOnly? GetValue(object? value)
         {

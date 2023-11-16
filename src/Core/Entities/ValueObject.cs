@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace Ocluse.LiquidSnow.Entities
+﻿namespace Ocluse.LiquidSnow.Entities
 {
     /// <summary>
     /// A concept or object that represents an entity whose equality is not based on identity.

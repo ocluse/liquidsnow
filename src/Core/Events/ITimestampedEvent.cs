@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Ocluse.LiquidSnow.Events
+﻿namespace Ocluse.LiquidSnow.Events
 {
     ///<inheritdoc/>
     public interface ITimestampedEvent : IEvent

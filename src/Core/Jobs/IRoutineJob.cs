@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Ocluse.LiquidSnow.Jobs
+﻿namespace Ocluse.LiquidSnow.Jobs
 {
     /// <summary>
     /// Represents a job that, once started, is run at a regular interval.

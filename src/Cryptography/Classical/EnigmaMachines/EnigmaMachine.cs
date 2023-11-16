@@ -1,9 +1,6 @@
 ﻿using Ocluse.LiquidSnow.Extensions;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.IO;
 using System.Text;
 using Ocluse.LiquidSnow.Cryptography.Classical.EnigmaMachines.Internals;
 
@@ -33,10 +30,9 @@ namespace Ocluse.LiquidSnow.Cryptography.Classical.EnigmaMachines
             Rotors.AddRange(rotors);
         }
 
-        private void OnRotorsChanged(object sender, NotifyCollectionChangedEventArgs e)
+        private void OnRotorsChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
-            if (e.Action == NotifyCollectionChangedAction.Add
-                || e.Action == NotifyCollectionChangedAction.Replace)
+            if (e.NewItems != null)
             {
                 foreach (var item in e.NewItems)
                 {
@@ -44,9 +40,8 @@ namespace Ocluse.LiquidSnow.Cryptography.Classical.EnigmaMachines
                     rotor.HitNotch += OnRotorHitNotch;
                 }
             }
-            if (e.Action == NotifyCollectionChangedAction.Remove
-                || e.Action == NotifyCollectionChangedAction.Replace
-                || e.Action == NotifyCollectionChangedAction.Reset)
+
+            if (e.OldItems != null)
             {
                 foreach (var item in e.OldItems)
                 {

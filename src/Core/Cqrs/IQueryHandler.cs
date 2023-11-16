@@ -1,7 +1,4 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-
-namespace Ocluse.LiquidSnow.Cqrs
+﻿namespace Ocluse.LiquidSnow.Cqrs
 {
     /// <summary>
     /// Provides a contract for creating handlers for queries.

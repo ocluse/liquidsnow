@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 
 namespace Ocluse.LiquidSnow.Extensions
 {
@@ -58,7 +56,7 @@ namespace Ocluse.LiquidSnow.Extensions
         /// <param name="value">The string to check if is equal to an array of characters</param>
         /// <param name="chars">The character array to test whether is the same as the string</param>
         /// <returns>true if the string is equal to the character array</returns>
-        public static bool IsCharArray(this string? value, char[] chars)
+        public static bool IsCharArray(this string value, char[] chars)
         {
             var test = new string(chars);
             return test == value;
@@ -68,7 +66,7 @@ namespace Ocluse.LiquidSnow.Extensions
         /// Checks if a double is a perfect square
         /// </summary>
         /// <param name="input"></param>
-        /// <returns>true if a double is a perfect square, i.e the squareroot is an integer.</returns>
+        /// <returns>true if a double is a perfect square, i.e the square root is an integer.</returns>
         public static bool IsPerfectSquare(this double input)
         {
             var sqrt = Math.Sqrt(input);
@@ -80,13 +78,19 @@ namespace Ocluse.LiquidSnow.Extensions
         /// <paramref name="startIndex"/> onwards.</summary>
         public static T[] Subarray<T>(this T[] array, int startIndex, int length)
         {
-            if (array == null)
-                throw new ArgumentNullException("array");
+            ArgumentNullException.ThrowIfNull(array);
             if (startIndex < 0)
-                throw new ArgumentOutOfRangeException("startIndex", "startIndex cannot be negative.");
+            {
+                throw new ArgumentOutOfRangeException(nameof(startIndex), "value cannot be negative.");
+            }
+
             if (length < 0 || startIndex + length > array.Length)
-                throw new ArgumentOutOfRangeException("length", "length cannot be negative or extend beyond the end of the array.");
+            {
+                throw new ArgumentOutOfRangeException(nameof(length), "value cannot be negative or extend beyond the end of the array.");
+            }
+
             T[] result = new T[length];
+
             Array.Copy(array, startIndex, result, 0, length);
             return result;
         }
@@ -94,7 +98,7 @@ namespace Ocluse.LiquidSnow.Extensions
         /// <summary>
         /// Gets the bytes of a string when encoded using UTF8
         /// </summary>
-        public static byte[] GetBytes(this string? str)
+        public static byte[] GetBytes(this string str)
         {
             return Encoding.UTF8.GetBytes(str);
         }
@@ -104,7 +108,7 @@ namespace Ocluse.LiquidSnow.Extensions
         /// </summary>
         /// <typeparam name="T">The type of Encoding to be used</typeparam>
         /// <param name="str">The string whose bytes are to be returned</param>
-        public static byte[] GetBytes<T>(this string? str) where T : Encoding
+        public static byte[] GetBytes<T>(this string str) where T : Encoding
         {
             if (typeof(T) == typeof(ASCIIEncoding))
             {
@@ -116,7 +120,7 @@ namespace Ocluse.LiquidSnow.Extensions
             }
             else if (typeof(T) == typeof(UTF7Encoding))
             {
-                return Encoding.UTF7.GetBytes(str);
+                throw new NotImplementedException("The UTF7 encoding is not supported");
             }
             else if (typeof(T) == typeof(UTF32Encoding))
             {
@@ -127,7 +131,7 @@ namespace Ocluse.LiquidSnow.Extensions
                 return Encoding.Unicode.GetBytes(str);
             }
 
-            throw new ArgumentException("The encoding provided is unkown/unsupported");
+            throw new ArgumentException("The encoding provided is unknown/unsupported");
         }
 
         /// <summary>
@@ -156,7 +160,7 @@ namespace Ocluse.LiquidSnow.Extensions
             }
             else if (typeof(T) == typeof(UTF7Encoding))
             {
-                return Encoding.UTF7.GetString(ba);
+                throw new NotImplementedException("The UTF7 encoding is not supported");
             }
             else if (typeof(T) == typeof(UTF32Encoding))
             {
@@ -189,9 +193,11 @@ namespace Ocluse.LiquidSnow.Extensions
         }
 
         ///<inheritdoc cref="GetPropValue{T}(object, string)"/>
-        public static object GetPropValue(this object obj, string propertyName)
+        public static object? GetPropValue(this object obj, string propertyName)
         {
-            var prop = obj.GetType().GetProperty(propertyName);
+            var prop = obj.GetType().GetProperty(propertyName)
+                ?? throw new ArgumentException($"The property {propertyName} does not exist in the object", nameof(propertyName));
+
             return prop.GetValue(obj);
         }
 
@@ -201,10 +207,10 @@ namespace Ocluse.LiquidSnow.Extensions
         /// <typeparam name="T">The type to cast the property to</typeparam>
         /// <param name="obj">The object whose property is to be obtained</param>
         /// <param name="propertyName">The name of the property to retrieve</param>
-        /// <returns>The value of the property otained from the object</returns>
-        public static T GetPropValue<T>(this object obj, string propertyName)
+        /// <returns>The value of the property obtained from the object</returns>
+        public static T? GetPropValue<T>(this object obj, string propertyName)
         {
-            return (T)obj.GetPropValue(propertyName);
+            return (T?)obj.GetPropValue(propertyName);
         }
 
         /// <summary>
@@ -213,24 +219,24 @@ namespace Ocluse.LiquidSnow.Extensions
         /// <param name="obj">The object whose property is to be set</param>
         /// <param name="value">The value to set to the property</param>
         /// <param name="propertyName">The name of the property</param>
-        public static void SetPropValue(this object obj, string propertyName, object value)
+        public static void SetPropValue(this object obj, string propertyName, object? value)
         {
-            var prop = obj.GetType().GetProperty(propertyName);
+            var prop = obj.GetType().GetProperty(propertyName)
+                ?? throw new ArgumentException($"The property {propertyName} does not exist in the object");
             prop.SetValue(obj, value);
         }
 
         /// <summary>
         /// Checks if a string is composed of letters and digits only.
         /// </summary>
-        /// <param name="s"></param>
         /// <returns>True if a string is composed of letters and numbers only.</returns>
-        public static bool IsAlphaNumeric(this string? s)
+        public static bool IsAlphaNumeric(this string s)
         {
             return s.All(char.IsLetterOrDigit);
         }
 
         /// <summary>
-        /// Checks whether the bytes of this array are the same as those of the second array
+        /// Checks whether the bytes of this array are the same as those of the second array.
         /// </summary>
         /// <param name="a1">The source array</param>
         /// <param name="array">The array to check</param>

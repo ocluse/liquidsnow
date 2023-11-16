@@ -1,32 +1,14 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reactive.Linq;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Ocluse.LiquidSnow.Jobs.Internal
 {
     internal class JobScheduler : IJobScheduler
     {
-        readonly struct JobSubscription : IDisposable
+        record JobSubscription(IDisposable Handle, IJob Job, CancellationTokenSource CancellationTokenSource) : IDisposable
         {
-            public JobSubscription(IDisposable handle, IJob job, CancellationTokenSource cancellationTokenSource)
-            {
-                Handle = handle;
-                Job = job;
-                CancellationTokenSource = cancellationTokenSource;
-            }
-
-            public IDisposable Handle { get; }
-
-            public IJob Job { get; }
-            
-            public CancellationTokenSource CancellationTokenSource { get; }
-
-            public readonly void Dispose()
+            public void Dispose()
             {
                 Handle.Dispose();
                 CancellationTokenSource.Cancel();
@@ -38,7 +20,7 @@ namespace Ocluse.LiquidSnow.Jobs.Internal
 
         public JobScheduler(IServiceProvider serviceProvider)
         {
-            _subscriptions = new Dictionary<object, JobSubscription>();
+            _subscriptions = [];
             _serviceProvider = serviceProvider;
         }
 
@@ -48,12 +30,12 @@ namespace Ocluse.LiquidSnow.Jobs.Internal
 
             Type jobHandlerType = typeof(IJobHandler<>).MakeGenericType(jobType);
 
-            Type[] paramTypes = new Type[] { jobType, typeof(long), typeof(CancellationToken) };
+            Type[] paramTypes = [jobType, typeof(long), typeof(CancellationToken)];
 
             MethodInfo handleMethodInfo = jobHandlerType.GetMethod("Handle", paramTypes)
                 ?? throw new InvalidOperationException("Handle method not found on job handler");
 
-            object[] handleMethodArgs = new object[] { job, tick, cancellationToken };
+            object[] handleMethodArgs = [job, tick, cancellationToken];
 
             using IServiceScope scope = _serviceProvider.CreateScope();
 
@@ -62,7 +44,7 @@ namespace Ocluse.LiquidSnow.Jobs.Internal
             var handleTasks = new List<TaskCompletionSource<bool>>();
 
             await Task.WhenAll(handlers.Select(handler =>
-                (Task)handleMethodInfo.Invoke(handler, handleMethodArgs)));
+                (Task)handleMethodInfo.Invoke(handler, handleMethodArgs)!));
 
             if (!typeof(IRoutineJob).IsAssignableFrom(job.GetType()))
             {

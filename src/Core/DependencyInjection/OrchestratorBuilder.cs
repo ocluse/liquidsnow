@@ -1,7 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Linq;
 using Ocluse.LiquidSnow.Orchestrations;
 
 namespace Ocluse.LiquidSnow.DependencyInjection

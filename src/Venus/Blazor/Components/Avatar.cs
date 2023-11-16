@@ -11,7 +11,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         public string? UserId { get; set; }
 
         [Parameter]
-        public int Size { get; set; } = DefaultSize.Size48;
+        public int? Size { get; set; }
 
         [Parameter]
         public string? SrcOnError { get; set; } = "/images/anonymous.svg";
@@ -26,11 +26,11 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         {
             builder.OpenElement(0, "img");
 
-            string src =  string.IsNullOrEmpty(UserId) ? Src : VenusResolver.ResolveAvatarId(UserId);
+            string src = string.IsNullOrEmpty(UserId) ? Src : VenusResolver.ResolveAvatarId(UserId);
 
             builder.AddAttribute(1, "src", src);
-            builder.AddAttribute(2, "height", Size);
-            builder.AddAttribute(2, "width", Size);
+            builder.AddAttribute(2, "height", Size ?? Resolver.DefaultAvatarSize);
+            builder.AddAttribute(2, "width", Size ?? Resolver.DefaultAvatarSize);
             builder.AddAttribute(3, "onerror", $"this.src ='{SrcOnError}';this.onerror=''");
             builder.AddMultipleAttributes(4, GetClassAndStyle());
             builder.CloseElement();

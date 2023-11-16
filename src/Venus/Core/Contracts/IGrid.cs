@@ -1,6 +1,4 @@
-﻿using System.Text;
-
-namespace Ocluse.LiquidSnow.Venus.Contracts
+﻿namespace Ocluse.LiquidSnow.Venus.Contracts
 {
     internal interface IGrid
     {

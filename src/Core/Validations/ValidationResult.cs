@@ -3,55 +3,35 @@
     /// <summary>
     /// Represents the result of a validation.
     /// </summary>
-    public readonly struct ValidationResult
+    /// <param name="Message">A message describing the result of the validation.</param>
+    /// <param name="IsValid">A value indicating whether the state of the object is valid.</param>
+    public record ValidationResult(bool IsValid, string? Message)
     {
         /// <summary>
-        /// Creates a new instance of <see cref="ValidationResult"/> indicating whether the validation was successful and a message describing the result.
+        /// A <see cref="ValidationResult"/> describing a valid state.
         /// </summary>
-        public ValidationResult(bool success, string? message)
-        {
-            Success = success;
-            Message = message;
-        }
+        public static ValidationResult ValidResult { get; } = new ValidationResult(true, null);
 
         /// <summary>
-        /// A boolean indicating whether the state of the object is valid.
+        /// Implicitly converts a <see cref="bool"/> to a <see cref="ValidationResult"/>.
         /// </summary>
-        /// <param name="success"></param>
         public static implicit operator ValidationResult(bool success)
         {
             return new ValidationResult(success, null);
         }
 
-
         /// <summary>
-        /// A message describing the result of the validation.
+        /// Implicitly converts a <see cref="ValidationResult"/> to a <see cref="bool"/>.
         /// </summary>
-        public string? Message { get; }
-
-        /// <summary>
-        /// A boolean indicating whether the state of the object is valid.
-        /// </summary>
-        public bool Success { get; }
-
-        /// <summary>
-        /// Creates a new instance of <see cref="ValidationResult"/> indicating that the validation succeeded.
-        /// </summary>
-        /// <returns>
-        /// A new instance of <see cref="ValidationResult"/> with <see cref="Success"/> set to true and <see cref="Message"/> set to null.
-        /// </returns>
-        public static ValidationResult Succeeded()
+        public static implicit operator bool(ValidationResult result)
         {
-            return new ValidationResult(true, null);
+            return result.IsValid;
         }
 
         /// <summary>
-        /// Creates a new instance of <see cref="ValidationResult"/> indicating that the validation failed.
+        /// Creates a new instance of <see cref="ValidationResult"/> indicating that the state of the object is invalid.
         /// </summary>
-        /// <returns>
-        /// An instance of <see cref="ValidationResult"/> with <see cref="Success"/> set to false and <see cref="Message"/> set to the specified message.
-        /// </returns>
-        public static ValidationResult Failed(string? message)
+        public static ValidationResult NotValid(string? message)
         {
             return new ValidationResult(false, message);
         }

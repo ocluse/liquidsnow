@@ -1,6 +1,4 @@
 ﻿using Ocluse.LiquidSnow.Extensions;
-using System;
-using System.IO;
 using System.Text;
 
 namespace Ocluse.LiquidSnow.Steganography.Media.Internals

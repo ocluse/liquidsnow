@@ -15,9 +15,9 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 
         #region Properties
 
-        protected virtual string ItemElement { get; } = "div";
+        protected virtual string ItemElement => "div";
 
-        protected virtual string ContainerElement { get; } = "div";
+        protected virtual string ContainerElement => "div";
 
         protected virtual IEnumerable<T>? RenderedItems
         {
@@ -396,17 +396,29 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 
                 if (FiltrationOptions != null)
                 {
+                    string filterIcon = Resolver.IconStyle switch
+                    {
+                        IconStyle.Fluent => ComponentIcons.Fluent.Filter,
+                        _ => ComponentIcons.Feather.Filter,
+                    };
+
+                    string sortIcon = Resolver.IconStyle switch
+                    {
+                        IconStyle.Fluent => ComponentIcons.Fluent.Sort,
+                        _ => ComponentIcons.Feather.Sort,
+                    };
+
                     builder.OpenElement(7, "div");
                     builder.AddAttribute(8, "class", "items-filtration");
                     builder.OpenComponent<FilterDropdown>(9);
-                    builder.AddAttribute(10, nameof(FilterDropdown.Icon), FeatherIcons.Filter);
+                    builder.AddAttribute(10, nameof(FilterDropdown.Icon), filterIcon);
                     builder.AddAttribute(11, nameof(FilterDropdown.Value), Filter);
                     builder.AddAttribute(12, nameof(FilterDropdown.Placeholder), "Filter By");
                     builder.AddAttribute(13, nameof(FilterDropdown.ValueChanged), OnFilterChanged);
                     builder.CloseComponent();
 
                     builder.OpenComponent<FilterDropdown>(14);
-                    builder.AddAttribute(15, nameof(FilterDropdown.Icon), FeatherIcons.List);
+                    builder.AddAttribute(15, nameof(FilterDropdown.Icon), sortIcon);
                     builder.AddAttribute(16, nameof(FilterDropdown.Value), Sort);
                     builder.AddAttribute(17, nameof(FilterDropdown.Placeholder), "Sort By");
                     builder.AddAttribute(18, nameof(FilterDropdown.ValueChanged), OnSortChanged);

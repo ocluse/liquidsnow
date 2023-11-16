@@ -1,8 +1,4 @@
-﻿using Ocluse.LiquidSnow.Cryptography.IO.Internals;
-using System.IO;
-using System.Threading.Tasks;
-
-namespace Ocluse.LiquidSnow.Cryptography.IO
+﻿namespace Ocluse.LiquidSnow.Cryptography.IO
 {
     /// <summary>
     /// Utility for serializing and deserializing objects

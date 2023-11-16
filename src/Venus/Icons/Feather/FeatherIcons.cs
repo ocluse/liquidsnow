@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Ocluse.LiquidSnow.Venus.Icons.Feather
+﻿namespace Ocluse.LiquidSnow.Venus.Icons.Feather
 {
     public static class FeatherIcons
     {

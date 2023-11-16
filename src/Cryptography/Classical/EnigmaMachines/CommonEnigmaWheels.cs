@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Ocluse.LiquidSnow.Cryptography.Classical.EnigmaMachines
+﻿namespace Ocluse.LiquidSnow.Cryptography.Classical.EnigmaMachines
 {
     /// <summary>
     /// Provides the wheels configurations used for popular Enigma machine variants.

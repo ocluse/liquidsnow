@@ -2,9 +2,7 @@
 using Ocluse.LiquidSnow.Validations;
 using Ocluse.LiquidSnow.Venus.Contracts;
 using Ocluse.LiquidSnow.Venus.Services;
-using System;
 using System.Globalization;
-using System.Linq;
 using System.Numerics;
 using System.Text;
 
@@ -69,9 +67,9 @@ public static class Extensions
     {
         if (value == null)
         {
-            return Task.FromResult(ValidationResult.Failed(validators.ValueRequiredMessage));
+            return Task.FromResult(ValidationResult.NotValid(validators.ValueRequiredMessage));
         }
-        return Task.FromResult(ValidationResult.Succeeded());
+        return Task.FromResult(ValidationResult.ValidResult);
     }
 
     /// <summary>
@@ -81,15 +79,15 @@ public static class Extensions
     {
         if (value == null)
         {
-            return Task.FromResult(ValidationResult.Failed(validators.ValueRequiredMessage));
+            return Task.FromResult(ValidationResult.NotValid(validators.ValueRequiredMessage));
         }
 
         if (value <= T.Zero)
         {
-            return Task.FromResult(ValidationResult.Failed(validators.ValueMustBeGreaterThanZeroMessage));
+            return Task.FromResult(ValidationResult.NotValid(validators.ValueMustBeGreaterThanZeroMessage));
         }
 
-        return Task.FromResult(ValidationResult.Succeeded());
+        return Task.FromResult(ValidationResult.ValidResult);
     }
 
     internal static string ToRem(this double value)
@@ -124,10 +122,10 @@ public static class Extensions
 
     internal static IEnumerable<string> GetGridStyles(this IGrid grid)
     {
-        List<string> styleList = new()
-            {
+        List<string> styleList =
+            [
                 $"--grid-columns:{TranslateToGridTemplate(grid.Columns)}"
-            };
+            ];
 
         //Lg:
         int lg = grid.ColumnsLg ?? grid.Columns;

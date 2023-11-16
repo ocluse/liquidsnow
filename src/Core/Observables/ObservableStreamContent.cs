@@ -1,10 +1,6 @@
-﻿using System;
-using System.ComponentModel;
-using System.IO;
+﻿using System.ComponentModel;
 using System.Net;
-using System.Net.Http;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 
 namespace Ocluse.LiquidSnow.Observables
 {
@@ -77,7 +73,7 @@ namespace Ocluse.LiquidSnow.Observables
             Error
         }
 
-        private const int defaultBufferSize = 4096;
+        private const int DEFAULT_BUFFER_SIZE = 4096;
 
         private readonly Stream _content;
         private readonly int _bufferSize;
@@ -135,13 +131,13 @@ namespace Ocluse.LiquidSnow.Observables
         }
 
         /// <inheritdoc cref="ObservableStreamContent(Stream,int, IProgress{long}, IProgress{double})"/>
-        public ObservableStreamContent(Stream content) : this(content, defaultBufferSize) { }
+        public ObservableStreamContent(Stream content) : this(content, DEFAULT_BUFFER_SIZE) { }
 
         /// <inheritdoc cref="ObservableStreamContent(Stream,int, IProgress{long}, IProgress{double})"/>
-        public ObservableStreamContent(Stream content, IProgress<long> transferredBytesProgress) : this(content, defaultBufferSize, transferredBytesProgress: transferredBytesProgress) { }
+        public ObservableStreamContent(Stream content, IProgress<long> transferredBytesProgress) : this(content, DEFAULT_BUFFER_SIZE, transferredBytesProgress: transferredBytesProgress) { }
 
         /// <inheritdoc cref="ObservableStreamContent(Stream,int, IProgress{long}, IProgress{double})"/>
-        public ObservableStreamContent(Stream content, IProgress<double> transferProgress) : this(content, defaultBufferSize, transferProgress: transferProgress) { }
+        public ObservableStreamContent(Stream content, IProgress<double> transferProgress) : this(content, DEFAULT_BUFFER_SIZE, transferProgress: transferProgress) { }
 
         /// <summary>
         /// Creates a new instance of an <see cref="ObservableStreamContent"/>
@@ -166,7 +162,7 @@ namespace Ocluse.LiquidSnow.Observables
         }
 
         ///<inheritdoc/>
-        protected override Task SerializeToStreamAsync(Stream stream, TransportContext context)
+        protected override Task SerializeToStreamAsync(Stream stream, TransportContext? context)
         {
             PrepareContent();
 

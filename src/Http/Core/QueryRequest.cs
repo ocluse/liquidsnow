@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Ocluse.LiquidSnow.Http
+﻿namespace Ocluse.LiquidSnow.Http
 {
     ///<inheritdoc cref="IQueryRequest{TKey, Q}"/>
     public record QueryRequest<TKey, Q> :  IQueryRequest<TKey, Q>

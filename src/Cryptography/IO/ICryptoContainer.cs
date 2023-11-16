@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Ocluse.LiquidSnow.Cryptography.IO
+﻿namespace Ocluse.LiquidSnow.Cryptography.IO
 {
     /// <summary>
     /// Contains utility methods for handling, encrypting and decrypting several items/files in a single package.

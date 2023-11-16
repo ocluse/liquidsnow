@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Ocluse.LiquidSnow.Http.Client
+﻿namespace Ocluse.LiquidSnow.Http.Client
 {
     /// <summary>
     /// An exception that is thrown when the response content is null and the request was expecting content.

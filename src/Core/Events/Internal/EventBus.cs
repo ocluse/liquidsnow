@@ -1,11 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Ocluse.LiquidSnow.Extensions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Ocluse.LiquidSnow.Events.Internal
 {
@@ -26,7 +21,7 @@ namespace Ocluse.LiquidSnow.Events.Internal
                 return;
             }
 
-            await (Task)handleMethodInfo.Invoke(handler, handleMethodArgs);
+            await (Task)handleMethodInfo.Invoke(handler, handleMethodArgs)!;
         }
 
         public async Task Publish(IEvent ev, PublishStrategy? strategy = null, CancellationToken cancellationToken = default)
@@ -37,20 +32,20 @@ namespace Ocluse.LiquidSnow.Events.Internal
 
             Type eventHandlerType = typeof(IEventHandler<>).MakeGenericType(eventType);
 
-            Type[] paramTypes = new Type[] { eventType, typeof(CancellationToken) };
+            Type[] paramTypes = [eventType, typeof(CancellationToken)];
 
             MethodInfo handleMethodInfo = eventHandlerType.GetMethod("Handle", paramTypes) ?? throw new InvalidOperationException("Handle method not found on event handler");
 
-            object[] handleMethodArgs = new object[] { ev, cancellationToken };
+            object[] handleMethodArgs = [ev, cancellationToken];
 
             IEnumerable<object?> handlers = _serviceProvider
                 .GetServices(eventHandlerType);
 
-            List<TaskCompletionSource<bool>> handleTasks = new();
+            List<TaskCompletionSource<bool>> handleTasks = [];
 
             if (strategy == PublishStrategy.Sequential)
             {
-                List<Exception> exceptions = new();
+                List<Exception> exceptions = [];
 
                 foreach (object? handler in handlers)
                 {

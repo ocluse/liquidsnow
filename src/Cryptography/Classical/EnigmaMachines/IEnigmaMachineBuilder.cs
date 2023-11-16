@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Ocluse.LiquidSnow.Cryptography.Classical.EnigmaMachines
+﻿namespace Ocluse.LiquidSnow.Cryptography.Classical.EnigmaMachines
 {
     /// <summary>
     /// A builder for <see cref="EnigmaMachine"/>.

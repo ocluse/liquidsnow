@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Ocluse.LiquidSnow.Cryptography.Classical
+﻿namespace Ocluse.LiquidSnow.Cryptography.Classical
 {
     /// <summary>
     /// Represents 2D dimensional info with X and Y
@@ -53,7 +51,7 @@ namespace Ocluse.LiquidSnow.Cryptography.Classical
             return X == other.X && Y == other.Y;
         }
         ///<inheritdoc/>
-        public override readonly bool Equals(object obj)
+        public override readonly bool Equals(object? obj)
         {
             if (obj == null) return false;
             if (obj.GetType() != typeof(Dimensions)) return false;

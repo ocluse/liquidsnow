@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 
 namespace Ocluse.LiquidSnow.Cryptography.Classical.Ciphers
 {

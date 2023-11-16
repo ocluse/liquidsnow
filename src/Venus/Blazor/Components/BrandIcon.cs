@@ -8,7 +8,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         public string? Icon { get; set; }
 
         [Parameter]
-        public int Size { get; set; } = DefaultSize.Size24;
+        public int? Size { get; set; }
 
 
         protected override void BuildRenderTree(RenderTreeBuilder builder)
@@ -19,8 +19,8 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 
                 Dictionary<string, object> attributes = new()
                 {
-                    { "height", Size},
-                    { "width", Size},
+                    { "height", Size ?? Resolver.DefaultIconSize},
+                    { "width", Size ?? Resolver.DefaultIconSize},
                     { "xmlns", "http://www.w3.org/2000/svg" },
                     { "viewBox", "0 0 48 48" },
                 };

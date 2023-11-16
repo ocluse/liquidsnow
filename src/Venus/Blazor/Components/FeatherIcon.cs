@@ -6,14 +6,15 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
     public class FeatherIcon : ControlBase
     {
         public const int STROKE_WIDTH = 2;
+
         [Parameter]
         public string? Icon { get; set; }
 
         [Parameter]
-        public int Size { get; set; } = DefaultSize.Size24;
+        public int? Size { get; set; }
 
         [Parameter]
-        public int StrokeWidth { get; set; } = STROKE_WIDTH;
+        public int? StrokeWidth { get; set; }
 
         protected override void BuildRenderTree(RenderTreeBuilder builder)
         {
@@ -23,13 +24,13 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 
                 Dictionary<string, object> attributes = new()
                 {
-                    { "height", Size},
-                    { "width", Size},
+                    { "height", Size ?? Resolver.DefaultIconSize},
+                    { "width", Size ?? Resolver.DefaultIconSize},
                     { "xmlns", "http://www.w3.org/2000/svg" },
                     { "viewBox", "0 0 24 24" },
                     { "fill", "none" },
                     { "stroke", "currentColor" },
-                    { "stroke-width",StrokeWidth },
+                    { "stroke-width",StrokeWidth ?? Resolver.DefaultFeatherStokeWidth },
                     { "stroke-linecap","round"},
                     { "stroke-linejoin", "round"}
                 };

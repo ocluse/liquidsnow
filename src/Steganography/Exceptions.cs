@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Ocluse.LiquidSnow.Steganography
+﻿namespace Ocluse.LiquidSnow.Steganography
 {
     /// <summary>
     /// Represents an error that occurs when an end of file cannot be found
@@ -50,14 +48,5 @@ namespace Ocluse.LiquidSnow.Steganography
         /// <param name="message"></param>
         /// <param name="inner"></param>
         public InsufficientSpaceException(string message, Exception inner) : base(message, inner) { }
-
-        /// <summary>
-        /// Initializes a new instance of <see cref="InsufficientSpaceException"/> with the serialized data
-        /// </summary>
-        /// <param name="info"></param>
-        /// <param name="context"></param>
-        protected InsufficientSpaceException(
-          System.Runtime.Serialization.SerializationInfo info,
-          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
     }
 }

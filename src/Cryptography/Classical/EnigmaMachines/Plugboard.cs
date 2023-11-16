@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Ocluse.LiquidSnow.Cryptography.Classical.EnigmaMachines
+﻿namespace Ocluse.LiquidSnow.Cryptography.Classical.EnigmaMachines
 {
     /// <summary>
     /// Provides utility methods for further scrambling the output of the Enigma Machine.
@@ -15,7 +12,7 @@ namespace Ocluse.LiquidSnow.Cryptography.Classical.EnigmaMachines
         /// </summary>
         public Plugboard()
         {
-            _socketPairs = new Dictionary<char, char>();
+            _socketPairs = [];
         }
 
         /// <summary>

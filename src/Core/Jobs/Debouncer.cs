@@ -1,5 +1,4 @@
-﻿using System;
-using System.Reactive.Linq;
+﻿using System.Reactive.Linq;
 
 namespace Ocluse.LiquidSnow.Venus.Blazor
 {
@@ -27,20 +26,12 @@ namespace Ocluse.LiquidSnow.Venus.Blazor
             _execute = execute;
         }
 
-        private void EnsureNotDisposed()
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(nameof(Debouncer));
-            }
-        }
-
         /// <summary>
         /// Begins the debounce timer. Calling this method will cancel any previously pending debounce timer.
         /// </summary>
         public void Begin()
         {
-            EnsureNotDisposed();
+            ObjectDisposedException.ThrowIf(_disposed, this);
             _subscription?.Dispose();
 
             _subscription = Observable
@@ -56,7 +47,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor
         /// </summary>
         public void Cancel()
         {
-            EnsureNotDisposed();
+            ObjectDisposedException.ThrowIf(_disposed, this);
             _subscription?.Dispose();
         }
 
@@ -65,7 +56,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor
         /// </summary>
         public void Dispose()
         {
-            EnsureNotDisposed();
+            ObjectDisposedException.ThrowIf(_disposed, this);
             _subscription?.Dispose();
             _disposed = true;
         }

@@ -48,7 +48,7 @@ namespace Ocluse.LiquidSnow.Venus.Razor.TagHelpers
 
             TagHelperOutput iconOutput = new(
                 tagName: "",
-                attributes: new TagHelperAttributeList(),
+                attributes: [],
                 getChildContentAsync: (useCachedResult, encoder) =>
                 Task.Factory.StartNew<TagHelperContent>(
                     () => new DefaultTagHelperContent()));
@@ -68,7 +68,7 @@ namespace Ocluse.LiquidSnow.Venus.Razor.TagHelpers
 
             TagHelperOutput textOutput = new(
                 tagName: "",
-                attributes: new TagHelperAttributeList(),
+                attributes: [],
                 getChildContentAsync: (useCachedResult, encoder) =>
                 Task.Factory.StartNew<TagHelperContent>(
                     () => new DefaultTagHelperContent()));

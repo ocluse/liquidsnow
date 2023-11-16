@@ -6,6 +6,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
     {
         [Parameter]
         public RenderFragment? ChildContent { get; set; }
+
         protected override void BuildInputClass(ClassBuilder classBuilder)
         {
             base.BuildInputClass(classBuilder);

@@ -5,9 +5,24 @@
 
 
 <div class="snackbar-item @Resolver.ResolveSnackbarStatusToClass(Handle.Status)">
-    <FeatherIcon Icon="@Resolver.ResolveSnackbarStatusToIcon(Handle.Status)" Size="DefaultSize.Size18" Color="@Resolver.ResolveSnackbarStatusToColor(Handle.Status)" />
+    @if (Resolver.IconStyle == IconStyle.Fluent)
+    {
+        <FluentIcon Icon="@Resolver.ResolveSnackbarStatusToIcon(Handle.Status)" Size="Resolver.SnackbarIconSize" Color="@Resolver.ResolveSnackbarStatusToColor(Handle.Status)" />
+    }
+    else
+    {
+        <FeatherIcon Icon="@Resolver.ResolveSnackbarStatusToIcon(Handle.Status)" Size="Resolver.SnackbarIconSize" Color="@Resolver.ResolveSnackbarStatusToColor(Handle.Status)" />
+    }
     <div class="snackbar-label">@Handle.Message</div>
-    <IconButton Icon="@FeatherIcons.X" OnClick="OnClickClose"></IconButton>
+
+    @if(Resolver.IconStyle == IconStyle.Fluent)
+    {
+        <FluentIconButton Icon="@ComponentIcons.Fluent.Close" Size="Resolver.DefaultButtonIconSize" OnClick="OnClickClose" />
+    }
+    else
+    {
+        <IconButton Icon="@ComponentIcons.Feather.Close" Size="Resolver.DefaultButtonIconSize" OnClick="OnClickClose" />
+    }
 </div>
 
 @code {

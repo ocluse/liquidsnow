@@ -1,11 +1,5 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.IO.Packaging;
-using System.Threading.Tasks;
-using System.Threading;
+﻿using System.IO.Packaging;
 using System.Text;
-using System.Collections.Generic;
 using Ocluse.LiquidSnow.Extensions;
 using Ocluse.LiquidSnow.Utils;
 using Ocluse.LiquidSnow.Cryptography.Symmetrics;
@@ -112,7 +106,7 @@ namespace Ocluse.LiquidSnow.Cryptography.IO.Internals
         {
             PackagePartCollection parts = _package.GetParts();
 
-            List<string> result = new List<string>();
+            List<string> result = [];
 
             foreach (var part in parts)
             {

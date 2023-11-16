@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Ocluse.LiquidSnow.Venus.Icons.Feather
+﻿namespace Ocluse.LiquidSnow.Venus.Icons.Feather
 {
     public static class CustomFeatherIcons
     {
