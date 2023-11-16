@@ -65,9 +65,6 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         public IEnumerable<T>? Items { get; set; }
 
         [Parameter]
-        public EventCallback<IEnumerable<T>?> ItemsChanged { get; set; }
-
-        [Parameter]
         public Func<CursorPaginationState, Task<CursorListViewData<T>>>? CursorFetch { get; set; }
 
         [Parameter]
