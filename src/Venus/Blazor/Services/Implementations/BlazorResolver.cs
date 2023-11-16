@@ -5,19 +5,19 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Services.Implementations
 {
     public class BlazorResolver : IBlazorResolver
     {
-        public int DefaultPageSize => 10;
+        public virtual int DefaultPageSize => 10;
 
-        public int DefaultButtonIconSize => DefaultSize.Size18;
+        public virtual int DefaultButtonIconSize => DefaultSize.Size18;
 
-        public int DefaultIconSize => DefaultSize.Size24;
+        public virtual int DefaultIconSize => DefaultSize.Size24;
 
-        public int DefaultAvatarSize => DefaultSize.Size48;
+        public virtual int DefaultAvatarSize => DefaultSize.Size48;
 
-        public int SnackbarIconSize => DefaultSize.Size18;
+        public virtual int SnackbarIconSize => DefaultSize.Size18;
 
-        public IconStyle IconStyle => IconStyle.Feather;
+        public virtual IconStyle IconStyle => IconStyle.Feather;
 
-        public int DefaultFeatherStokeWidth => FeatherIcon.STROKE_WIDTH;
+        public virtual int DefaultFeatherStokeWidth => FeatherIcon.STROKE_WIDTH;
 
         public virtual Type ResolveContainerStateToRenderType(int containerState)
         {
