@@ -14,7 +14,7 @@ namespace Ocluse.LiquidSnow.Events.Internal
             _serviceProvider = serviceProvider;
         }
 
-        private async Task ExecuteHandler(object? handler, MethodInfo handleMethodInfo, object[] handleMethodArgs)
+        private static async Task ExecuteHandler(object? handler, MethodInfo handleMethodInfo, object[] handleMethodArgs)
         {
             if (handler == null)
             {
@@ -40,8 +40,6 @@ namespace Ocluse.LiquidSnow.Events.Internal
 
             IEnumerable<object?> handlers = _serviceProvider
                 .GetServices(eventHandlerType);
-
-            List<TaskCompletionSource<bool>> handleTasks = [];
 
             if (strategy == PublishStrategy.Sequential)
             {
