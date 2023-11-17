@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace Ocluse.LiquidSnow.Jobs.Internal
 {
-    internal class JobScheduler : IJobScheduler
+    internal class JobScheduler(IServiceProvider _serviceProvider) : IJobScheduler
     {
         record JobSubscription(IDisposable Handle, IJob Job, CancellationTokenSource CancellationTokenSource) : IDisposable
         {
@@ -15,13 +15,18 @@ namespace Ocluse.LiquidSnow.Jobs.Internal
             }
         }
 
-        private readonly Dictionary<object, JobSubscription> _subscriptions;
-        private readonly IServiceProvider _serviceProvider;
+        private readonly Dictionary<object, JobSubscription> _subscriptions = [];
 
-        public JobScheduler(IServiceProvider serviceProvider)
+        public event EventHandler<JobFailedEventArgs>? JobFailed;
+
+        private static async Task ExecuteHandler(object? handler, MethodInfo handleMethodInfo, object[] handleMethodArgs)
         {
-            _subscriptions = [];
-            _serviceProvider = serviceProvider;
+            if (handler == null)
+            {
+                return;
+            }
+
+            await (Task)handleMethodInfo.Invoke(handler, handleMethodArgs)!;
         }
 
         private async void ExecuteJob(IJob job, long tick, CancellationToken cancellationToken)
@@ -39,14 +44,51 @@ namespace Ocluse.LiquidSnow.Jobs.Internal
 
             using IServiceScope scope = _serviceProvider.CreateScope();
 
-            IEnumerable<object?> handlers = scope.ServiceProvider.GetServices(jobHandlerType);
+            IEnumerable<object?> handlers;
 
-            var handleTasks = new List<TaskCompletionSource<bool>>();
+            bool executeParallel;
 
-            await Task.WhenAll(handlers.Select(handler =>
-                (Task)handleMethodInfo.Invoke(handler, handleMethodArgs)!));
+            if (job is IMulticastJob multicastJob)
+            {
+                handlers = scope.ServiceProvider.GetServices(jobHandlerType);
+                executeParallel = multicastJob.ExecuteParallel;
+            }
+            else
+            {
+                handlers = [scope.ServiceProvider.GetService(jobHandlerType)];
+                executeParallel = false;
+            }
 
-            if (!typeof(IRoutineJob).IsAssignableFrom(job.GetType()))
+            if (executeParallel)
+            {
+                try
+                {
+                    await Task.WhenAll(handlers.Select(handler =>
+                        ExecuteHandler(handler, handleMethodInfo, handleMethodArgs)));
+                }
+                catch (Exception ex)
+                {
+                    JobFailed?.Invoke(this, new JobFailedEventArgs(job, ex));
+                }
+            }
+            else
+            {
+                foreach (object? handler in handlers)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    try
+                    {
+                        await ExecuteHandler(handler, handleMethodInfo, handleMethodArgs);
+                    }
+                    catch (Exception ex)
+                    {
+                        JobFailed?.Invoke(this, new JobFailedEventArgs(job, ex));
+                    }
+                }
+            }
+
+            if (job is not IRoutineJob)
             {
                 _subscriptions.Remove(job.Id);
             }
