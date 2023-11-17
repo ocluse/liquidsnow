@@ -8,6 +8,8 @@ using Ocluse.LiquidSnow.Extensions;
 using Ocluse.LiquidSnow.Orchestrations.Internal;
 using Ocluse.LiquidSnow.Orchestrations;
 using Ocluse.LiquidSnow.Events.Internal;
+using Ocluse.LiquidSnow.Jobs;
+using Ocluse.LiquidSnow.Jobs.Internal;
 
 namespace Ocluse.LiquidSnow.DependencyInjection
 {
@@ -30,15 +32,15 @@ namespace Ocluse.LiquidSnow.DependencyInjection
         /// Adds CQRS from the provided options.
         /// </summary>
         public static CqrsBuilder AddCqrs(
-            this IServiceCollection services, 
-            Assembly assembly, 
-            ServiceLifetime dispatcherLifetime = ServiceLifetime.Transient, 
+            this IServiceCollection services,
+            Assembly assembly,
+            ServiceLifetime dispatcherLifetime = ServiceLifetime.Transient,
             ServiceLifetime handlerLifetime = ServiceLifetime.Scoped)
         {
-            ServiceDescriptor commandsDescriptor 
+            ServiceDescriptor commandsDescriptor
                 = new(typeof(ICommandDispatcher), typeof(CommandDispatcher), dispatcherLifetime);
 
-            ServiceDescriptor queriesDescriptor 
+            ServiceDescriptor queriesDescriptor
                 = new(typeof(IQueryDispatcher), typeof(QueryDispatcher), dispatcherLifetime);
 
             services.TryAdd(commandsDescriptor);
@@ -51,8 +53,38 @@ namespace Ocluse.LiquidSnow.DependencyInjection
 
         #endregion
 
+        #region JOBS
+
+        /// <summary>
+        /// Adds jobs from the calling assembly using default configuration.
+        /// </summary>
+        public static JobsBuilder AddJobs(this IServiceCollection services)
+        {
+            return services.AddJobs(Assembly.GetCallingAssembly());
+        }
+
+        /// <summary>
+        /// Adds jobs from the provided options.
+        /// </summary>
+        public static JobsBuilder AddJobs(
+            this IServiceCollection services,
+            Assembly assembly,
+            ServiceLifetime handlerLifetime = ServiceLifetime.Transient)
+        {
+            ServiceDescriptor schedulerDescriptor
+                = new(typeof(IJobScheduler), typeof(JobScheduler), ServiceLifetime.Singleton);
+
+            services.TryAdd(schedulerDescriptor);
+
+            JobsBuilder builder = new(handlerLifetime, services);
+
+            return builder.AddHandlers(assembly);
+        }
+
+        #endregion
+
         #region EVENT BUS
-        
+
         /// <summary>
         /// Adds the Event Bus and event handlers from the calling assembly using the default configuration
         /// </summary>
@@ -65,16 +97,16 @@ namespace Ocluse.LiquidSnow.DependencyInjection
         /// Adds the Event Bus and event handlers using the provided options.
         /// </summary>
         public static EventBusBuilder AddEventBus(
-            this IServiceCollection services, 
-            Assembly assembly, 
-            ServiceLifetime busLifetime = ServiceLifetime.Scoped, 
-            ServiceLifetime handlerLifetime = ServiceLifetime.Transient, 
+            this IServiceCollection services,
+            Assembly assembly,
+            ServiceLifetime busLifetime = ServiceLifetime.Scoped,
+            ServiceLifetime handlerLifetime = ServiceLifetime.Transient,
             PublishStrategy publishStrategy = PublishStrategy.Sequential)
         {
             var options = new EventBusOptions() { PublishStrategy = publishStrategy };
             services.TryAddSingleton(options);
 
-            ServiceDescriptor busDescriptor 
+            ServiceDescriptor busDescriptor
                 = new(typeof(IEventBus), typeof(EventBus), busLifetime);
 
             services.TryAdd(busDescriptor);
@@ -89,7 +121,7 @@ namespace Ocluse.LiquidSnow.DependencyInjection
         #endregion
 
         #region ORCHESTRATION
-        
+
         /// <summary>
         /// Adds the orchestrator from the calling assembly using the default configuration.
         /// </summary>
@@ -102,9 +134,9 @@ namespace Ocluse.LiquidSnow.DependencyInjection
         /// Adds the orchestrator to with the provided options.
         /// </summary>
         public static OrchestratorBuilder AddOrchestrator(
-            this IServiceCollection services, 
-            Assembly assembly, 
-            ServiceLifetime orchestratorLifetime = ServiceLifetime.Scoped, 
+            this IServiceCollection services,
+            Assembly assembly,
+            ServiceLifetime orchestratorLifetime = ServiceLifetime.Scoped,
             ServiceLifetime stepLifetime = ServiceLifetime.Transient)
         {
 
@@ -123,10 +155,10 @@ namespace Ocluse.LiquidSnow.DependencyInjection
         /// Adds all types that implement the provided interface type from the provided assembly to the service collection.
         /// </summary>
         public static IServiceCollection AddImplementers(
-            this IServiceCollection services, 
-            Type type, 
+            this IServiceCollection services,
+            Type type,
             Assembly assembly,
-            ServiceLifetime lifetime, 
+            ServiceLifetime lifetime,
             bool doNotAddDuplicates = true)
         {
             List<ServiceDescriptor> descriptors = [];
