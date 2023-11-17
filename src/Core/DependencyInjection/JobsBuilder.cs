@@ -36,7 +36,7 @@ namespace Ocluse.LiquidSnow.DependencyInjection
         {
             foreach (var assembly in assemblies)
             {
-                Services.AddImplementers(typeof(IJobHandler<>), assembly, _handlerLifetime);
+                Services.AddImplementers(typeof(IJobHandler<>), assembly, _handlerLifetime, false);
             }
             return this;
         }
