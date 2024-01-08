@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Reactive;
+using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Ocluse.LiquidSnow.Orchestrations.Internal
@@ -129,12 +130,18 @@ namespace Ocluse.LiquidSnow.Orchestrations.Internal
             }
             else
             {
-                if (data.Results.Count == 0)
+                if (typeof(TResult) == typeof(Unit))
+                {
+                    return (TResult)(object)Unit.Default;
+                }
+                else if (data.Results.Count == 0)
                 {
                     throw new InvalidOperationException($"The orchestration {orchestrationType.Name} produced no results after completion.");
                 }
-
-                return ReturnAsResult<TResult>(data.Results[^1]);
+                else
+                {
+                    return ReturnAsResult<TResult>(data.Results[^1]);
+                }
             }
         }
 
