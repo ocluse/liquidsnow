@@ -1,5 +1,6 @@
 @using Ocluse.LiquidSnow.Venus.Blazor.Models;
 @implements IDropdown
+@implements IDisposable
 @inherits ControlBase
 
 <div class="@GetClass()" style="@GetStyle()" @onclick="Clicked" @onclick:stopPropagation=true>
@@ -61,7 +62,7 @@
     [Parameter]
     public IEnumerable<FilterOption>? Items { get; set; }
 
-    [Parameter]
+    [CascadingParameter]
     public IDropdownLayout? Layout { get; set; }
 
     private bool _isOpen;
@@ -122,6 +123,15 @@
         else
         {
             classBuilder.Add("closed");
+        }
+    }
+
+    public void Dispose()
+    {
+        if (Layout != null)
+        {
+            Layout.Clicked -= OnLayoutClicked;
+            Layout.DropdownClicked -= OnDropdownClicked;
         }
     }
 }
