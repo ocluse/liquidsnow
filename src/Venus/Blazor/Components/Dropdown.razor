@@ -135,4 +135,14 @@
     {
         return (T?)value;
     }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (Layout != null)
+        {
+            Layout.Clicked -= OnLayoutClicked;
+            Layout.DropdownClicked -= OnDropdownClicked;
+        }
+        base.Dispose(disposing);
+    }
 }

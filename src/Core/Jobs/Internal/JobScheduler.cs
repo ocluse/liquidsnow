@@ -1,10 +1,11 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using System.Collections.Concurrent;
 using System.Reactive.Linq;
 using System.Reflection;
 
 namespace Ocluse.LiquidSnow.Jobs.Internal
 {
-    internal class JobScheduler(IServiceProvider _serviceProvider) : IJobScheduler
+    internal class JobScheduler : IJobScheduler
     {
         record JobSubscription(IDisposable Handle, IJob Job, CancellationTokenSource CancellationTokenSource) : IDisposable
         {
@@ -15,9 +16,38 @@ namespace Ocluse.LiquidSnow.Jobs.Internal
             }
         }
 
+        record JobQueueItem(IJob Job, long Tick, CancellationToken CancellationToken);
+
         private readonly Dictionary<object, JobSubscription> _subscriptions = [];
 
+        private readonly BlockingCollection<JobQueueItem> _jobQueue = [];
+
+        private readonly IServiceProvider _serviceProvider;
+
+        public JobScheduler(IServiceProvider serviceProvider)
+        {
+            _serviceProvider = serviceProvider;
+            Task.Factory.StartNew(HandleQueue, TaskCreationOptions.LongRunning);
+        }
+
         public event EventHandler<JobFailedEventArgs>? JobFailed;
+
+        private async void HandleQueue()
+        {
+            while (true)
+            {
+                var item = _jobQueue.Take();
+
+                if (item.CancellationToken.IsCancellationRequested)
+                {
+                    continue;
+                }
+                else
+                {
+                    await ExecuteJob(item.Job, item.Tick, item.CancellationToken);
+                }
+            }
+        }
 
         private static async Task ExecuteHandler(object? handler, MethodInfo handleMethodInfo, object[] handleMethodArgs)
         {
@@ -29,7 +59,7 @@ namespace Ocluse.LiquidSnow.Jobs.Internal
             await (Task)handleMethodInfo.Invoke(handler, handleMethodArgs)!;
         }
 
-        private async void ExecuteJob(IJob job, long tick, CancellationToken cancellationToken)
+        private async Task ExecuteJob(IJob job, long tick, CancellationToken cancellationToken)
         {
             Type jobType = job.GetType();
 
@@ -94,7 +124,16 @@ namespace Ocluse.LiquidSnow.Jobs.Internal
             }
         }
 
-        public IDisposable Schedule(IJob job)
+        private void QueueJob(IJob job, long tick, CancellationToken cancellationToken)
+        {
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                JobQueueItem item = new(job, tick, cancellationToken);
+                _jobQueue.Add(item, default);
+            }
+        }
+
+        private JobSubscription Subscribe(IJob job, Action<IJob, long, CancellationToken> handler)
         {
             IDisposable handle;
             CancellationTokenSource tokenSource = new();
@@ -103,18 +142,28 @@ namespace Ocluse.LiquidSnow.Jobs.Internal
             {
                 handle = Observable
                     .Timer(routineJob.Start, routineJob.Interval)
-                    .Subscribe(tick => ExecuteJob(job, tick, tokenSource.Token));
+                    .Subscribe(tick => handler(job, tick, tokenSource.Token));
             }
             else
             {
                 handle = Observable
                     .Timer(job.Start)
-                    .Subscribe(tick => ExecuteJob(job, tick, tokenSource.Token));
+                    .Subscribe(tick => handler(job, tick, tokenSource.Token));
             }
 
             JobSubscription subscription = new(handle, job, tokenSource);
             _subscriptions.Add(job.Id, subscription);
             return subscription;
+        }
+
+        public IDisposable Schedule(IJob job)
+        {
+            return Subscribe(job, async (job, tick, cancellationToken) => await ExecuteJob(job, tick, cancellationToken));
+        }
+
+        public IDisposable Queue(IJob job)
+        {
+            return Subscribe(job, QueueJob);
         }
 
         public bool Cancel(object id)
@@ -130,5 +179,7 @@ namespace Ocluse.LiquidSnow.Jobs.Internal
                 return false;
             }
         }
+
+
     }
 }

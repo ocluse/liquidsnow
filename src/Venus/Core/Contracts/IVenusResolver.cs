@@ -31,5 +31,10 @@
         /// Returns an int representing the container state to be rendered for the given exception.
         /// </summary>
         int ResolveExceptionToContainerState(Exception exception);
+
+        /// <summary>
+        /// Returns the appropriate icon size for the given text style.
+        /// </summary>
+        int ResolveTextStyleToIconSize(int textStyle);
     }
 }

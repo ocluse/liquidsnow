@@ -5,7 +5,7 @@ namespace Ocluse.LiquidSnow.Cqrs
     /// <summary>
     /// Provides a contract for creating handlers for commands, which will execute the command
     /// </summary>
-    /// <typeparam name="TCommand">The type of cammand the handler accepts</typeparam>
+    /// <typeparam name="TCommand">The type of command the handler accepts</typeparam>
     /// <typeparam name="TCommandResult">The type of result the handler outputs after handling the command</typeparam>
     public interface ICommandHandler<in TCommand, TCommandResult> where TCommand : ICommand<TCommandResult>
     {

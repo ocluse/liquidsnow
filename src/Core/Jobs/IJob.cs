@@ -13,6 +13,6 @@
         /// <summary>
         /// The time at which the job should be run.
         /// </summary>
-        DateTime Start { get; }
+        DateTimeOffset Start { get; }
     }
 }
