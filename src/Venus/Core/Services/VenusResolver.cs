@@ -106,5 +106,21 @@ namespace Ocluse.LiquidSnow.Venus.Services
 
             return $"text-{style.PascalToKebabCase()}";
         }
+
+        ///<inheritdoc/>
+        public int ResolveTextStyleToIconSize(int textStyle)
+        {
+            return textStyle switch
+            {
+                TextStyle.Caption => DefaultSize.Size14,
+                TextStyle.Body => DefaultSize.Size16,
+                TextStyle.BodyLarge => DefaultSize.Size18,
+                TextStyle.Subtitle => DefaultSize.Size24,
+                TextStyle.Title => DefaultSize.Size32,
+                TextStyle.TitleLarge => DefaultSize.Size36,
+                TextStyle.Display => DefaultSize.Size48,
+                _ => DefaultSize.Size18
+            };
+        }
     }
 }
