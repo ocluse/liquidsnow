@@ -8,10 +8,13 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         public string? Icon { get; set; }
 
         [Parameter]
-        public int? IconSize { get; set; } = DefaultSize.Size18;
+        public int? IconSize { get; set; }
 
         [Parameter]
         public int? IconColor { get; set; }
+
+        [Parameter]
+        public IconStyle IconStyle { get; set; }
 
         [Parameter]
         public int TextStyle { get; set; } = Values.TextStyle.Body;
@@ -26,21 +29,28 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
             builder.AddMultipleAttributes(1, GetClassAndStyle());
             if (Icon != null)
             {
-                builder.OpenComponent<FeatherIcon>(2);
-                builder.AddAttribute(3, "Icon", Icon);
-                builder.AddAttribute(4, "Size", IconSize);
+                if(IconStyle == IconStyle.Feather)
+                {
+                    builder.OpenComponent<FeatherIcon>(2);
+                }
+                else
+                {
+                    builder.OpenComponent<FluentIcon>(3);
+                }
+                
+                builder.AddAttribute(4, "Icon", Icon);
+                builder.AddAttribute(5, "Size", IconSize ?? VenusResolver.ResolveTextStyleToIconSize(TextStyle));
 
                 if (IconColor != null)
                 {
-                    builder.AddAttribute(5, "Color", IconColor);
+                    builder.AddAttribute(6, "Color", IconColor);
                 }
 
                 builder.CloseComponent();
             }
             if (ChildContent != null)
             {
-                builder.OpenComponent<TextBlock>(6);
-                //builder.AddAttribute(7, nameof(Color), Color);
+                builder.OpenComponent<TextBlock>(7);
                 builder.AddAttribute(8, nameof(TextBlock.TextStyle), TextStyle);
                 builder.AddAttribute(9, nameof(TextBlock.ChildContent), ChildContent);
                 builder.CloseComponent();
