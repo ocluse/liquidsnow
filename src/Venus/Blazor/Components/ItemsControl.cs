@@ -116,6 +116,15 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         [Parameter]
         public bool EnablePagination { get; set; } = true;
 
+        [Parameter]
+        public Func<object, string>? CursorLinkGenerator { get; set; }
+
+        [Parameter]
+        public Func<int, string>? OffsetLinkGenerator { get; set; }
+
+        [Parameter]
+        public Func<T, string>? ItemLinkGenerator { get; set; }
+
         public override async Task SetParametersAsync(ParameterView parameters)
         {
             bool reloadRequired = false;
@@ -337,20 +346,30 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 
             foreach (var item in items)
             {
-                builder.OpenElement(53, ItemElement);
+                if (ItemLinkGenerator != null)
+                {
+                    builder.OpenElement(53, "a");
+                    builder.AddAttribute(54, "href", ItemLinkGenerator(item));
+                }
+                builder.OpenElement(55, ItemElement);
                 builder.SetKey(item);
-                builder.AddAttribute(54, "class", itemClass);
-                builder.AddAttribute(55, "onclick", EventCallback.Factory.Create(this, async () => { await ItemClicked.InvokeAsync(item); }));
+                builder.AddAttribute(56, "class", itemClass);
+                builder.AddAttribute(57, "onclick", EventCallback.Factory.Create(this, async () => { await ItemClicked.InvokeAsync(item); }));
                 if (ItemTemplate == null)
                 {
 
-                    builder.AddContent(56, item.GetDisplayMember(DisplayMemberFunc, DisplayMemberPath));
+                    builder.AddContent(58, item.GetDisplayMember(DisplayMemberFunc, DisplayMemberPath));
                 }
                 else
                 {
-                    builder.AddContent(57, ItemTemplate, item);
+                    builder.AddContent(59, ItemTemplate, item);
                 }
                 builder.CloseElement();
+
+                if (ItemLinkGenerator != null)
+                {
+                    builder.CloseElement();
+                }
             }
         }
 
@@ -438,6 +457,10 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
                     builder.AddAttribute(522, nameof(PaginationCursor.CursorChanged), EventCallback.Factory.Create(this, OnCursorChanged));
                     builder.AddAttribute(523, nameof(PaginationCursor.NextCursor), _nextCursor);
                     builder.AddAttribute(524, nameof(PaginationCursor.PreviousCursor), _previousCursor);
+                    if (CursorLinkGenerator != null)
+                    {
+                        builder.AddAttribute(525, nameof(PaginationCursor.LinkGenerator), (object)CursorLinkGenerator);
+                    }
                     builder.CloseComponent();
                 }
                 else if (OffsetFetch != null)
@@ -447,6 +470,10 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
                     builder.AddAttribute(529, nameof(PaginationOffset.PageChanged), EventCallback.Factory.Create(this, (Func<int, Task>)OnPageChanged));
                     builder.AddAttribute(530, nameof(PaginationOffset.TotalItems), _totalItems);
                     builder.AddAttribute(531, nameof(PaginationOffset.ItemsPerPage), PageSize ?? Resolver.DefaultPageSize);
+                    if (OffsetLinkGenerator != null)
+                    {
+                        builder.AddAttribute(532, nameof(PaginationOffset.LinkGenerator), (object)OffsetLinkGenerator);
+                    }
                     builder.CloseComponent();
                 }
             }
