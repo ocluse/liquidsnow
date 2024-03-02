@@ -24,10 +24,10 @@
 
         @if (LinkGenerator != null)
         {
-            <a class="pagination-item" disabled="@(CurrentPage < 1)" href="@GetPreviousLink()">
-                @if (PaginationBackContent != null)
+            <a class="@GetAppliedPreviousClass()" @attributes="GetPreviousAttributes()">
+                @if (PaginationPreviousContent != null)
                 {
-                    @PaginationBackContent
+                    @PaginationPreviousContent
                 }
                 else
                 {
@@ -47,7 +47,7 @@
                 var buttonNumber = i;
                 var isActive = i == CurrentPage;
 
-                <a class="@GetPaginationItemClass(isActive)" href="@GetPageLink(buttonNumber, isActive)" disabled="@(isActive)">
+                <a class="@GetPaginationItemClass(isActive)" @attributes="GetItemAttributes(buttonNumber, isActive)">
                     @if (PaginationItemContent != null)
                     {
                         @PaginationItemContent(buttonNumber + 1)
@@ -59,10 +59,10 @@
                 </a>
             }
 
-            <a class="pagination-item" href="@GetPreviousLink()" disabled="@(CurrentPage >= _totalPages - 1)">
+            <a class="@GetAppliedNextClass()" @attributes="GetNextAttributes()">
                 @if (PaginationNextContent != null)
                 {
-                    @PaginationNextContent
+                    @PaginationPreviousContent
                 }
                 else
                 {
@@ -79,10 +79,10 @@
         }
         else
         {
-            <button class="pagination-item" @onclick="MoveBack" disabled="@(CurrentPage < 1)">
-                @if (PaginationBackContent != null)
+            <button class="@GetAppliedPreviousClass()" @onclick="MovePrevious" disabled="@(CanGoPrevious!)">
+                @if (PaginationPreviousContent != null)
                 {
-                    @PaginationBackContent
+                    @PaginationPreviousContent
                 }
                 else
                 {
@@ -116,7 +116,7 @@
                 </button>
             }
 
-            <button class="pagination-item" @onclick="MoveNext" disabled="@(CurrentPage >= _totalPages - 1)">
+            <button class="@GetAppliedNextClass()" @onclick="MoveNext" disabled="@(CanGoNext!)">
                 @if (PaginationNextContent != null)
                 {
                     @PaginationNextContent
@@ -162,61 +162,47 @@
     [Parameter]
     public Func<int, string>? LinkGenerator { get; set; }
 
-    private string GetNextLink()
+    public override bool CanGoNext => CurrentPage < _totalPages - 1;
+
+    public override bool CanGoPrevious => CurrentPage > 0;
+
+    private Dictionary<string, object> GetItemAttributes(int buttonNumber, bool isActive)
     {
+        var attributes = new Dictionary<string, object>();
         if (LinkGenerator != null)
         {
-            //ensure we have a next page"
+            if (!isActive)
+            {
+                attributes.Add("href", LinkGenerator(buttonNumber));
+            }
+        }
+        return attributes;
+    }
+
+    private Dictionary<string, object> GetNextAttributes()
+    {
+        var attributes = new Dictionary<string, object>();
+        if (LinkGenerator != null)
+        {
             if (CurrentPage < _totalPages - 1)
             {
-                return LinkGenerator(CurrentPage + 1);
-            }
-            else
-            {
-                return string.Empty;
+                attributes.Add("href", LinkGenerator(CurrentPage + 1));
             }
         }
-        else
-        {
-            return string.Empty;
-        }
+        return attributes;
     }
 
-    private string GetPageLink(int page, bool isActive)
+    private Dictionary<string, object> GetPreviousAttributes()
     {
+        var attributes = new Dictionary<string, object>();
         if (LinkGenerator != null)
         {
-            if (isActive)
-            {
-                return string.Empty
-            }
-            else
-            {
-                return LinkGenerator(page);
-            }
-        }
-        else
-        {
-            return string.Empty;
-        }
-    }
-
-    private string GetPreviousLink()
-    {
-        if (LinkGenerator != null)
-        {
-            //ensure we have a previous page"
             if (CurrentPage > 0)
             {
-                return LinkGenerator(CurrentPage - 1);
-            }
-            else
-            {
-                return string.Empty;
+                attributes.Add("href", LinkGenerator(CurrentPage - 1));
             }
         }
-
-        return string.Empty;
+        return attributes;
     }
 
     private string GetPaginationItemClass(bool isActive)
@@ -250,7 +236,7 @@
         await PageChanged.InvokeAsync(CurrentPage);
     }
 
-    private async Task MoveBack()
+    private async Task MovePrevious()
     {
         CurrentPage--;
         await PageChanged.InvokeAsync(CurrentPage);
