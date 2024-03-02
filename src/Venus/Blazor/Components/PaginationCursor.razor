@@ -1,40 +1,80 @@
 ﻿@inherits PaginationBase
 
 <div class="@GetClass()" style="@GetStyle()">
-    <button class="pagination-item" @onclick="MovePrevious" disabled="@(PreviousCursor==null)">
-        @if (PaginationBackContent != null)
-        {
-            @PaginationBackContent
-        }
-        else
-        {
-            if(Resolver.IconStyle == IconStyle.Fluent)
+    @if (LinkGenerator != null)
+    {
+        <a class="pagination-item" disabled="@(PreviousCursor==null)" href="@LinkGenerator(PreviousCursor)">
+            @if (PaginationBackContent != null)
             {
-                <FluentIcon Icon="@ComponentIcons.Fluent.ChevronLeft" Size="Resolver.DefaultButtonIconSize" />
+                @PaginationBackContent
             }
             else
             {
-                <FeatherIcon Icon="@ComponentIcons.Feather.ChevronLeft" Size="Resolver.DefaultButtonIconSize" />
+                if (Resolver.IconStyle == IconStyle.Fluent)
+                {
+                    <FluentIcon Icon="@ComponentIcons.Fluent.ChevronLeft" Size="Resolver.DefaultButtonIconSize" />
+                }
+                else
+                {
+                    <FeatherIcon Icon="@ComponentIcons.Feather.ChevronLeft" Size="Resolver.DefaultButtonIconSize" />
+                }
             }
-        }
-    </button>
-    <button class="pagination-item" @onclick="MovePrevious" disabled="@(NextCursor==null)">
-        @if (PaginationNextContent != null)
-        {
-            @PaginationNextContent
-        }
-        else
-        {
-            if(Resolver.IconStyle == IconStyle.Fluent)
+        </a>
+        <a class="pagination-item" disabled="@(NextCursor==null)" href="@LinkGenerator(NextCursor)">
+            @if (PaginationNextContent != null)
             {
-                <FluentIcon Icon="@ComponentIcons.Fluent.ChevronRight" Size="Resolver.DefaultButtonIconSize" />
+                @PaginationNextContent
             }
             else
             {
-                <FeatherIcon Icon="@ComponentIcons.Feather.ChevronRight" Size="Resolver.DefaultButtonIconSize" />
+                if (Resolver.IconStyle == IconStyle.Fluent)
+                {
+                    <FluentIcon Icon="@ComponentIcons.Fluent.ChevronRight" Size="Resolver.DefaultButtonIconSize" />
+                }
+                else
+                {
+                    <FeatherIcon Icon="@ComponentIcons.Feather.ChevronRight" Size="Resolver.DefaultButtonIconSize" />
+                }
             }
-        }
-    </button>
+        </a>
+    }
+    else
+    {
+        <button class="pagination-item" @onclick="MovePrevious" disabled="@(PreviousCursor==null)">
+            @if (PaginationBackContent != null)
+            {
+                @PaginationBackContent
+            }
+            else
+            {
+                if (Resolver.IconStyle == IconStyle.Fluent)
+                {
+                    <FluentIcon Icon="@ComponentIcons.Fluent.ChevronLeft" Size="Resolver.DefaultButtonIconSize" />
+                }
+                else
+                {
+                    <FeatherIcon Icon="@ComponentIcons.Feather.ChevronLeft" Size="Resolver.DefaultButtonIconSize" />
+                }
+            }
+        </button>
+        <button class="pagination-item" @onclick="MoveNext" disabled="@(NextCursor==null)">
+            @if (PaginationNextContent != null)
+            {
+                @PaginationNextContent
+            }
+            else
+            {
+                if (Resolver.IconStyle == IconStyle.Fluent)
+                {
+                    <FluentIcon Icon="@ComponentIcons.Fluent.ChevronRight" Size="Resolver.DefaultButtonIconSize" />
+                }
+                else
+                {
+                    <FeatherIcon Icon="@ComponentIcons.Feather.ChevronRight" Size="Resolver.DefaultButtonIconSize" />
+                }
+            }
+        </button>
+    }
 </div>
 
 @code {
@@ -47,6 +87,9 @@
 
     [Parameter]
     public EventCallback<object> CursorChanged { get; set; }
+
+    [Parameter]
+    public Func<object?, string>? LinkGenerator { get; set; }
 
     private async Task MoveNext()
     {
