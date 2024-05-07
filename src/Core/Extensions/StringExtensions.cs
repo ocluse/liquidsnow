@@ -223,5 +223,21 @@ namespace Ocluse.LiquidSnow.Extensions
             TextInfo textInfo = cultureInfo.TextInfo;
             return textInfo.ToTitleCase(value.ToLower(cultureInfo));
         }
+
+        /// <summary>
+        /// Converts a string to a URL encoded string.
+        /// </summary>
+        public static string ToUrlEncoded(this string value)
+        {
+            return Uri.EscapeDataString(value);
+        }
+
+        /// <summary>
+        /// Converts a URL encoded string to a normal string.
+        /// </summary>
+        public static string ToUrlDecoded(this string value)
+        {
+            return Uri.UnescapeDataString(value);
+        }
     }
 }
