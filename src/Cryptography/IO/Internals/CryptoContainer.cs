@@ -7,81 +7,84 @@ using Ocluse.LiquidSnow.Cryptography.Symmetrics;
 namespace Ocluse.LiquidSnow.Cryptography.IO.Internals
 {
 
-    internal class CryptoContainer : ICryptoContainer
+    internal class CryptoContainer(ISymmetric algorithm, Stream stream, byte[] key) : ICryptoContainer
     {
-        #region Private Fields
-
-        private readonly Package _package;
-
-        private readonly Stream _source;
-
-        #endregion
 
         #region Constructors
-
-        private readonly ISymmetric _algorithm;
-
-        public CryptoContainer(ISymmetric algorithm, Stream stream, string key)
-        {
-            _algorithm = algorithm;
-            Key = key;
-            _source = stream;
-            _package = Package.Open(stream, FileMode.OpenOrCreate);
-        }
 
         #endregion
 
         #region Properties
 
-        public string Key { get; }
+        public byte[] Key { get; } = key;
+
+        public ISymmetric Algorithm { get; } = algorithm;
+
+        protected Package Package { get; } = Package.Open(stream, FileMode.OpenOrCreate);
+
+        #endregion
+
+        #region Protected Methods
+
+        protected virtual Task<Uri> GetPartUriAsync(string name, CancellationToken cancellationToken)
+        {
+            Uri uri = PackUriHelper.CreatePartUri(new Uri(name, UriKind.Relative));
+
+            return Task.FromResult(uri);
+        }
 
         #endregion
 
         #region Stream IO
 
-        public async Task AddStreamAsync(string name, Stream input, bool overwrite = false, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
+        protected async Task AddStreamCore(Uri uri, Stream input, bool overwrite = false, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
         {
-            Uri uri = PackUriHelper.CreatePartUri(new Uri(name, UriKind.Relative));
-
-            PackagePart part = _package.PartExists(uri)
-                ? overwrite ? _package.GetPart(uri) : throw new IOException("Item already exists")
-                : _package.CreatePart(uri, "");
+            PackagePart part = Package.PartExists(uri)
+                ? overwrite ? Package.GetPart(uri) : throw new IOException("Item already exists")
+                : Package.CreatePart(uri, "");
 
             using Stream output = part.GetStream();
-            using ICryptoFile ef = IOBuilder.CreateFile(_algorithm, Key, output);
+            using ICryptoFile ef = IOBuilder.CreateFile(Algorithm, Key, output);
             await ef.WriteAsync(input, progress, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task GetStreamAsync(string name, Stream output, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
+        public async Task AddStreamAsync(string name, Stream input, bool overwrite = false, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
         {
-            Uri uri = PackUriHelper.CreatePartUri(new Uri(name, UriKind.Relative));
+            Uri uri = await GetPartUriAsync(name, cancellationToken);
+            await AddStreamCore(uri, input, overwrite, progress, cancellationToken).ConfigureAwait(false);
+        }
 
-            if (!_package.PartExists(uri))
+        protected async Task GetStreamCore(Uri uri, Stream output, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
+        {
+            if (!Package.PartExists(uri))
             {
                 throw new FileNotFoundException("Item does not exist");
             }
 
-            using Stream input = _package.GetPart(uri).GetStream();
-            using ICryptoFile ef = IOBuilder.CreateFile(_algorithm, Key, input);
+            using Stream input = Package.GetPart(uri).GetStream();
+            using ICryptoFile ef = IOBuilder.CreateFile(Algorithm, Key, input);
             await ef.ReadAsync(output, progress, cancellationToken).ConfigureAwait(false);
         }
-        #endregion
 
-        #region Object IO
-        
+        public async Task GetStreamAsync(string name, Stream output, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
+        {
+            Uri uri = await GetPartUriAsync(name, cancellationToken);
+            await GetStreamCore(uri, output, progress, cancellationToken).ConfigureAwait(false);
+        }
+
         #endregion
 
         #region Byte IO
 
         public async Task AddBytesAsync(string name, byte[] data, bool overwrite = false, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
         {
-            using MemoryStream msData = new MemoryStream(data);
+            using MemoryStream msData = new(data);
             await AddStreamAsync(name, msData, overwrite, progress, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<byte[]> GetBytesAsync(string name, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
         {
-            using MemoryStream msData = new MemoryStream();
+            using MemoryStream msData = new();
             await GetStreamAsync(name, msData, progress, cancellationToken).ConfigureAwait(false);
             return msData.ToArray();
         }
@@ -102,18 +105,18 @@ namespace Ocluse.LiquidSnow.Cryptography.IO.Internals
 
         #region Misc Methods
 
-        public List<string> EnumerateItems()
+        public virtual Task<List<string>> EnumerateItemsAsync(CancellationToken cancellationToken = default)
         {
-            PackagePartCollection parts = _package.GetParts();
+            PackagePartCollection parts = Package.GetParts();
 
             List<string> result = [];
 
             foreach (var part in parts)
             {
-                result.Add(part.Uri.ToString());
+                result.Add(part.Uri.ToString().TrimStart('/'));
             }
 
-            return result;
+            return Task.FromResult(result);
         }
 
         public async Task ExtractContainerAsync(string outputDirectory, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
@@ -123,17 +126,20 @@ namespace Ocluse.LiquidSnow.Cryptography.IO.Internals
                 _ = Directory.CreateDirectory(outputDirectory);
             }
 
-            PackagePartCollection parts = _package.GetParts();
+            var items = await EnumerateItemsAsync(cancellationToken);
+
+            if(items.Count == 0)
+            {
+                return;
+            }
 
             int index = 0;
 
-            int count = parts.Count();
-
-            Progress<double>? innerProgress = new Progress<double>() { };
+            Progress<double>? innerProgress = new() { };
 
             innerProgress.ProgressChanged += (o, e) =>
             {
-                double percent = (index + e) / count;
+                double percent = (index + e) / items.Count;
                 progress?.Report(percent);
             };
 
@@ -142,35 +148,45 @@ namespace Ocluse.LiquidSnow.Cryptography.IO.Internals
                 innerProgress = null;
             }
 
-            foreach (PackagePart part in parts)
+            foreach (var item in items)
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                 }
 
-                string name = part.Uri.ToString();
-                string path = IOUtility.CombinePath(outputDirectory, name);
+                string path = IOUtility.CombinePath(outputDirectory, item);
+
+                //ensure the parent directory exists:
+                string? parent = Path.GetDirectoryName(path);
+
+                if (!string.IsNullOrEmpty(parent) && !Directory.Exists(parent))
+                {
+                    _ = Directory.CreateDirectory(parent);
+                }
+
                 using FileStream fs = File.OpenWrite(path);
-                await GetStreamAsync(name, fs, innerProgress);
+                await GetStreamAsync(item, fs, innerProgress, cancellationToken);
+
                 index++;
             }
         }
 
-        public bool Exists(string name)
+        public async Task<bool> ExistsAsync(string name, CancellationToken cancellationToken = default)
         {
-            Uri uri = PackUriHelper.CreatePartUri(new Uri(name, UriKind.Relative));
-            return _package.PartExists(uri);
+            Uri uri = await GetPartUriAsync(name, cancellationToken);
+            return Package.PartExists(uri);
         }
 
-        public bool Delete(string name)
+        public async Task<bool> DeleteAsync(string name)
         {
-            Uri uri = PackUriHelper.CreatePartUri(new Uri(name, UriKind.Relative));
-            if (_package.PartExists(uri))
+            Uri uri = await GetPartUriAsync(name, CancellationToken.None);
+
+            if (Package.PartExists(uri))
             {
                 try
                 {
-                    _package.DeletePart(uri);
+                    Package.DeletePart(uri);
                     return true;
                 }
                 catch
@@ -187,8 +203,8 @@ namespace Ocluse.LiquidSnow.Cryptography.IO.Internals
 
         public void Dispose()
         {
-            _package.Close();
-            _source.Dispose();
+            Package.Close();
+            stream.Dispose();
         }
 
         #endregion

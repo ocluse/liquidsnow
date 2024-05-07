@@ -7,7 +7,7 @@ namespace Ocluse.LiquidSnow.Cryptography.IO
     /// </summary>
     public static class Extensions
     {
-        private static readonly InternalSerializer _serializer = new InternalSerializer();
+        private static readonly InternalSerializer _serializer = new();
         
         /// <summary>
         /// Serializes and encrypts an object, writing the resulting data to the file
@@ -16,7 +16,7 @@ namespace Ocluse.LiquidSnow.Cryptography.IO
         {
             serializer ??= _serializer;
 
-            using MemoryStream msData = new MemoryStream();
+            using MemoryStream msData = new();
 
             await serializer.SerializeAsync(o, msData).ConfigureAwait(false);
 
@@ -32,7 +32,7 @@ namespace Ocluse.LiquidSnow.Cryptography.IO
         {
             serializer ??= _serializer;
 
-            using MemoryStream msData = new MemoryStream();
+            using MemoryStream msData = new();
 
             await file.ReadAsync(msData).ConfigureAwait(false);
             
@@ -48,7 +48,7 @@ namespace Ocluse.LiquidSnow.Cryptography.IO
         {
             serializer ??= _serializer;
 
-            using MemoryStream msData = new MemoryStream();
+            using MemoryStream msData = new();
 
             await serializer.SerializeAsync(o, msData).ConfigureAwait(false);
 
@@ -64,7 +64,7 @@ namespace Ocluse.LiquidSnow.Cryptography.IO
         {
             serializer ??= _serializer;
 
-            using MemoryStream msData = new MemoryStream();
+            using MemoryStream msData = new();
 
             await container.GetStreamAsync(name, msData).ConfigureAwait(false);
 

@@ -30,19 +30,6 @@
         Task<string> ReadTextAsync(IProgress<double>? progress = null, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Sets the key used for the cryptographic operations
-        /// </summary>
-        /// <param name="key">The new key to be used</param>
-        /// <remarks>
-        /// This method does not encrypt the file again using the new key.
-        /// It merely sets the key to be used moving forward.
-        /// </remarks>
-        void SetKey(byte[] key);
-
-        ///<inheritdoc cref="SetKey(byte[])"/>
-        void SetKey(string key);
-
-        /// <summary>
         /// Encrypts and writes data to the file
         /// </summary>
         /// <param name="stream">The stream to read from, the data read encrypted and written into the file</param>

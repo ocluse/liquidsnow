@@ -8,7 +8,7 @@
         /// <summary>
         /// The key used for encrypting/decrypting the items
         /// </summary>
-        string Key { get; }
+        byte[] Key { get; }
 
         /// <summary>
         /// Adds an item to the container
@@ -31,14 +31,15 @@
         /// </summary>
         /// <param name="name">The name of the item to be deleted</param>
         /// <returns>True if the file was deleted. False if the item was not found in the container</returns>
-        bool Delete(string name);
+        Task<bool> DeleteAsync(string name);
 
         /// <summary>
         /// Determines if an item exists in the container
         /// </summary>
         /// <param name="name">The name of the item</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests</param>
         /// <returns>True if the item exists. False if not found</returns>
-        bool Exists(string name);
+        Task<bool> ExistsAsync(string name, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Extracts all the items in the container to the provided directory
@@ -53,7 +54,7 @@
         /// Returns the URIs of all the items in the container.
         /// </summary>
         /// <returns></returns>
-        List<string> EnumerateItems();
+        Task<List<string>> EnumerateItemsAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets and decrypt an item from the container
