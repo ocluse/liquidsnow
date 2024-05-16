@@ -219,7 +219,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 
             if (reloadRequired)
             {
-                await ReloadData();
+                await ReloadDataAsync();
             }
         }
 
@@ -310,7 +310,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 
             await SortChanged.InvokeAsync(newSort);
             await OrderingChanged.InvokeAsync(ordering);
-            await ReloadData();
+            await ReloadDataAsync();
         }
 
         private async Task OnCursorChanged(object newCursor)
@@ -483,7 +483,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 
         private async void OnItemsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
-            await ReloadData();
+            await ReloadDataAsync();
         }
 
         protected virtual void Dispose(bool disposing)

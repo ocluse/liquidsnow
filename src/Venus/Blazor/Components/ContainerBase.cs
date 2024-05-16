@@ -17,7 +17,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
         public RenderFragment? LoadingTemplate { get; set; }
 
         [Parameter]
-        public RenderFragment? ErrorTemplate { get; set; }
+        public RenderFragment<Exception?>? ErrorTemplate { get; set; }
 
         [Parameter]
         public RenderFragment? UnauthorizedTemplate { get; set; }
@@ -27,6 +27,8 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 
         [Parameter]
         public RenderFragment? ReauthenticationRequiredTemplate { get; set; }
+
+        private Exception? _exception;
 
         protected void BuildContainer(RenderTreeBuilder builder)
         {
@@ -42,9 +44,9 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
             {
                 builder.AddContent(361, LoadingTemplate);
             }
-            else if (ErrorTemplate != null && State == ContainerState.Error)
+            else if (State == ContainerState.Error && State == ContainerState.Error)
             {
-                builder.AddContent(362, ErrorTemplate);
+                builder.AddContent(362, ErrorTemplate, _exception);
             }
             else if (NotFoundTemplate != null && State == ContainerState.NotFound)
             {
@@ -70,11 +72,12 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 
         protected abstract Task<int> FetchDataAsync();
 
-        public async Task ReloadData()
+        public async Task ReloadDataAsync()
         {
-            await UpdateState(ContainerState.Loading);
-
+            await UpdateStateAsync(ContainerState.Loading);
+            _exception = null;
             int newState;
+            
             try
             {
                 newState = await FetchDataAsync();
@@ -82,13 +85,22 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
             }
             catch (Exception ex)
             {
-                newState = VenusResolver.ResolveExceptionToContainerState(ex);
+                _exception = ex;
+
+                if (ErrorTemplate != null)
+                {
+                    newState = ContainerState.Error;
+                }
+                else
+                {
+                    newState = VenusResolver.ResolveExceptionToContainerState(ex);
+                }
             }
 
-            await UpdateState(newState);
+            await UpdateStateAsync(newState);
         }
 
-        protected async Task UpdateState(int newState)
+        protected async Task UpdateStateAsync(int newState)
         {
             if (newState != State)
             {
