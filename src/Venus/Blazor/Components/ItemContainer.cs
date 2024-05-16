@@ -38,7 +38,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
 
             if (reloadRequired)
             {
-                await ReloadData();
+                await ReloadDataAsync();
             }
         }
 
