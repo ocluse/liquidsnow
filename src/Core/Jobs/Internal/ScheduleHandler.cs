@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Ocluse.LiquidSnow.Events;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -23,8 +24,6 @@ namespace Ocluse.LiquidSnow.Jobs.Internal
             _serviceProvider = serviceProvider;
             Task.Factory.StartNew(HandleQueue, TaskCreationOptions.LongRunning);
         }
-
-        public event EventHandler<JobFailedEventArgs>? JobFailed;
 
         private async void HandleQueue()
         {
@@ -92,7 +91,7 @@ namespace Ocluse.LiquidSnow.Jobs.Internal
                 }
                 catch (Exception ex)
                 {
-                    JobFailed?.Invoke(this, new JobFailedEventArgs(job, ex));
+                    await PublishJobFailedEvent(scope.ServiceProvider, job, ex);
                 }
             }
             else
@@ -107,7 +106,7 @@ namespace Ocluse.LiquidSnow.Jobs.Internal
                     }
                     catch (Exception ex)
                     {
-                        JobFailed?.Invoke(this, new JobFailedEventArgs(job, ex));
+                        await PublishJobFailedEvent(scope.ServiceProvider, job, ex);
                     }
                 }
             }
@@ -115,6 +114,30 @@ namespace Ocluse.LiquidSnow.Jobs.Internal
             if (job is not IRoutineJob)
             {
                 _subscriptions.Remove(job.Id);
+            }
+        }
+
+        private static async Task PublishJobFailedEvent(IServiceProvider scopeServiceProvider, IJob job, Exception exception)
+        {
+            var eventBus = scopeServiceProvider.GetService<IEventBus>();
+
+            if (eventBus != null)
+            {
+                await eventBus.Publish(new JobFailedEvent(job, exception), PublishStrategy.Sequential);
+            }
+            else
+            {
+                var handlers = scopeServiceProvider.GetServices<IEventHandler<JobFailedEvent>>();
+
+                if (handlers.Any())
+                {
+                    var failedEvent = new JobFailedEvent(job, exception);
+
+                    foreach (var handler in handlers)
+                    {
+                        await handler.Handle(failedEvent);
+                    }
+                }
             }
         }
 

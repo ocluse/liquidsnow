@@ -6,11 +6,6 @@
     public interface IJobScheduler
     {
         /// <summary>
-        /// Raised whenever a job fails.
-        /// </summary>
-        event EventHandler<JobFailedEventArgs> JobFailed;
-
-        /// <summary>
         /// Schedules a job to be run at a particular time.
         /// </summary>
         /// <remarks>

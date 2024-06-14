@@ -15,8 +15,6 @@ namespace Ocluse.LiquidSnow.Jobs.Internal
 
         private readonly IServiceProvider _serviceProvider = serviceProvider;
 
-        public event EventHandler<JobFailedEventArgs>? JobFailed;
-
         private ScheduleHandler GetChannelHandler(IJob job)
         {
             ScheduleHandler? scheduler;
