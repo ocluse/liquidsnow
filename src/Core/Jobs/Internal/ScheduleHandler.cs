@@ -169,6 +169,10 @@ namespace Ocluse.LiquidSnow.Jobs.Internal
             }
 
             JobSubscription subscription = new(handle, job, tokenSource);
+
+            //Cancel any jobs with the same ID
+            Cancel(job.Id);
+
             _subscriptions.Add(job.Id, subscription);
             return subscription;
         }
