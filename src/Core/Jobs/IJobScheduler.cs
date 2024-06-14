@@ -40,5 +40,16 @@
         /// True if the job was cancelled, false if the job was not found.
         /// </returns>
         bool Cancel(object id);
+
+        /// <summary>
+        /// Cancels a job with the provided id and channel id. If the job has not yet been run, it will be removed from the queue.
+        /// </summary>
+        /// <returns>
+        /// True if the job was cancelled, false if the job was not found.
+        /// </returns>
+        /// <remarks>
+        /// This only handles jobs that implement <see cref="IChannelJob"/>.
+        /// </remarks>
+        bool Cancel(object channelId, object id);
     }
 }
