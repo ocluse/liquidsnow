@@ -11,7 +11,8 @@ using System.Threading.Tasks;
 
 namespace Ocluse.LiquidSnow.Jobs.Internal
 {
-    internal class ScheduleHandler
+
+    internal class ScheduleHandler : CoreScheduler
     {
         private readonly Dictionary<object, JobSubscription> _subscriptions = [];
 

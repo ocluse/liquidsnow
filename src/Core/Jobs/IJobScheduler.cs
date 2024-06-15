@@ -26,7 +26,7 @@
         /// <returns>
         /// Returns an <see cref="IDisposable"/> that can be used to cancel the job.
         /// </returns>
-        IDisposable Queue(IJob job);
+        IDisposable Queue(IQueueJob job);
 
         /// <summary>
         /// Cancels a job with the provided id. If the job has not yet been run, it will be removed from the queue.
