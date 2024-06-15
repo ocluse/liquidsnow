@@ -14,7 +14,7 @@ namespace Ocluse.LiquidSnow.Jobs.Internal
 
         public void Activate()
         {
-            if (Job is IRoutineJob routineJob)
+            if (Job is IRoutineJob routineJob && Job is not ITaskSeriesJob)
             {
                 _handle = Subscribe(Job.Start, routineJob.Interval);
             }
@@ -54,7 +54,7 @@ namespace Ocluse.LiquidSnow.Jobs.Internal
         {
             await executor.Execute(Job, _currentTick, _cts.Token);
 
-            if (Job is not IRoutineJob)
+            if (Job is ITaskSeriesJob or not IRoutineJob)
             {
                 if (Job is ITaskSeriesJob taskSeriesJob)
                 {
