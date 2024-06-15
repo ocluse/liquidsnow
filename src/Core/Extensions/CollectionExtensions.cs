@@ -270,6 +270,19 @@
             }
         }
 
+        /// <summary>
+        /// Gets the value associated with the specified key or adds a new value if the key does not exist.
+        /// </summary>
+        public static T GetOrAdd<TKey, T>(this IDictionary<TKey, T> dictionary, TKey key, Func<T> valueFactory)
+        {
+            if (dictionary.TryGetValue(key, out var value))
+            {
+                return value;
+            }
 
+            value = valueFactory();
+            dictionary.Add(key, value);
+            return value;
+        }
     }
 }

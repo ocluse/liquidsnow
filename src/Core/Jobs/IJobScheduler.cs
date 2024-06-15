@@ -29,22 +29,17 @@
         IDisposable Queue(IQueueJob job);
 
         /// <summary>
-        /// Cancels a job with the provided id. If the job has not yet been run, it will be removed from the queue.
+        /// Cancels a job with the provided id or prevents it from running.
         /// </summary>
         /// <returns>
         /// True if the job was cancelled, false if the job was not found.
         /// </returns>
         bool Cancel(object id);
 
-        /// <summary>
-        /// Cancels a job with the provided id and channel id. If the job has not yet been run, it will be removed from the queue.
-        /// </summary>
-        /// <returns>
-        /// True if the job was cancelled, false if the job was not found.
-        /// </returns>
+        /// <inheritdoc cref="Cancel(object)"/>
         /// <remarks>
-        /// This only handles jobs that implement <see cref="IChannelJob"/>.
+        /// This is the way to cancel jobs that were queued via <see cref="Queue(IQueueJob)"/>
         /// </remarks>
-        bool Cancel(object channelId, object id);
+        bool Cancel(object queueId, object id);
     }
 }
