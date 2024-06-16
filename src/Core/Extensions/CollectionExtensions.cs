@@ -270,6 +270,43 @@
             }
         }
 
+        /// <summary>
+        /// Gets the value associated with the specified key or adds a new value if the key does not exist.
+        /// </summary>
+        public static T GetOrAdd<TKey, T>(this IDictionary<TKey, T> dictionary, TKey key, Func<T> valueFactory)
+        {
+            if (dictionary.TryGetValue(key, out var value))
+            {
+                return value;
+            }
 
+            value = valueFactory();
+            dictionary.Add(key, value);
+            return value;
+        }
+
+        /// <summary>
+        /// Returns the index of the element in the list.
+        /// </summary>
+        /// <returns>
+        /// If found, the index of the item, otherwise -1
+        /// </returns>
+        public static int IndexOf<T>(this IReadOnlyList<T> readOnlyList, T element)
+        {
+            if (readOnlyList is IList<T> list)
+            {
+                return list.IndexOf(element);
+            }
+
+            for (int i = 0; i < readOnlyList.Count; i++)
+            {
+                if (element?.Equals(readOnlyList[i]) == true)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
     }
 }

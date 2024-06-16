@@ -188,6 +188,46 @@ namespace Ocluse.LiquidSnow.DependencyInjection
 
             return services;
         }
+
+        /// <summary>
+        /// Adds all types that implement the provided interface type from the provided assembly to the service collection.
+        /// The types are added as their concrete selves.
+        /// </summary>
+        public static IServiceCollection AddImplementersAsSelf(
+            this IServiceCollection services,
+            Type type,
+            Assembly assembly,
+            ServiceLifetime lifetime,
+            bool doNotAddDuplicates = true)
+        {
+            List<ServiceDescriptor> descriptors = [];
+            assembly.GetTypes()
+                .Where(item => item.GetInterfaces()
+                .Where(i => i.IsGenericType).Any(i => i.GetGenericTypeDefinition() == type) && !item.IsAbstract && !item.IsInterface)
+                .ToList()
+                .ForEach(assignedType =>
+                {
+                    var serviceTypes = assignedType.GetInterfaces().Where(i => i.GetGenericTypeDefinition() == type);
+
+                    foreach (var serviceType in serviceTypes)
+                    {
+                        ServiceDescriptor descriptor = new(assignedType, assignedType, lifetime);
+                        descriptors.Add(descriptor);
+                    }
+                });
+
+            if (doNotAddDuplicates)
+            {
+                services.TryAdd(descriptors);
+            }
+            else
+            {
+                services.AddRange(descriptors);
+            }
+
+            return services;
+        }
+
         #endregion
     }
 }

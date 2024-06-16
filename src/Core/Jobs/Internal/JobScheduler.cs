@@ -1,52 +1,25 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Ocluse.LiquidSnow.Events;
+using Ocluse.LiquidSnow.Extensions;
+using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reactive.Linq;
 using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Ocluse.LiquidSnow.Jobs.Internal
 {
-    internal class JobScheduler : IJobScheduler
+
+    internal class JobScheduler(IServiceProvider serviceProvider) : CoreScheduler, IJobScheduler
     {
-        record JobSubscription(IDisposable Handle, IJob Job, CancellationTokenSource CancellationTokenSource) : IDisposable
+        private readonly Dictionary<object, QueueingScheduler> _queueingSchedulers = [];
+
+        private QueueingScheduler GetQueueingScheduler(object queueId)
         {
-            public void Dispose()
-            {
-                Handle.Dispose();
-                CancellationTokenSource.Cancel();
-            }
-        }
-
-        record JobQueueItem(IJob Job, long Tick, CancellationToken CancellationToken);
-
-        private readonly Dictionary<object, JobSubscription> _subscriptions = [];
-
-        private readonly BlockingCollection<JobQueueItem> _jobQueue = [];
-
-        private readonly IServiceProvider _serviceProvider;
-
-        public JobScheduler(IServiceProvider serviceProvider)
-        {
-            _serviceProvider = serviceProvider;
-            Task.Factory.StartNew(HandleQueue, TaskCreationOptions.LongRunning);
-        }
-
-        public event EventHandler<JobFailedEventArgs>? JobFailed;
-
-        private async void HandleQueue()
-        {
-            while (true)
-            {
-                var item = _jobQueue.Take();
-
-                if (item.CancellationToken.IsCancellationRequested)
-                {
-                    continue;
-                }
-                else
-                {
-                    await ExecuteJob(item.Job, item.Tick, item.CancellationToken);
-                }
-            }
+            return _queueingSchedulers.GetOrAdd(queueId, () => new QueueingScheduler(this));
         }
 
         private static async Task ExecuteHandler(object? handler, MethodInfo handleMethodInfo, object[] handleMethodArgs)
@@ -59,7 +32,7 @@ namespace Ocluse.LiquidSnow.Jobs.Internal
             await (Task)handleMethodInfo.Invoke(handler, handleMethodArgs)!;
         }
 
-        private async Task ExecuteJob(IJob job, long tick, CancellationToken cancellationToken)
+        public override async Task Execute(IJob job, long tick, CancellationToken cancellationToken)
         {
             Type jobType = job.GetType();
 
@@ -72,7 +45,7 @@ namespace Ocluse.LiquidSnow.Jobs.Internal
 
             object[] handleMethodArgs = [job, tick, cancellationToken];
 
-            using IServiceScope scope = _serviceProvider.CreateScope();
+            using IServiceScope scope = serviceProvider.CreateScope();
 
             IEnumerable<object?> handlers;
 
@@ -98,7 +71,7 @@ namespace Ocluse.LiquidSnow.Jobs.Internal
                 }
                 catch (Exception ex)
                 {
-                    JobFailed?.Invoke(this, new JobFailedEventArgs(job, ex));
+                    await PublishJobFailedEvent(scope.ServiceProvider, job, ex);
                 }
             }
             else
@@ -113,73 +86,56 @@ namespace Ocluse.LiquidSnow.Jobs.Internal
                     }
                     catch (Exception ex)
                     {
-                        JobFailed?.Invoke(this, new JobFailedEventArgs(job, ex));
+                        await PublishJobFailedEvent(scope.ServiceProvider, job, ex);
                     }
                 }
             }
-
-            if (job is not IRoutineJob)
-            {
-                _subscriptions.Remove(job.Id);
-            }
         }
-
-        private void QueueJob(IJob job, long tick, CancellationToken cancellationToken)
+        
+        private static async Task PublishJobFailedEvent(IServiceProvider scopeServiceProvider, IJob job, Exception exception)
         {
-            if (!cancellationToken.IsCancellationRequested)
-            {
-                JobQueueItem item = new(job, tick, cancellationToken);
-                _jobQueue.Add(item, default);
-            }
-        }
+            var eventBus = scopeServiceProvider.GetService<IEventBus>();
 
-        private JobSubscription Subscribe(IJob job, Action<IJob, long, CancellationToken> handler)
-        {
-            IDisposable handle;
-            CancellationTokenSource tokenSource = new();
-
-            if (job is IRoutineJob routineJob)
+            if (eventBus != null)
             {
-                handle = Observable
-                    .Timer(routineJob.Start, routineJob.Interval)
-                    .Subscribe(tick => handler(job, tick, tokenSource.Token));
+                await eventBus.Publish(new JobFailedEvent(job, exception), PublishStrategy.Sequential);
             }
             else
             {
-                handle = Observable
-                    .Timer(job.Start)
-                    .Subscribe(tick => handler(job, tick, tokenSource.Token));
-            }
+                var handlers = scopeServiceProvider.GetServices<IEventHandler<JobFailedEvent>>();
 
-            JobSubscription subscription = new(handle, job, tokenSource);
-            _subscriptions.Add(job.Id, subscription);
-            return subscription;
+                if (handlers.Any())
+                {
+                    var failedEvent = new JobFailedEvent(job, exception);
+
+                    foreach (var handler in handlers)
+                    {
+                        await handler.Handle(failedEvent);
+                    }
+                }
+            }
         }
 
         public IDisposable Schedule(IJob job)
         {
-            return Subscribe(job, async (job, tick, cancellationToken) => await ExecuteJob(job, tick, cancellationToken));
+            return Subscribe(job);
         }
 
-        public IDisposable Queue(IJob job)
+        public IDisposable Queue(IQueueJob job)
         {
-            return Subscribe(job, QueueJob);
+            var scheduler = GetQueueingScheduler(job.QueueId);
+            
+            return scheduler.Subscribe(job);
         }
 
-        public bool Cancel(object id)
+        public bool Cancel(object queueId, object id)
         {
-            if (_subscriptions.TryGetValue(id, out var subscription))
+            if(_queueingSchedulers.TryGetValue(queueId, out var scheduler))
             {
-                subscription.Dispose();
-                _subscriptions.Remove(id);
-                return true;
+                return scheduler.Cancel(id);
             }
-            else
-            {
-                return false;
-            }
+
+            return false;
         }
-
-
     }
 }

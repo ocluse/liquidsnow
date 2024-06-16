@@ -6,11 +6,6 @@
     public interface IJobScheduler
     {
         /// <summary>
-        /// Raised whenever a job fails.
-        /// </summary>
-        event EventHandler<JobFailedEventArgs> JobFailed;
-
-        /// <summary>
         /// Schedules a job to be run at a particular time.
         /// </summary>
         /// <remarks>
@@ -31,14 +26,20 @@
         /// <returns>
         /// Returns an <see cref="IDisposable"/> that can be used to cancel the job.
         /// </returns>
-        IDisposable Queue(IJob job);
+        IDisposable Queue(IQueueJob job);
 
         /// <summary>
-        /// Cancels a job with the provided id. If the job has not yet been run, it will be removed from the queue.
+        /// Cancels a job with the provided id or prevents it from running.
         /// </summary>
         /// <returns>
         /// True if the job was cancelled, false if the job was not found.
         /// </returns>
         bool Cancel(object id);
+
+        /// <inheritdoc cref="Cancel(object)"/>
+        /// <remarks>
+        /// This is the way to cancel jobs that were queued via <see cref="Queue(IQueueJob)"/>
+        /// </remarks>
+        bool Cancel(object queueId, object id);
     }
 }
