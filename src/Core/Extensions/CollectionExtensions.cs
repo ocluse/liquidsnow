@@ -284,5 +284,29 @@
             dictionary.Add(key, value);
             return value;
         }
+
+        /// <summary>
+        /// Returns the index of the element in the list.
+        /// </summary>
+        /// <returns>
+        /// If found, the index of the item, otherwise -1
+        /// </returns>
+        public static int IndexOf<T>(this IReadOnlyList<T> readOnlyList, T element)
+        {
+            if (readOnlyList is IList<T> list)
+            {
+                return list.IndexOf(element);
+            }
+
+            for (int i = 0; i < readOnlyList.Count; i++)
+            {
+                if (element?.Equals(readOnlyList[i]) == true)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
     }
 }
