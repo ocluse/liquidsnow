@@ -51,22 +51,5 @@ namespace Ocluse.LiquidSnow.Http
         {
             return (IdsQueryResult<T>)query;
         }
-
-        /// <summary>
-        /// Checks for a property in a <see cref="JsonElement"/> without case sensitivity, and returns the value if found.
-        /// </summary>
-        public static bool TryGetPropertyNoCase(this JsonElement element, string propertyName, out JsonElement value)
-        {
-            value = default;
-            foreach (var property in element.EnumerateObject())
-            {
-                if (property.Name.Equals(propertyName, StringComparison.OrdinalIgnoreCase))
-                {
-                    value = property.Value;
-                    return true;
-                }
-            }
-            return false;
-        }
     }
 }
