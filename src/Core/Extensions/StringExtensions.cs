@@ -7,7 +7,7 @@ namespace Ocluse.LiquidSnow.Extensions
     /// <summary>
     /// Extensions for the System.Collections.Generic namespace.
     /// </summary>
-    public static class StringExtensions
+    public static partial class StringExtensions
     {
         /// <summary>
         /// Transform a string in Pascal case to the equivalent Kebab case.
@@ -199,7 +199,7 @@ namespace Ocluse.LiquidSnow.Extensions
             var lowerCase = value.ToLower(cultureInfo);
 
             // matches the first sentence of a string, as well as subsequent sentences
-            var r = new Regex(@"(^[a-z])|\.\s+(.)", RegexOptions.ExplicitCapture);
+            var r = MatchFirstSentence();
 
             // MatchEvaluator delegate defines replacement of sentence starts to uppercase
             var result = r.Replace(lowerCase, s => s.Value.ToUpper(cultureInfo));
@@ -239,5 +239,57 @@ namespace Ocluse.LiquidSnow.Extensions
         {
             return Uri.UnescapeDataString(value);
         }
+
+        /// <summary>
+        /// Removes occurrences of the specified string from the start of the target string.
+        /// </summary>
+        public static string TrimStart(this string target, string trimString, bool firstOccurrenceOnly = false)
+        {
+            if (string.IsNullOrEmpty(trimString)) return target;
+
+            while (target.StartsWith(trimString))
+            {
+                target = target[trimString.Length..];
+
+                if (firstOccurrenceOnly)
+                {
+                    return target;
+                }
+            }
+
+            return target;
+        }
+
+       
+        /// <summary>
+        /// Removes occurrences of the specified string from the end of the target string.
+        /// </summary>
+        public static string TrimEnd(this string target, string trimString, bool firstOccurrenceOnly = false)
+        {
+            if (string.IsNullOrEmpty(trimString)) return target;
+
+            while (target.EndsWith(trimString))
+            {
+                target = target[..^trimString.Length];
+
+                if (firstOccurrenceOnly)
+                {
+                    return target;
+                }
+            }
+
+            return target;
+        }
+
+        /// <summary>
+        /// Removes occurrences of the specified string from the start and end of the target string.
+        /// </summary>
+        public static string Trim(this string target, string trimString, bool firstOccurrenceOnly = false)
+        {
+            return target.TrimStart(trimString, firstOccurrenceOnly).TrimEnd(trimString, firstOccurrenceOnly);
+        }
+
+        [GeneratedRegex(@"(^[a-z])|\.\s+(.)", RegexOptions.ExplicitCapture)]
+        private static partial Regex MatchFirstSentence();
     }
 }
