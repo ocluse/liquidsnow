@@ -243,11 +243,11 @@ namespace Ocluse.LiquidSnow.Extensions
         /// <summary>
         /// Removes occurrences of the specified string from the start of the target string.
         /// </summary>
-        public static string TrimStart(this string target, string trimString, bool firstOccurrenceOnly = false)
+        public static string TrimStart(this string target, string trimString, bool firstOccurrenceOnly = false, StringComparison stringComparison = default)
         {
             if (string.IsNullOrEmpty(trimString)) return target;
 
-            while (target.StartsWith(trimString))
+            while (target.StartsWith(trimString, stringComparison))
             {
                 target = target[trimString.Length..];
 
@@ -264,11 +264,11 @@ namespace Ocluse.LiquidSnow.Extensions
         /// <summary>
         /// Removes occurrences of the specified string from the end of the target string.
         /// </summary>
-        public static string TrimEnd(this string target, string trimString, bool firstOccurrenceOnly = false)
+        public static string TrimEnd(this string target, string trimString, bool firstOccurrenceOnly = false, StringComparison stringComparison = default)
         {
             if (string.IsNullOrEmpty(trimString)) return target;
 
-            while (target.EndsWith(trimString))
+            while (target.EndsWith(trimString, stringComparison))
             {
                 target = target[..^trimString.Length];
 
@@ -284,9 +284,9 @@ namespace Ocluse.LiquidSnow.Extensions
         /// <summary>
         /// Removes occurrences of the specified string from the start and end of the target string.
         /// </summary>
-        public static string Trim(this string target, string trimString, bool firstOccurrenceOnly = false)
+        public static string Trim(this string target, string trimString, bool firstOccurrenceOnly = false, StringComparison stringComparison = default)
         {
-            return target.TrimStart(trimString, firstOccurrenceOnly).TrimEnd(trimString, firstOccurrenceOnly);
+            return target.TrimStart(trimString, firstOccurrenceOnly).TrimEnd(trimString, firstOccurrenceOnly, stringComparison);
         }
 
         [GeneratedRegex(@"(^[a-z])|\.\s+(.)", RegexOptions.ExplicitCapture)]
