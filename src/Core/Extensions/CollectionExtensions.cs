@@ -1,4 +1,6 @@
-﻿namespace Ocluse.LiquidSnow.Extensions
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Ocluse.LiquidSnow.Extensions
 {
     /// <summary>
     /// Extension methods for the System.Collections.ObjectModel namespace.
@@ -198,6 +200,25 @@
         }
 
         /// <summary>
+        /// Adds the item to the collection if the item is not null
+        /// </summary>
+        /// <returns>
+        /// True if the item was added, false if the item was null
+        /// </returns>
+        public static bool AddIfNotNull<T>(this ICollection<T> items, [NotNullWhen(true)]T? item)
+        {
+            if (item is not null)
+            {
+                items.Add(item);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Adds a range of items to the collection
         /// </summary>
         public static void AddRange<T>(this ICollection<T> collection, IEnumerable<T> items)
@@ -208,7 +229,6 @@
                 collection.Add(i);
             }
         }
-
 
         /// <summary>
         /// Removes all the items provided from the collection, returning the number of items removed
