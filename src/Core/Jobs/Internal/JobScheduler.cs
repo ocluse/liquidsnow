@@ -78,7 +78,10 @@ namespace Ocluse.LiquidSnow.Jobs.Internal
             {
                 foreach (object? handler in handlers)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        break;
+                    }
 
                     try
                     {
