@@ -7,7 +7,7 @@
 	<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	<GenerateDocumentationFile>true</GenerateDocumentationFile>
-	<Version>0.5.1</Version>
+	<Version>0.5.2</Version>
 	<Authors>Ocluse</Authors>
 	<PackageOutputPath>..\..\build</PackageOutputPath>
 	<Description>Utilities for performing steganographic operations on bitmap and WAV files.</Description>
