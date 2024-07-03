@@ -4,15 +4,11 @@ using System.Reflection;
 
 namespace Ocluse.LiquidSnow.Events.Internal
 {
-    internal class EventBus : IEventBus
+    internal class EventBus(EventBusOptions options, IServiceProvider serviceProvider) : IEventBus
     {
-        private readonly PublishStrategy _strategy;
-        private readonly IServiceProvider _serviceProvider;
-        public EventBus(EventBusOptions options, IServiceProvider serviceProvider)
-        {
-            _strategy = options.PublishStrategy;
-            _serviceProvider = serviceProvider;
-        }
+        private readonly PublishStrategy _strategy = options.PublishStrategy;
+        private readonly IServiceProvider _serviceProvider = serviceProvider;
+        private readonly ServiceLifetime _lifeTime = options.BusLifetime;
 
         private static async Task ExecuteHandler(object? handler, MethodInfo handleMethodInfo, object[] handleMethodArgs)
         {
@@ -24,10 +20,8 @@ namespace Ocluse.LiquidSnow.Events.Internal
             await (Task)handleMethodInfo.Invoke(handler, handleMethodArgs)!;
         }
 
-        public async Task Publish(IEvent ev, PublishStrategy? strategy = null, CancellationToken cancellationToken = default)
+        private static async Task PublishCore(IServiceProvider serviceProvider, IEvent ev, PublishStrategy strategy, CancellationToken cancellationToken)
         {
-            strategy ??= _strategy;
-
             Type eventType = ev.GetType();
 
             Type eventHandlerType = typeof(IEventHandler<>).MakeGenericType(eventType);
@@ -38,7 +32,7 @@ namespace Ocluse.LiquidSnow.Events.Internal
 
             object[] handleMethodArgs = [ev, cancellationToken];
 
-            IEnumerable<object?> handlers = _serviceProvider
+            IEnumerable<object?> handlers = serviceProvider
                 .GetServices(eventHandlerType);
 
             if (strategy == PublishStrategy.Sequential)
@@ -82,6 +76,20 @@ namespace Ocluse.LiquidSnow.Events.Internal
                     handler => ExecuteHandler(handler, handleMethodInfo, handleMethodArgs)))
                     .WithAggregatedExceptions();
             }
+        }
+
+        public async Task Publish(IEvent ev, PublishStrategy? strategy = null, CancellationToken cancellationToken = default)
+        {
+            IServiceProvider serviceProvider = _serviceProvider;
+
+            if(_lifeTime is ServiceLifetime.Singleton)
+            {
+                //create a scope
+                using IServiceScope scope = serviceProvider.CreateScope();
+                serviceProvider = scope.ServiceProvider;
+            }
+
+            await PublishCore(serviceProvider, ev, strategy ?? _strategy, cancellationToken);
         }
     }
 }
