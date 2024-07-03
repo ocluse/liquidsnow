@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Numerics;
+using System.Text;
 
 namespace Ocluse.LiquidSnow.Extensions
 {
@@ -36,6 +37,186 @@ namespace Ocluse.LiquidSnow.Extensions
             }
 
             return n;
+        }
+
+        /// <summary>
+        /// Returns the number with the English ordinal suffix e.g 1st, 2nd, 3rd, 4th
+        /// </summary>
+        public static string ToOrdinalString(this int number)
+        {
+            if (number <= 0) return number.ToString();
+
+            return (number % 100) switch
+            {
+                11 or 12 or 13 => number + "th",
+                _ => (number % 10) switch
+                {
+                    1 => number + "st",
+                    2 => number + "nd",
+                    3 => number + "rd",
+                    _ => number + "th",
+                },
+            };
+        }
+
+        ///<inheritdoc cref="ToOrdinalString(int)"/>
+        public static string ToOrdinalString(this long number)
+        {
+            if (number <= 0) return number.ToString();
+
+            return (number % 100) switch
+            {
+                11 or 12 or 13 => number + "th",
+                _ => (number % 10) switch
+                {
+                    1 => number + "st",
+                    2 => number + "nd",
+                    3 => number + "rd",
+                    _ => number + "th",
+                },
+            };
+        }
+
+        ///<inheritdoc cref="ToOrdinalString(int)"/>
+        public static string ToOrdinalString(this short number)
+        {
+            if (number <= 0) return number.ToString();
+
+            return (number % 100) switch
+            {
+                11 or 12 or 13 => number + "th",
+                _ => (number % 10) switch
+                {
+                    1 => number + "st",
+                    2 => number + "nd",
+                    3 => number + "rd",
+                    _ => number + "th",
+                },
+            };
+        }
+
+        ///<inheritdoc cref="ToOrdinalString(int)"/>
+        public static string ToOrdinalString(this byte number)
+        {
+            if (number <= 0) return number.ToString();
+
+            return (number % 100) switch
+            {
+                11 or 12 or 13 => number + "th",
+                _ => (number % 10) switch
+                {
+                    1 => number + "st",
+                    2 => number + "nd",
+                    3 => number + "rd",
+                    _ => number + "th",
+                },
+            };
+        }
+
+        ///<inheritdoc cref="ToOrdinalString(int)"/>
+        public static string ToOrdinalString(this uint number)
+        {
+            if (number <= 0) return number.ToString();
+
+            return (number % 100) switch
+            {
+                11 or 12 or 13 => number + "th",
+                _ => (number % 10) switch
+                {
+                    1 => number + "st",
+                    2 => number + "nd",
+                    3 => number + "rd",
+                    _ => number + "th",
+                },
+            };
+        }
+
+        ///<inheritdoc cref="ToOrdinalString(int)"/>
+        public static string ToOrdinalString(this ushort number)
+        {
+            if (number <= 0) return number.ToString();
+
+            return (number % 100) switch
+            {
+                11 or 12 or 13 => number + "th",
+                _ => (number % 10) switch
+                {
+                    1 => number + "st",
+                    2 => number + "nd",
+                    3 => number + "rd",
+                    _ => number + "th",
+                },
+            };
+        }
+
+        ///<inheritdoc cref="ToOrdinalString(int)"/>
+        public static string ToOrdinalString(this sbyte number)
+        {
+            if (number <= 0) return number.ToString();
+
+            return (number % 100) switch
+            {
+                11 or 12 or 13 => number + "th",
+                _ => (number % 10) switch
+                {
+                    1 => number + "st",
+                    2 => number + "nd",
+                    3 => number + "rd",
+                    _ => number + "th",
+                },
+            };
+        }
+
+        ///<inheritdoc cref="ToOrdinalString(int)"/>
+        public static string ToOrdinalString(this ulong number)
+        {
+            if (number <= 0) return number.ToString();
+
+            return (number % 100) switch
+            {
+                11 or 12 or 13 => number + "th",
+                _ => (number % 10) switch
+                {
+                    1 => number + "st",
+                    2 => number + "nd",
+                    3 => number + "rd",
+                    _ => number + "th",
+                },
+            };
+        }
+
+        ///<inheritdoc cref="ToOrdinalString(int)"/>
+        public static string ToOrdinalString(this BigInteger number)
+        {
+            if (number <= 0) return number.ToString();
+
+            var result = number % 100;
+
+            if (result == 11 || result == 12 || result == 13)
+            {
+                return number + "th";
+            }
+            else
+            {
+                result = number % 10;
+
+                if(result == 1)
+                {
+                    return number + "st";
+                }
+                else if(result == 2)
+                {
+                    return number + "nd";
+                }
+                else if(result == 3)
+                {
+                    return number + "rd";
+                }
+                else
+                {
+                    return number + "th";
+                }
+            }
         }
 
         /// <summary>

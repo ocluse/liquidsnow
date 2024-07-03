@@ -6,7 +6,7 @@
 	<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 	<Nullable>enable</Nullable>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-	<Version>0.5.3</Version>
+	<Version>0.5.4</Version>
 	<Authors>Ocluse</Authors>
 	<PackageOutputPath>..\..\..\build</PackageOutputPath>
 	<Description>Utilities for quickly bootsrapping UI for Blazor using Ocluse's Venus design patterns.</Description>
@@ -28,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.6" />
   </ItemGroup>
 
   <ItemGroup>

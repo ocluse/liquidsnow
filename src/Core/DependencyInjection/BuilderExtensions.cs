@@ -99,11 +99,17 @@ namespace Ocluse.LiquidSnow.DependencyInjection
         public static EventBusBuilder AddEventBus(
             this IServiceCollection services,
             Assembly assembly,
-            ServiceLifetime busLifetime = ServiceLifetime.Scoped,
+            ServiceLifetime busLifetime = ServiceLifetime.Singleton,
             ServiceLifetime handlerLifetime = ServiceLifetime.Transient,
             PublishStrategy publishStrategy = PublishStrategy.Sequential)
         {
-            var options = new EventBusOptions() { PublishStrategy = publishStrategy };
+            var options = new EventBusOptions()
+            {
+                PublishStrategy = publishStrategy,
+                BusLifetime = busLifetime,
+                HandlerLifetime = handlerLifetime
+            };
+
             services.TryAddSingleton(options);
 
             ServiceDescriptor busDescriptor
@@ -116,7 +122,6 @@ namespace Ocluse.LiquidSnow.DependencyInjection
 
             return builder.AddHandlers(assembly);
         }
-
 
         #endregion
 

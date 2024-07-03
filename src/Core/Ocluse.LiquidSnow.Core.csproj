@@ -8,7 +8,7 @@
 	<ImplicitUsings>enable</ImplicitUsings>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	<GenerateDocumentationFile>true</GenerateDocumentationFile>
-	<Version>0.5.2-preview8.0</Version>
+	<Version>0.5.2</Version>
 	<Authors>Ocluse</Authors>
 	<PackageOutputPath>..\..\build</PackageOutputPath>
 	<Description>Useful extensions and utilities for a wide range of scenarios, such as utilities for implementing common patterns.</Description>
@@ -26,7 +26,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
-    <PackageReference Include="System.Reactive" Version="6.0.0" />
+    <PackageReference Include="System.Reactive" Version="6.0.1" />
   </ItemGroup>
 
 </Project>
