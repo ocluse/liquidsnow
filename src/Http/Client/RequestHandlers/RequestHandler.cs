@@ -219,7 +219,7 @@ public class RequestHandler<TResult>
     /// <summary>
     /// Transforms the given value into a query string, invoking the <see cref="IHttpQueryTransformer"/> if specified.
     /// </summary>
-    protected string GetQueryString<T>(T value)
+    protected virtual string GetQueryString<T>(T value)
     {
         var queryTransformer = HttpHandler.As<IHttpQueryTransformer>();
 
