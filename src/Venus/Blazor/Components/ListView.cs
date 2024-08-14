@@ -7,4 +7,10 @@ public class ListView<T> : ItemsControl<T>
         base.BuildContainerClass(builder);
         builder.Add("list");
     }
+
+    protected override void BuildClass(ClassBuilder classBuilder)
+    {
+        base.BuildClass(classBuilder);
+        classBuilder.Add("list-view");
+    }
 }

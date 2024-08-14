@@ -20,6 +20,12 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
             builder.Add("table");
         }
 
+        protected override void BuildClass(ClassBuilder classBuilder)
+        {
+            base.BuildClass(classBuilder);
+            classBuilder.Add("table-view");
+        }
+
         protected override void RenderItems(RenderTreeBuilder builder, IEnumerable<T> items)
         {
             if (HeaderTemplate != null)

@@ -32,6 +32,12 @@ public class GridView<T> : ItemsControl<T>, IGrid
         builder.Add("grid");
     }
 
+    protected override void BuildClass(ClassBuilder classBuilder)
+    {
+        base.BuildClass(classBuilder);
+        classBuilder.Add("grid-view");
+    }
+
     protected override void BuildContainerStyles(StyleBuilder builder)
     {
         base.BuildContainerStyles(builder);
