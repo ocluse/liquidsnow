@@ -6,7 +6,7 @@
 	<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 	<Nullable>enable</Nullable>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-	<Version>0.5.4</Version>
+	<Version>0.5.5</Version>
 	<Authors>Ocluse</Authors>
 	<PackageOutputPath>..\..\..\build</PackageOutputPath>
 	<Description>Utilities for quickly bootsrapping UI for Blazor using Ocluse's Venus design patterns.</Description>

@@ -1,5 +1,6 @@
 ﻿using System.Net.Http.Json;
 using System.Reactive;
+using System.Runtime.Intrinsics.X86;
 using System.Text;
 using System.Text.Json;
 using System.Web;
@@ -219,7 +220,7 @@ public class RequestHandler<TResult>
     /// <summary>
     /// Transforms the given value into a query string, invoking the <see cref="IHttpQueryTransformer"/> if specified.
     /// </summary>
-    protected string GetQueryString<T>(T value)
+    protected virtual string GetQueryString<T>(T value)
     {
         var queryTransformer = HttpHandler.As<IHttpQueryTransformer>();
 
@@ -229,35 +230,9 @@ public class RequestHandler<TResult>
         }
         else
         {
-            var step1 = JsonSerializer.Serialize(value, JsonSerializerOptions);
+            var json = JsonSerializer.Serialize(value, JsonSerializerOptions);
 
-            var step2 = JsonSerializer.Deserialize<IDictionary<string, object>>(step1, JsonSerializerOptions)!
-                .Where(x => x.Value != null)
-                .Select(x => new Tuple<string, object>(x.Key, x.Value))
-                .ToList();
-
-            var collections = step2.Where(x => x.Item2 is JsonElement y && y.ValueKind == JsonValueKind.Array).ToList();
-
-            //remove all collections:
-            foreach (var collection in collections)
-            {
-                step2.Remove(collection);
-            }
-
-            //add back the collections as a list of new tuples:
-            foreach (var collection in collections)
-            {
-                var enumerable = (JsonElement)collection.Item2;
-                foreach (var item in enumerable.EnumerateArray())
-                {
-                    step2.Add(new Tuple<string, object>(collection.Item1, item));
-                }
-            }
-
-            var step3 = step2.Where(x => x.Item2 != null)
-                .Select(x => HttpUtility.UrlEncode(x.Item1) + "=" + HttpUtility.UrlEncode(x.Item2.ToString()));
-
-            return string.Join("&", step3);
+            return CrudHelper.ConvertJsonIntoQueryString(json, JsonSerializerOptions);
         }
     }
 }

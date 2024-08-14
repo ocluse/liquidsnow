@@ -425,7 +425,7 @@ namespace Ocluse.LiquidSnow.Venus.Blazor.Components
                     };
 
                     builder.OpenElement(7, "div");
-                    builder.AddAttribute(8, "class", "items-filtration");
+                    builder.AddAttribute(8, "class", "filtration-content");
                     builder.OpenComponent<FilterDropdown>(9);
                     builder.AddAttribute(10, nameof(FilterDropdown.Icon), filterIcon);
                     builder.AddAttribute(11, nameof(FilterDropdown.Value), Filter);

@@ -3,21 +3,22 @@
     /// <summary>
     /// A handler that sends http request to a server by query string parameters.
     /// </summary>
-    public class QueryRequestHandler<TQuery, TResult> : RequestHandler<TResult>
+    /// <remarks>
+    /// Creates a new instance of the <see cref="QueryRequestHandler{TQuery,TResult}"/> class
+    /// </remarks>
+    public class QueryRequestHandler<TQuery, TResult>(
+        HttpMethod httpMethod, 
+        ISnowHttpClientFactory httpClientFactory, 
+        string path,
+        IHttpHandler? httpHandler = null,
+        string? clientName = null) 
+        : RequestHandler<TResult>(httpClientFactory, path, httpHandler, clientName)
     {
-        /// <summary>
-        /// Creates a new instance of the <see cref="QueryRequestHandler{TQuery,TResult}"/> class
-        /// </summary>
-        public QueryRequestHandler(HttpMethod httpMethod, ISnowHttpClientFactory httpClientFactory, string path, IHttpHandler? httpHandler = null, string? clientName = null)
-            : base(httpClientFactory, path, httpHandler, clientName)
-        {
-            HttpMethod = httpMethod;
-        }
 
         /// <summary>
         /// The http method to use when sending the request
         /// </summary>
-        public HttpMethod HttpMethod { get; }
+        public HttpMethod HttpMethod { get; } = httpMethod;
 
         /// <summary>
         /// Converts the query object into a path with a query string.
