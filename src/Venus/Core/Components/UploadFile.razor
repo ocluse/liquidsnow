@@ -1,0 +1,21 @@
+@using Microsoft.AspNetCore.Components.Forms;
+@inherits ControlBase
+<div @attributes="GetAttributes()" @ondragenter="OnDragEnter" @ondragleave="OnDragLeave">
+    @if (ChildContent != null)
+    {
+        @ChildContent
+    }
+    <div class="dropzone">
+        <InputFile OnChange="OnFilesChanged" AdditionalAttributes="GetInputAttributes()" />
+
+        @if (MessageContent != null)
+        {
+            @MessageContent
+        }
+        else
+        {
+            <div style="padding:2rem;">Click to browse or drop files here</div>
+        }
+    </div>
+</div>
+

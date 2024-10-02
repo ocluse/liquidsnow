@@ -1,16 +1,15 @@
-﻿namespace Ocluse.LiquidSnow.Http.Client.RequestHandlers.Crud
+﻿namespace Ocluse.LiquidSnow.Http.Client.RequestHandlers.Crud;
+
+/// <summary>
+/// A handler user to get a resource by id
+/// </summary>
+public class ReadRequestHandler<TKey, TResult> : GetByIdRequestHandler<TKey, TResult>
 {
     /// <summary>
-    /// A handler user to get a resource by id
+    /// Creates a new instance of the <see cref="ReadRequestHandler{TKey, TResult}"/> class
     /// </summary>
-    public class ReadRequestHandler<TKey, TResult> : GetByIdRequestHandler<TKey, TResult>
+    public ReadRequestHandler(ISnowHttpClientFactory httpClientFactory, string path, IHttpHandler? httpHandler = null, string? clientName = null) 
+        : base(httpClientFactory, path, httpHandler, clientName)
     {
-        /// <summary>
-        /// Creates a new instance of the <see cref="ReadRequestHandler{TKey, TResult}"/> class
-        /// </summary>
-        public ReadRequestHandler(ISnowHttpClientFactory httpClientFactory, string path, IHttpHandler? httpHandler = null, string? clientName = null) 
-            : base(httpClientFactory, path, httpHandler, clientName)
-        {
-        }
     }
 }

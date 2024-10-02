@@ -1,11 +1,9 @@
-﻿namespace Ocluse.LiquidSnow.Cqrs
+﻿namespace Ocluse.LiquidSnow.Cqrs;
+
+/// <summary>
+/// Describes a task that queries the application for information.
+/// </summary>
+/// <typeparam name="TResult">The expected result after completion of the query</typeparam>
+public interface IQuery<TResult>
 {
-    /// <summary>
-    /// A fetch operation and it's description, that should not modify the application's 
-    /// resources but insteads reads and fetches them.
-    /// </summary>
-    /// <typeparam name="TResult">The expected result after completion of the query</typeparam>
-    public interface IQuery<TResult>
-    {
-    }
 }

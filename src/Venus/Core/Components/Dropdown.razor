@@ -1,0 +1,54 @@
+@typeparam T
+@inherits InputBase<T>
+@implements IDropdown
+
+<div class="@GetClass()" style="@GetStyle()" @onclick="Clicked" @onclick:stopPropagation=!Disabled>
+    <div class="dropdown_content">
+        @if (PrefixContent != null)
+        {
+            <div class="input_prefix">
+                @PrefixContent
+            </div>
+        }
+        @if (Value != null)
+        {
+            @if (ItemTemplate == null)
+            {
+                <TextBlock>@Value.GetDisplayMemberValue(DisplayMemberFunc, DisplayMemberPath)</TextBlock>
+            }
+            else
+            {
+                @ItemTemplate(Value)
+            }
+        }
+        else if (Placeholder != null)
+        {
+            <TextBlock Class="placeholder">@Placeholder</TextBlock>
+        }
+    </div>
+    <div class="dropdown_list @ListClass">
+        @if (Items != null)
+        {
+            @foreach (var item in Items)
+            {
+                <div class="dropdown_list_item @ItemClass" @onclick="()=>ItemClicked(item)">
+                    @if (ItemTemplate == null)
+                    {
+                        <TextBlock>@item.GetDisplayMemberValue(DisplayMemberFunc, DisplayMemberPath)</TextBlock>
+                    }
+                    else
+                    {
+                        @ItemTemplate(item)
+                    }
+                </div>
+            }
+        }
+    </div>
+    <label class="header-label">@Header</label>
+
+    @if (Validation?.Message != null)
+    {
+        <span class="@GetValidationClass()">@Validation?.Message</span>
+    }
+</div>
+

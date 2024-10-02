@@ -1,18 +1,17 @@
-﻿namespace Ocluse.LiquidSnow.Validations
+﻿namespace Ocluse.LiquidSnow.Validations;
+
+/// <summary>
+/// Represents an object whose state can be validated.
+/// </summary>
+public interface IValidatable
 {
     /// <summary>
-    /// Represents an object whose state can be validated.
+    /// Runs the validation and returns true if the state of the object is valid.
     /// </summary>
-    public interface IValidatable
-    {
-        /// <summary>
-        /// Runs the validation and returns true if the state of the object is valid.
-        /// </summary>
-        Task<bool> InvokeValidate();
+    Task<bool> InvokeValidate();
 
-        /// <summary>
-        /// The most recent validation result.
-        /// </summary>
-        ValidationResult? Validation { get; set; }
-    }
+    /// <summary>
+    /// The most recent validation result.
+    /// </summary>
+    ValidationResult? Validation { get; set; }
 }

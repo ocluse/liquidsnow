@@ -1,16 +1,15 @@
-﻿namespace Ocluse.LiquidSnow.Http.Client.RequestHandlers.Crud
+﻿namespace Ocluse.LiquidSnow.Http.Client.RequestHandlers.Crud;
+
+/// <summary>
+/// A handler user to create a resource
+/// </summary>
+public class CreateRequestHandler<TCreate, TResult> : PostRequestHandler<TCreate, TResult>
 {
     /// <summary>
-    /// A handler user to create a resource
+    /// Creates a new instance of the <see cref="CreateRequestHandler{TCreate,TResult}"/> class
     /// </summary>
-    public class CreateRequestHandler<TCreate, TResult> : PostRequestHandler<TCreate, TResult>
+    public CreateRequestHandler(ISnowHttpClientFactory httpClientFactory, string path, IHttpHandler? httpHandler = null, string ? clientName = null) 
+        : base(httpClientFactory, path, httpHandler, clientName)
     {
-        /// <summary>
-        /// Creates a new instance of the <see cref="CreateRequestHandler{TCreate,TResult}"/> class
-        /// </summary>
-        public CreateRequestHandler(ISnowHttpClientFactory httpClientFactory, string path, IHttpHandler? httpHandler = null, string ? clientName = null) 
-            : base(httpClientFactory, path, httpHandler, clientName)
-        {
-        }
     }
 }

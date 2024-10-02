@@ -2,9 +2,12 @@
 using Ocluse.LiquidSnow.Validations;
 using Ocluse.LiquidSnow.Venus.Contracts;
 using Ocluse.LiquidSnow.Venus.Services;
+using System.Drawing;
+using System;
 using System.Globalization;
 using System.Numerics;
 using System.Text;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Ocluse.LiquidSnow.Venus;
 
@@ -13,51 +16,203 @@ namespace Ocluse.LiquidSnow.Venus;
 /// </summary>
 public static class Extensions
 {
-    /// <summary>
-    /// Adds Venus to the service collection, returning a builder that can be used to configure other Venus services.
-    /// </summary>
-    public static VenusServiceBuilder AddVenus(this IServiceCollection services)
+    #region Dialog
+
+    ///<inheritdoc cref="IDialogService.ShowDialogAsync(Type, string?, bool, bool, Dictionary{string, object?}?)"/>
+    public static async Task<DialogResult> ShowDialogAsync<T>(this IDialogService dialogService, string? dialogHeader, bool allowDismiss, bool showClose, Dictionary<string, object?>? parameters)
     {
-        VenusServiceBuilder builder = new(services);
-        return builder.AddResolver<VenusResolver>();
+        Type type = typeof(T);
+        return await dialogService.ShowDialogAsync(type, dialogHeader, allowDismiss, showClose, parameters);
+    }
+
+    ///<inheritdoc cref="IDialogService.ShowDialogAsync(Type, string?, bool, bool, Dictionary{string, object?}?)"/>
+    public static async Task<DialogResult> ShowDialogAsync<T>(this IDialogService dialogService, string dialogHeader)
+    {
+        return await dialogService.ShowDialogAsync<T>(dialogHeader, false, true, null);
+    }
+
+    ///<inheritdoc cref="IDialogService.ShowDialogAsync(Type, string?, bool, bool, Dictionary{string, object?}?)"/>
+    public static async Task<DialogResult> ShowDialogAsync<T>(this IDialogService dialogService, string dialogHeader, Dictionary<string, object?> parameters)
+    {
+        return await dialogService.ShowDialogAsync<T>(dialogHeader, false, true, parameters);
+    }
+
+    ///<inheritdoc cref="IDialogService.ShowDialogAsync(Type, string?, bool, bool, Dictionary{string, object?}?)"/>
+    public static async Task<DialogResult> ShowDialogAsync<T>(this IDialogService dialogService, string dialogHeader, bool allowDismiss, bool showClose)
+    {
+        return await dialogService.ShowDialogAsync<T>(dialogHeader, allowDismiss, showClose, null);
+    }
+
+    #endregion
+
+    #region BuilderBase
+    /// <summary>
+    /// Adds a item to the builder.
+    /// </summary>
+    public static T Add<T>(this T builder, string? itemName) where T : BuilderBase
+    {
+        if (itemName != null)
+        {
+            builder.Add(itemName);
+        }
+        return builder;
     }
 
     /// <summary>
-    /// Returns the string representation of the number in K (thousands), M (millions), B (billions), T (trillions) format
+    /// Adds a item to the builder if the condition is true.
     /// </summary>
-    /// <remarks>
-    /// For example 1000 will be returned as 1K, 1000000 will be returned as 1M, 1000000000 will be returned as 1B, 1000000000000 will be returned as 1T
-    /// </remarks>
-    public static string ToKMB<T>(this T num, CultureInfo? cultureInfo = null) where T : INumber<T>
+    public static T AddIf<T>(this T builder, bool condition, string? itemName) where T : BuilderBase
     {
-        T trillion = T.Parse("999999999999", cultureInfo);
-        T billion = T.Parse("999999999", cultureInfo);
-        T million = T.Parse("999999", cultureInfo);
-        T thousand = T.Parse("999", cultureInfo);
+        if (condition)
+        {
+            builder.Add(itemName);
+        }
+        return builder;
+    }
 
-        if (num > trillion || num < -trillion)
+    /// <summary>
+    /// Adds a item to the builder if the condition is true, otherwise adds the elseClassName.
+    /// </summary>
+    public static T AddIfElse<T>(this T builder, bool condition, string? itemName, string? elseItemName) where T : BuilderBase
+    {
+        if (condition)
         {
-            return num.ToString("0,,,,.###T", cultureInfo);
+            builder.Add(itemName);
         }
+        else
+        {
+            builder.Add(elseItemName);
+        }
+        return builder;
+    }
 
-        else if (num > billion || num < -billion)
+    /// <summary>
+    /// Adds the item returned by a function to the builder if the condition is true.
+    /// </summary>
+    public static T AddIf<T>(this T builder, bool condition, Func<string?> itemName) where T : BuilderBase
+    {
+        if (condition)
         {
-            return num.ToString("0,,,.###B", cultureInfo);
+            builder.Add(itemName());
+        }
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds one or the other of items depending on a condition.
+    /// </summary>
+    public static T AddIfElse<T>(this T builder, bool condition, Func<string?> itemName, Func<string?> elseItemName) where T : BuilderBase
+    {
+        if (condition)
+        {
+            builder.Add(itemName());
         }
         else
-        if (num > million || num < -million)
         {
-            return num.ToString("0,,.##M", cultureInfo);
+            builder.Add(elseItemName());
+        }
+        return builder;
+    }
+
+    /// <inheritdoc cref="AddIfElse{T}(T, bool, Func{string?}, Func{string?})"/>
+    public static T AddIfElse<T>(this T builder, bool condition, Func<string?> itemName, string? elseItemName) where T : BuilderBase
+    {
+        if (condition)
+        {
+            builder.Add(itemName());
         }
         else
-        if (num > thousand || num < -thousand)
         {
-            return num.ToString("0,.#K", cultureInfo);
+            builder.Add(elseItemName);
+        }
+        return builder;
+    }
+
+    /// <inheritdoc cref="AddIfElse{T}(T, bool, Func{string?}, Func{string?})"/>
+    public static T AddIfElse<T>(this T builder, bool condition, string? itemName, Func<string?> elseItemName) where T : BuilderBase
+    {
+        if (condition)
+        {
+            builder.Add(itemName);
         }
         else
         {
-            return num.ToString(format: null, formatProvider: cultureInfo);
+            builder.Add(elseItemName());
         }
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds all the items to the builder.
+    /// </summary>
+    public static T AddAll<T>(this T builder, IEnumerable<string?> itemNames) where T : BuilderBase
+    {
+        foreach (var itemName in itemNames)
+        {
+            builder.Add(itemName);
+        }
+        return builder;
+    }
+    #endregion
+
+    #region Dependency Injection
+    /// <summary>
+    /// Adds Venus services to the collection, using the default resolver.
+    /// </summary>
+    public static IServiceCollection AddVenus(this IServiceCollection services)
+    {
+        return services.AddVenus<VenusResolver>();
+    }
+
+    /// <summary>
+    /// Adds Venus to the service collection, returning a builder that can be used to configure other Venus services.
+    /// </summary>
+    public static IServiceCollection AddVenus<T>(this IServiceCollection services)
+        where T : class, IVenusResolver
+    {
+        return services.AddSingleton<IDialogService, DialogService>()
+            .AddSingleton<ISnackbarService, SnackbarService>()
+            .AddSingleton<IVenusResolver, T>();
+    }
+    #endregion
+
+    /// <summary>
+    /// Returns a string that will be displayed for the provided value.
+    /// </summary>
+    public static string? GetDisplayMemberValue<T>(this T? value, Func<T?, string>? displayMemberFunc, string? displayMemberPath)
+    {
+        if (displayMemberFunc != null)
+        {
+            return displayMemberFunc(value);
+        }
+        if (value == null)
+        {
+            return null;
+        }
+        if (displayMemberPath == null)
+        {
+            return value.ToString();
+        }
+        var property = value.GetType().GetProperty(displayMemberPath);
+        if (property == null)
+        {
+            return null;
+        }
+        return property.GetValue(value)?.ToString();
+    }
+
+    /// <summary>
+    /// Returns the HTML attribute key for the provided update trigger.
+    /// </summary>
+    /// <exception cref="NotImplementedException"></exception>
+    public static string ToHtmlAttributeKey(this UpdateTrigger updateTrigger)
+    {
+        return updateTrigger switch
+        {
+            UpdateTrigger.OnChange => "onchange",
+            UpdateTrigger.OnInput => "oninput",
+            _ => throw new NotImplementedException()
+        };
     }
 
     /// <summary>
@@ -72,51 +227,33 @@ public static class Extensions
         return Task.FromResult(ValidationResult.ValidResult);
     }
 
-    /// <summary>
-    /// Validates that a number is greater than zero
-    /// </summary>
-    public static Task<ValidationResult> NumberGreaterThanZero<T>(this CommonValidators validators, T value) where T : INumber<T>
+    private static string ToLengthExpression(this string value)
     {
-        if (value == null)
+        if (double.TryParse(value, out double parsedValue))
         {
-            return Task.FromResult(ValidationResult.NotValid(validators.ValueRequiredMessage));
+            return $"{parsedValue / 2}em";
         }
-
-        if (value <= T.Zero)
+        else
         {
-            return Task.FromResult(ValidationResult.NotValid(validators.ValueMustBeGreaterThanZeroMessage));
+            return value;
         }
-
-        return Task.FromResult(ValidationResult.ValidResult);
-    }
-
-    internal static string ToRem(this double value)
-    {
-        return $"{value / 2}rem";
     }
 
     internal static string ParseThicknessValues(this string value)
     {
         var values = value
             .Split(' ', StringSplitOptions.RemoveEmptyEntries)
-            .Select(double.Parse)
-            .ToList();
+            .Select(ToLengthExpression);
 
-        if (values.Count == 1)
+        int count = values.Count();
+
+        if (count == 1 && count == 2 && count == 4)
         {
-            return values[0].ToRem();
-        }
-        else if (values.Count == 2)
-        {
-            return $"{values[1].ToRem()} {values[0].ToRem()}";
-        }
-        else if (values.Count == 4)
-        {
-            return $"{values[1].ToRem()} {values[2].ToRem()} {values[3].ToRem()} {values[0].ToRem()} {values[1].ToRem()}";
+            return string.Join(' ', values);
         }
         else
         {
-            throw new FormatException($"Cannot format {value}. Illegal number of elements");
+            throw new FormatException($"Cannot format {value}. Invalid number of elements provided");
         }
     }
 

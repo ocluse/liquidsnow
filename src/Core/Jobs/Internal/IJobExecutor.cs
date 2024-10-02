@@ -1,7 +1,6 @@
-﻿namespace Ocluse.LiquidSnow.Jobs.Internal
+﻿namespace Ocluse.LiquidSnow.Jobs.Internal;
+
+internal interface IJobExecutor
 {
-    internal interface IJobExecutor
-    {
-        Task Execute(IJob job, long tick, CancellationToken cancellationToken);
-    }
+    Task Execute(IJob job, long tick, CancellationToken cancellationToken);
 }

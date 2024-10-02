@@ -7,7 +7,7 @@
 	<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	<GenerateDocumentationFile>true</GenerateDocumentationFile>
-	<Version>0.5.2</Version>
+	<Version>0.6.0-preview1.0</Version>
 	<Authors>Ocluse</Authors>
 	<PackageOutputPath>..\..\..\build</PackageOutputPath>
 	<Description>Provides utility method for performing crypotgraphic operations on files, including the creation of encrypted containers that hold multiple files.</Description>

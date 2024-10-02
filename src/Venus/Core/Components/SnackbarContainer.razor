@@ -1,0 +1,14 @@
+﻿@using Ocluse.LiquidSnow.Venus.Components.Internal
+
+@inject ISnackbarService SnackbarService
+@inject IVenusResolver Resolver
+
+<div class="snackbar-container">
+
+    @foreach (var item in _items)
+    {
+        <SnackbarItem Handle="item" />
+    }
+</div>
+
+

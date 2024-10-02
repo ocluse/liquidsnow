@@ -2,160 +2,159 @@
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Ocluse.LiquidSnow.Orchestrations.Internal
+namespace Ocluse.LiquidSnow.Orchestrations.Internal;
+
+internal class Orchestrator : IOrchestrator
 {
-    internal class Orchestrator : IOrchestrator
+    private readonly IServiceProvider _serviceProvider;
+
+    public Orchestrator(IServiceProvider serviceProvider)
     {
-        private readonly IServiceProvider _serviceProvider;
+        _serviceProvider = serviceProvider;
+    }
 
-        public Orchestrator(IServiceProvider serviceProvider)
+    private static T ReturnAsResult<T>(object? data)
+    {
+        if (data is T result)
         {
-            _serviceProvider = serviceProvider;
+            return result;
+        }
+        throw new InvalidCastException($"The data returned by the orchestration is not of type {typeof(T).Name}");
+    }
+
+    private async Task<TResult> Execute<T, TResult>(T value, CancellationToken cancellationToken = default)
+        where T : IOrchestration<TResult>
+    {
+        Type orchestrationType = value.GetType();
+
+        Type[] typeArgs = [orchestrationType, typeof(TResult)];
+
+        Type orchestrationStepType = typeof(IOrchestrationStep<,>).MakeGenericType(typeArgs);
+
+        List<IOrchestrationStep<T, TResult>> steps = _serviceProvider
+            .GetServices(orchestrationStepType)
+            .Cast<IOrchestrationStep<T, TResult>>()
+            .OrderBy(x => x.Order)
+            .ToList();
+
+        if (steps.Count == 0)
+        {
+            throw new InvalidOperationException($"No steps found for orchestration {orchestrationType.Name}");
         }
 
-        private static T ReturnAsResult<T>(object? data)
+        var preliminaryStep = _serviceProvider.GetService<IPreliminaryOrchestrationStep<T, TResult>>();
+
+        var data = new OrchestrationData<T>(value);
+
+        int order = steps[0].Order;
+
+        RequiredState? previousState = null;
+
+        if (preliminaryStep != null)
         {
-            if (data is T result)
+            IOrchestrationStepResult result = await preliminaryStep.Execute(data, cancellationToken);
+
+            if (result is ISkipOrchestrationResult skip)
             {
-                return result;
+                return ReturnAsResult<TResult>(skip.Data);
             }
-            throw new InvalidCastException($"The data returned by the orchestration is not of type {typeof(T).Name}");
+
+            data.Advance(result);
+
+            previousState = result.IsSuccess ? RequiredState.Success : RequiredState.Failure;
+
+            if (result.JumpToOrder != null)
+            {
+                order = result.JumpToOrder.Value;
+            }
         }
 
-        private async Task<TResult> Execute<T, TResult>(T value, CancellationToken cancellationToken = default)
-            where T : IOrchestration<TResult>
+        while (true)
         {
-            Type orchestrationType = value.GetType();
+            cancellationToken.ThrowIfCancellationRequested();
 
-            Type[] typeArgs = [orchestrationType, typeof(TResult)];
+            IOrchestrationStep<T, TResult> step = steps.FirstOrDefault(x => x.Order == order)
+                ?? throw new InvalidOperationException($"No step found with order {order}");
 
-            Type orchestrationStepType = typeof(IOrchestrationStep<,>).MakeGenericType(typeArgs);
+            bool canExecute = true;
 
-            List<IOrchestrationStep<T, TResult>> steps = _serviceProvider
-                .GetServices(orchestrationStepType)
-                .Cast<IOrchestrationStep<T, TResult>>()
-                .OrderBy(x => x.Order)
-                .ToList();
-
-            if (steps.Count == 0)
+            if (step is IStateDependentOrchestrationStep<T, TResult> stateDependentStep)
             {
-                throw new InvalidOperationException($"No steps found for orchestration {orchestrationType.Name}");
+                canExecute = previousState == stateDependentStep.RequiredState;
             }
 
-            var preliminaryStep = _serviceProvider.GetService<IPreliminaryOrchestrationStep<T, TResult>>();
-
-            var data = new OrchestrationData<T>(value);
-
-            int order = steps[0].Order;
-
-            RequiredState? previousState = null;
-
-            if (preliminaryStep != null)
+            if (canExecute)
             {
-                IOrchestrationStepResult result = await preliminaryStep.Execute(data, cancellationToken);
-
-                if (result is ISkipOrchestrationResult skip)
+                if (step is IConditionalOrchestrationStep<T, TResult> conditionalStep)
                 {
-                    return ReturnAsResult<TResult>(skip.Data);
+                    canExecute = await conditionalStep.CanExecute(data, cancellationToken);
                 }
 
-                data.Advance(result);
-
-                previousState = result.IsSuccess ? RequiredState.Success : RequiredState.Failure;
-
-                if (result.JumpToOrder != null)
-                {
-                    order = result.JumpToOrder.Value;
-                }
-            }
-
-            while (true)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                IOrchestrationStep<T, TResult> step = steps.FirstOrDefault(x => x.Order == order)
-                    ?? throw new InvalidOperationException($"No step found with order {order}");
-
-                bool canExecute = true;
-
-                if (step is IStateDependentOrchestrationStep<T, TResult> stateDependentStep)
-                {
-                    canExecute = previousState == stateDependentStep.RequiredState;
-                }
+                int? jumpToOrder = null;
 
                 if (canExecute)
                 {
-                    if (step is IConditionalOrchestrationStep<T, TResult> conditionalStep)
+                    IOrchestrationStepResult result = await step.Execute(data, cancellationToken);
+                    data.Advance(result);
+
+                    if (result is ISkipOrchestrationResult skip)
                     {
-                        canExecute = await conditionalStep.CanExecute(data, cancellationToken);
+                        return ReturnAsResult<TResult>(skip.Data);
                     }
 
-                    int? jumpToOrder = null;
-
-                    if (canExecute)
-                    {
-                        IOrchestrationStepResult result = await step.Execute(data, cancellationToken);
-                        data.Advance(result);
-
-                        if (result is ISkipOrchestrationResult skip)
-                        {
-                            return ReturnAsResult<TResult>(skip.Data);
-                        }
-
-                        jumpToOrder = result.JumpToOrder;
-                        previousState = result.IsSuccess ? RequiredState.Success : RequiredState.Failure;
-                    }
-
-                    if (jumpToOrder != null)
-                    {
-                        order = jumpToOrder.Value;
-                    }
-                    else if (steps[^1] == step)
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        // set order to the next step
-                        order = steps[steps.IndexOf(step) + 1].Order;
-                    }
+                    jumpToOrder = result.JumpToOrder;
+                    previousState = result.IsSuccess ? RequiredState.Success : RequiredState.Failure;
                 }
-            }
 
-            var finalStep = _serviceProvider.GetService<IFinalOrchestrationStep<T, TResult>>();
-
-            if (finalStep != null)
-            {
-                return await finalStep.Execute(data, cancellationToken);
-            }
-            else
-            {
-                if (typeof(TResult) == typeof(Unit))
+                if (jumpToOrder != null)
                 {
-                    return (TResult)(object)Unit.Default;
+                    order = jumpToOrder.Value;
                 }
-                else if (data.Results.Count == 0)
+                else if (steps[^1] == step)
                 {
-                    throw new InvalidOperationException($"The orchestration {orchestrationType.Name} produced no results after completion.");
+                    break;
                 }
                 else
                 {
-                    return ReturnAsResult<TResult>(data.Results[^1]);
+                    // set order to the next step
+                    order = steps[steps.IndexOf(step) + 1].Order;
                 }
             }
         }
 
-        public Task<T> Execute<T>(IOrchestration<T> value, CancellationToken cancellationToken = default)
+        var finalStep = _serviceProvider.GetService<IFinalOrchestrationStep<T, TResult>>();
+
+        if (finalStep != null)
         {
-            Type orchestrationType = value.GetType();
-
-            Type[] typeArgs = [orchestrationType, typeof(T)];
-
-            var methodInfo = GetType().GetMethod(nameof(Execute), BindingFlags.NonPublic | BindingFlags.Instance);
-
-            var genericMethodInfo = methodInfo!.MakeGenericMethod(typeArgs);
-
-            return (Task<T>)genericMethodInfo.Invoke(this, [value, cancellationToken])!;
+            return await finalStep.Execute(data, cancellationToken);
         }
+        else
+        {
+            if (typeof(TResult) == typeof(Unit))
+            {
+                return (TResult)(object)Unit.Default;
+            }
+            else if (data.Results.Count == 0)
+            {
+                throw new InvalidOperationException($"The orchestration {orchestrationType.Name} produced no results after completion.");
+            }
+            else
+            {
+                return ReturnAsResult<TResult>(data.Results[^1]);
+            }
+        }
+    }
+
+    public Task<T> Execute<T>(IOrchestration<T> value, CancellationToken cancellationToken = default)
+    {
+        Type orchestrationType = value.GetType();
+
+        Type[] typeArgs = [orchestrationType, typeof(T)];
+
+        var methodInfo = GetType().GetMethod(nameof(Execute), BindingFlags.NonPublic | BindingFlags.Instance);
+
+        var genericMethodInfo = methodInfo!.MakeGenericMethod(typeArgs);
+
+        return (Task<T>)genericMethodInfo.Invoke(this, [value, cancellationToken])!;
     }
 }

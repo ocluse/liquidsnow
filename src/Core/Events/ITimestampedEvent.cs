@@ -1,11 +1,10 @@
-﻿namespace Ocluse.LiquidSnow.Events
+﻿namespace Ocluse.LiquidSnow.Events;
+
+///<inheritdoc/>
+public interface ITimestampedEvent : IEvent
 {
-    ///<inheritdoc/>
-    public interface ITimestampedEvent : IEvent
-    {
-        /// <summary>
-        /// The time when the event occurred.
-        /// </summary>
-        DateTime Timestamp { get; }
-    }
+    /// <summary>
+    /// The time when the event occurred.
+    /// </summary>
+    DateTime Timestamp { get; }
 }

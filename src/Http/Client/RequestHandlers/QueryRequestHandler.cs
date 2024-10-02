@@ -1,54 +1,53 @@
-﻿namespace Ocluse.LiquidSnow.Http.Client.RequestHandlers
+﻿namespace Ocluse.LiquidSnow.Http.Client.RequestHandlers;
+
+/// <summary>
+/// A handler that sends http request to a server by query string parameters.
+/// </summary>
+/// <remarks>
+/// Creates a new instance of the <see cref="QueryRequestHandler{TQuery,TResult}"/> class
+/// </remarks>
+public class QueryRequestHandler<TQuery, TResult>(
+    HttpMethod httpMethod, 
+    ISnowHttpClientFactory httpClientFactory, 
+    string path,
+    IHttpHandler? httpHandler = null,
+    string? clientName = null) 
+    : RequestHandler<TResult>(httpClientFactory, path, httpHandler, clientName)
 {
+
     /// <summary>
-    /// A handler that sends http request to a server by query string parameters.
+    /// The http method to use when sending the request
     /// </summary>
-    /// <remarks>
-    /// Creates a new instance of the <see cref="QueryRequestHandler{TQuery,TResult}"/> class
-    /// </remarks>
-    public class QueryRequestHandler<TQuery, TResult>(
-        HttpMethod httpMethod, 
-        ISnowHttpClientFactory httpClientFactory, 
-        string path,
-        IHttpHandler? httpHandler = null,
-        string? clientName = null) 
-        : RequestHandler<TResult>(httpClientFactory, path, httpHandler, clientName)
+    public HttpMethod HttpMethod { get; } = httpMethod;
+
+    /// <summary>
+    /// Converts the query object into a path with a query string.
+    /// </summary>
+    protected virtual string GetUrlPath(TQuery? query)
     {
-
-        /// <summary>
-        /// The http method to use when sending the request
-        /// </summary>
-        public HttpMethod HttpMethod { get; } = httpMethod;
-
-        /// <summary>
-        /// Converts the query object into a path with a query string.
-        /// </summary>
-        protected virtual string GetUrlPath(TQuery? query)
+        if (query == null)
         {
-            if (query == null)
-            {
-                return Path;
-            }
-            return $"{Path}?{GetQueryString(query)}";
+            return Path;
         }
-        /// <summary>
-        /// The final transformation applied to the url path before sending the request.
-        /// </summary>
-        protected virtual string GetTransformedUrlPath(TQuery? query)
-        {
-            string path = GetUrlPath(query);
+        return $"{Path}?{GetQueryString(query)}";
+    }
+    /// <summary>
+    /// The final transformation applied to the url path before sending the request.
+    /// </summary>
+    protected virtual string GetTransformedUrlPath(TQuery? query)
+    {
+        string path = GetUrlPath(query);
 
-            return TransformUrlPath(path);
-        }
+        return TransformUrlPath(path);
+    }
 
-        /// <summary>
-        /// Sends the request with the given query string parameters, returning the result.
-        /// </summary>
-        public async Task<TResult> ExecuteAsync(TQuery? query, CancellationToken cancellationToken = default)
-        {
-            string path = GetTransformedUrlPath(query);
-            using HttpRequestMessage request = new(HttpMethod, path);
-            return await SendAsync(request, cancellationToken);
-        }
+    /// <summary>
+    /// Sends the request with the given query string parameters, returning the result.
+    /// </summary>
+    public async Task<TResult> ExecuteAsync(TQuery? query, CancellationToken cancellationToken = default)
+    {
+        string path = GetTransformedUrlPath(query);
+        using HttpRequestMessage request = new(HttpMethod, path);
+        return await SendAsync(request, cancellationToken);
     }
 }

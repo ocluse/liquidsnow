@@ -1,64 +1,57 @@
 ﻿using System.Reflection;
 
-namespace Ocluse.LiquidSnow.Cqrs.Internal
+namespace Ocluse.LiquidSnow.Cqrs.Internal;
+
+internal readonly struct ExecutionDescriptor
 {
-    internal readonly struct ExecutionDescriptor
+    public const string HANDLE_METHOD_NAME = nameof(ICommandHandler<ICommand>.HandleAsync);
+
+    public ExecutionDescriptor(Type preExecutionHandler, Type postExecutionHandler, Type executionHandler, Type executionType, Type resultType)
     {
-        //private readonly Type? _stopExecutionResultType;
+        PreExecutionHandler = preExecutionHandler;
+        PostExecutionHandler = postExecutionHandler;
+        ExecutionHandler = executionHandler;
+        ResultType = resultType;
+        ExecutionType = executionType;
 
-        //private readonly MethodInfo? _preExecute, _postExecute, _execute;
+        StopExecutionResultType = typeof(PreExecutionResult.HaltExecutionResult<>).MakeGenericType(ResultType);
 
-        //private readonly PropertyInfo? _stopExecutionResultValuePropertyInfo;
+        var paramTypes = new Type[] { ExecutionType, typeof(CancellationToken) };
+        
+        PreExecute = PreExecutionHandler.GetMethod(HANDLE_METHOD_NAME, paramTypes)
+            ?? throw new InvalidOperationException("Handle method not found on handler");
 
-        public const string HANDLE_METHOD_NAME = "Handle";
+        Execute = ExecutionHandler.GetMethod(HANDLE_METHOD_NAME, paramTypes)
+                    ?? throw new InvalidOperationException("Handle method not found on handler");
 
-        public ExecutionDescriptor(Type preExecutionHandler, Type postExecutionHandler, Type executionHandler, Type executionType, Type resultType)
-        {
-            PreExecutionHandler = preExecutionHandler;
-            PostExecutionHandler = postExecutionHandler;
-            ExecutionHandler = executionHandler;
-            ResultType = resultType;
-            ExecutionType = executionType;
+        var postParamTypes = new Type[] { ExecutionType, ResultType, typeof(CancellationToken) };
 
-            StopExecutionResultType = typeof(PreExecutionResult.StopPreExecutionResult<>).MakeGenericType(ResultType);
+        PostExecute = PostExecutionHandler.GetMethod(HANDLE_METHOD_NAME, postParamTypes)
+                    ?? throw new InvalidOperationException("Handle method not found on handler");
 
-            var paramTypes = new Type[] { ExecutionType, typeof(CancellationToken) };
-            
-            PreExecute = PreExecutionHandler.GetMethod(HANDLE_METHOD_NAME, paramTypes)
-                ?? throw new InvalidOperationException("Handle method not found on handler");
+        StopExecutionResultType = typeof(PreExecutionResult.HaltExecutionResult<>).MakeGenericType(ResultType);
 
-            Execute = ExecutionHandler.GetMethod(HANDLE_METHOD_NAME, paramTypes)
-                        ?? throw new InvalidOperationException("Handle method not found on handler");
-
-            var postParamTypes = new Type[] { ExecutionType, ResultType, typeof(CancellationToken) };
-
-            PostExecute = PostExecutionHandler.GetMethod(HANDLE_METHOD_NAME, postParamTypes)
-                        ?? throw new InvalidOperationException("Handle method not found on handler");
-
-            StopExecutionResultType = typeof(PreExecutionResult.StopPreExecutionResult<>).MakeGenericType(ResultType);
-
-            StopExecutionResultValuePropertyInfo = StopExecutionResultType.GetProperty("Value")
-                        ?? throw new InvalidOperationException("Value property not found on stop execution result");
-        }
-
-        public Type ExecutionType { get; }
-
-        public Type PreExecutionHandler { get; }
-
-        public Type PostExecutionHandler { get; }
-
-        public Type ExecutionHandler { get; }
-
-        public Type StopExecutionResultType{ get; }
-
-        public PropertyInfo StopExecutionResultValuePropertyInfo { get; }
-
-        public Type ResultType { get; }
-
-        public MethodInfo PreExecute { get; }
-
-        public MethodInfo Execute{get;}
-
-        public MethodInfo PostExecute { get; }
+        StopExecutionResultValuePropertyInfo = StopExecutionResultType.GetProperty("Value")
+                    ?? throw new InvalidOperationException("Value property not found on stop execution result");
     }
+
+    public Type ExecutionType { get; }
+
+    public Type PreExecutionHandler { get; }
+
+    public Type PostExecutionHandler { get; }
+
+    public Type ExecutionHandler { get; }
+
+    public Type StopExecutionResultType{ get; }
+
+    public PropertyInfo StopExecutionResultValuePropertyInfo { get; }
+
+    public Type ResultType { get; }
+
+    public MethodInfo PreExecute { get; }
+
+    public MethodInfo Execute{get;}
+
+    public MethodInfo PostExecute { get; }
 }

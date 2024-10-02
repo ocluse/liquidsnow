@@ -1,12 +1,11 @@
-﻿namespace Ocluse.LiquidSnow.Steganography.Media.Internals
-{
-    internal class Channel
-    {
-        public byte[] Data { get; set; }
+﻿namespace Ocluse.LiquidSnow.Steganography.Media.Internals;
 
-        public Channel(byte[] data)
-        {
-            Data = data;
-        }
+internal class Channel
+{
+    public byte[] Data { get; set; }
+
+    public Channel(byte[] data)
+    {
+        Data = data;
     }
 }

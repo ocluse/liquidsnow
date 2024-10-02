@@ -2,42 +2,41 @@
 using Ocluse.LiquidSnow.Events;
 using System.Reflection;
 
-namespace Ocluse.LiquidSnow.DependencyInjection
+namespace Ocluse.LiquidSnow.DependencyInjection;
+
+/// <summary>
+/// Builder for adding event handlers to the service collection.
+/// </summary>
+public class EventBusBuilder
 {
+    private readonly ServiceLifetime _handlerLifetime;
+
     /// <summary>
-    /// Builder for adding event handlers to the service collection.
+    /// Gets the service collection where the handlers are configured.
     /// </summary>
-    public class EventBusBuilder
+    public IServiceCollection Services { get; }
+
+    internal EventBusBuilder(ServiceLifetime handlerLifetime, IServiceCollection services)
     {
-        private readonly ServiceLifetime _handlerLifetime;
+        _handlerLifetime = handlerLifetime;
+        Services = services;
+    }
 
-        /// <summary>
-        /// Gets the service collection where the handlers are configured.
-        /// </summary>
-        public IServiceCollection Services { get; }
+    ///<inheritdoc cref="AddHandlers(IEnumerable{Assembly})"/>
+    public EventBusBuilder AddHandlers(params Assembly[] assemblies)
+    {
+        return AddHandlers(assemblies.AsEnumerable());
+    }
 
-        internal EventBusBuilder(ServiceLifetime handlerLifetime, IServiceCollection services)
+    /// <summary>
+    /// Adds event handlers from the provided assemblies.
+    /// </summary>
+    public EventBusBuilder AddHandlers(IEnumerable<Assembly> assemblies)
+    {
+        foreach (var assembly in assemblies)
         {
-            _handlerLifetime = handlerLifetime;
-            Services = services;
+            Services.AddImplementers(typeof(IEventHandler<>), assembly, _handlerLifetime, false);
         }
-
-        ///<inheritdoc cref="AddHandlers(IEnumerable{Assembly})"/>
-        public EventBusBuilder AddHandlers(params Assembly[] assemblies)
-        {
-            return AddHandlers(assemblies.AsEnumerable());
-        }
-
-        /// <summary>
-        /// Adds event handlers from the provided assemblies.
-        /// </summary>
-        public EventBusBuilder AddHandlers(IEnumerable<Assembly> assemblies)
-        {
-            foreach (var assembly in assemblies)
-            {
-                Services.AddImplementers(typeof(IEventHandler<>), assembly, _handlerLifetime, false);
-            }
-            return this;
-        }
+        return this;
     }
 }

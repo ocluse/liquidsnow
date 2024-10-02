@@ -4,209 +4,208 @@ using Ocluse.LiquidSnow.Extensions;
 using Ocluse.LiquidSnow.Utils;
 using Ocluse.LiquidSnow.Cryptography.Symmetrics;
 
-namespace Ocluse.LiquidSnow.Cryptography.IO.Internals
+namespace Ocluse.LiquidSnow.Cryptography.IO.Internals;
+
+
+internal class CryptoContainer(ISymmetric algorithm, Stream stream, byte[] key) : ICryptoContainer
 {
 
-    internal class CryptoContainer(ISymmetric algorithm, Stream stream, byte[] key) : ICryptoContainer
+    #region Constructors
+
+    #endregion
+
+    #region Properties
+
+    public byte[] Key { get; } = key;
+
+    public ISymmetric Algorithm { get; } = algorithm;
+
+    protected Package Package { get; } = Package.Open(stream, FileMode.OpenOrCreate);
+
+    #endregion
+
+    #region Protected Methods
+
+    protected virtual Task<Uri> GetPartUriAsync(string name, CancellationToken cancellationToken)
     {
+        Uri uri = PackUriHelper.CreatePartUri(new Uri(name, UriKind.Relative));
 
-        #region Constructors
+        return Task.FromResult(uri);
+    }
 
-        #endregion
+    #endregion
 
-        #region Properties
+    #region Stream IO
 
-        public byte[] Key { get; } = key;
+    protected async Task AddStreamCore(Uri uri, Stream input, bool overwrite = false, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
+    {
+        PackagePart part = Package.PartExists(uri)
+            ? overwrite ? Package.GetPart(uri) : throw new IOException("Item already exists")
+            : Package.CreatePart(uri, "");
 
-        public ISymmetric Algorithm { get; } = algorithm;
+        using Stream output = part.GetStream();
+        using ICryptoFile ef = IOBuilder.CreateFile(Algorithm, Key, output);
+        await ef.WriteAsync(input, progress, cancellationToken).ConfigureAwait(false);
+    }
 
-        protected Package Package { get; } = Package.Open(stream, FileMode.OpenOrCreate);
+    public async Task AddStreamAsync(string name, Stream input, bool overwrite = false, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
+    {
+        Uri uri = await GetPartUriAsync(name, cancellationToken);
+        await AddStreamCore(uri, input, overwrite, progress, cancellationToken).ConfigureAwait(false);
+    }
 
-        #endregion
-
-        #region Protected Methods
-
-        protected virtual Task<Uri> GetPartUriAsync(string name, CancellationToken cancellationToken)
+    protected async Task GetStreamCore(Uri uri, Stream output, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
+    {
+        if (!Package.PartExists(uri))
         {
-            Uri uri = PackUriHelper.CreatePartUri(new Uri(name, UriKind.Relative));
-
-            return Task.FromResult(uri);
+            throw new FileNotFoundException("Item does not exist");
         }
 
-        #endregion
+        using Stream input = Package.GetPart(uri).GetStream();
+        using ICryptoFile ef = IOBuilder.CreateFile(Algorithm, Key, input);
+        await ef.ReadAsync(output, progress, cancellationToken).ConfigureAwait(false);
+    }
 
-        #region Stream IO
+    public async Task GetStreamAsync(string name, Stream output, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
+    {
+        Uri uri = await GetPartUriAsync(name, cancellationToken);
+        await GetStreamCore(uri, output, progress, cancellationToken).ConfigureAwait(false);
+    }
 
-        protected async Task AddStreamCore(Uri uri, Stream input, bool overwrite = false, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
+    #endregion
+
+    #region Byte IO
+
+    public async Task AddBytesAsync(string name, byte[] data, bool overwrite = false, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
+    {
+        using MemoryStream msData = new(data);
+        await AddStreamAsync(name, msData, overwrite, progress, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<byte[]> GetBytesAsync(string name, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
+    {
+        using MemoryStream msData = new();
+        await GetStreamAsync(name, msData, progress, cancellationToken).ConfigureAwait(false);
+        return msData.ToArray();
+    }
+    #endregion
+
+    #region String IO
+    public async Task AddTextAsync(string name, string contents, bool overwrite = false, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
+    {
+        await AddBytesAsync(name, contents.GetBytes<UTF8Encoding>(), overwrite, progress, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<string> GetTextAsync(string name, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
+    {
+        byte[] bytes = await GetBytesAsync(name, progress, cancellationToken).ConfigureAwait(false);
+        return bytes.GetString<UTF8Encoding>();
+    }
+    #endregion
+
+    #region Misc Methods
+
+    public virtual Task<List<string>> EnumerateItemsAsync(CancellationToken cancellationToken = default)
+    {
+        PackagePartCollection parts = Package.GetParts();
+
+        List<string> result = [];
+
+        foreach (var part in parts)
         {
-            PackagePart part = Package.PartExists(uri)
-                ? overwrite ? Package.GetPart(uri) : throw new IOException("Item already exists")
-                : Package.CreatePart(uri, "");
-
-            using Stream output = part.GetStream();
-            using ICryptoFile ef = IOBuilder.CreateFile(Algorithm, Key, output);
-            await ef.WriteAsync(input, progress, cancellationToken).ConfigureAwait(false);
+            result.Add(part.Uri.ToString().TrimStart('/'));
         }
 
-        public async Task AddStreamAsync(string name, Stream input, bool overwrite = false, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
+        return Task.FromResult(result);
+    }
+
+    public async Task ExtractContainerAsync(string outputDirectory, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
+    {
+        if (!Directory.Exists(outputDirectory))
         {
-            Uri uri = await GetPartUriAsync(name, cancellationToken);
-            await AddStreamCore(uri, input, overwrite, progress, cancellationToken).ConfigureAwait(false);
+            _ = Directory.CreateDirectory(outputDirectory);
         }
 
-        protected async Task GetStreamCore(Uri uri, Stream output, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
+        var items = await EnumerateItemsAsync(cancellationToken);
+
+        if(items.Count == 0)
         {
-            if (!Package.PartExists(uri))
+            return;
+        }
+
+        int index = 0;
+
+        Progress<double>? innerProgress = new() { };
+
+        innerProgress.ProgressChanged += (o, e) =>
+        {
+            double percent = (index + e) / items.Count;
+            progress?.Report(percent);
+        };
+
+        if (progress == null)
+        {
+            innerProgress = null;
+        }
+
+        foreach (var item in items)
+        {
+            if (cancellationToken.IsCancellationRequested)
             {
-                throw new FileNotFoundException("Item does not exist");
+                cancellationToken.ThrowIfCancellationRequested();
             }
 
-            using Stream input = Package.GetPart(uri).GetStream();
-            using ICryptoFile ef = IOBuilder.CreateFile(Algorithm, Key, input);
-            await ef.ReadAsync(output, progress, cancellationToken).ConfigureAwait(false);
-        }
+            string path = IOUtility.CombinePath(outputDirectory, item);
 
-        public async Task GetStreamAsync(string name, Stream output, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
-        {
-            Uri uri = await GetPartUriAsync(name, cancellationToken);
-            await GetStreamCore(uri, output, progress, cancellationToken).ConfigureAwait(false);
-        }
+            //ensure the parent directory exists:
+            string? parent = Path.GetDirectoryName(path);
 
-        #endregion
-
-        #region Byte IO
-
-        public async Task AddBytesAsync(string name, byte[] data, bool overwrite = false, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
-        {
-            using MemoryStream msData = new(data);
-            await AddStreamAsync(name, msData, overwrite, progress, cancellationToken).ConfigureAwait(false);
-        }
-
-        public async Task<byte[]> GetBytesAsync(string name, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
-        {
-            using MemoryStream msData = new();
-            await GetStreamAsync(name, msData, progress, cancellationToken).ConfigureAwait(false);
-            return msData.ToArray();
-        }
-        #endregion
-
-        #region String IO
-        public async Task AddTextAsync(string name, string contents, bool overwrite = false, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
-        {
-            await AddBytesAsync(name, contents.GetBytes<UTF8Encoding>(), overwrite, progress, cancellationToken).ConfigureAwait(false);
-        }
-
-        public async Task<string> GetTextAsync(string name, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
-        {
-            byte[] bytes = await GetBytesAsync(name, progress, cancellationToken).ConfigureAwait(false);
-            return bytes.GetString<UTF8Encoding>();
-        }
-        #endregion
-
-        #region Misc Methods
-
-        public virtual Task<List<string>> EnumerateItemsAsync(CancellationToken cancellationToken = default)
-        {
-            PackagePartCollection parts = Package.GetParts();
-
-            List<string> result = [];
-
-            foreach (var part in parts)
+            if (!string.IsNullOrEmpty(parent) && !Directory.Exists(parent))
             {
-                result.Add(part.Uri.ToString().TrimStart('/'));
+                _ = Directory.CreateDirectory(parent);
             }
 
-            return Task.FromResult(result);
+            using FileStream fs = File.OpenWrite(path);
+            await GetStreamAsync(item, fs, innerProgress, cancellationToken);
+
+            index++;
         }
+    }
 
-        public async Task ExtractContainerAsync(string outputDirectory, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
+    public async Task<bool> ExistsAsync(string name, CancellationToken cancellationToken = default)
+    {
+        Uri uri = await GetPartUriAsync(name, cancellationToken);
+        return Package.PartExists(uri);
+    }
+
+    public async Task<bool> DeleteAsync(string name)
+    {
+        Uri uri = await GetPartUriAsync(name, CancellationToken.None);
+
+        if (Package.PartExists(uri))
         {
-            if (!Directory.Exists(outputDirectory))
+            try
             {
-                _ = Directory.CreateDirectory(outputDirectory);
+                Package.DeletePart(uri);
+                return true;
             }
-
-            var items = await EnumerateItemsAsync(cancellationToken);
-
-            if(items.Count == 0)
-            {
-                return;
-            }
-
-            int index = 0;
-
-            Progress<double>? innerProgress = new() { };
-
-            innerProgress.ProgressChanged += (o, e) =>
-            {
-                double percent = (index + e) / items.Count;
-                progress?.Report(percent);
-            };
-
-            if (progress == null)
-            {
-                innerProgress = null;
-            }
-
-            foreach (var item in items)
-            {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                }
-
-                string path = IOUtility.CombinePath(outputDirectory, item);
-
-                //ensure the parent directory exists:
-                string? parent = Path.GetDirectoryName(path);
-
-                if (!string.IsNullOrEmpty(parent) && !Directory.Exists(parent))
-                {
-                    _ = Directory.CreateDirectory(parent);
-                }
-
-                using FileStream fs = File.OpenWrite(path);
-                await GetStreamAsync(item, fs, innerProgress, cancellationToken);
-
-                index++;
-            }
-        }
-
-        public async Task<bool> ExistsAsync(string name, CancellationToken cancellationToken = default)
-        {
-            Uri uri = await GetPartUriAsync(name, cancellationToken);
-            return Package.PartExists(uri);
-        }
-
-        public async Task<bool> DeleteAsync(string name)
-        {
-            Uri uri = await GetPartUriAsync(name, CancellationToken.None);
-
-            if (Package.PartExists(uri))
-            {
-                try
-                {
-                    Package.DeletePart(uri);
-                    return true;
-                }
-                catch
-                {
-                    return false;
-                }
-            }
-            else
+            catch
             {
                 return false;
             }
-
         }
-
-        public void Dispose()
+        else
         {
-            Package.Close();
-            stream.Dispose();
+            return false;
         }
 
-        #endregion
     }
+
+    public void Dispose()
+    {
+        Package.Close();
+        stream.Dispose();
+    }
+
+    #endregion
 }

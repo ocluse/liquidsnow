@@ -1,13 +1,12 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
-namespace Ocluse.LiquidSnow.Http.Client
+namespace Ocluse.LiquidSnow.Http.Client;
+
+internal class SnowClientBuilder : ISnowClientBuilder
 {
-    internal class SnowClientBuilder : ISnowClientBuilder
+    public IServiceCollection Services { get; }
+    public SnowClientBuilder(IServiceCollection services)
     {
-        public IServiceCollection Services { get; }
-        public SnowClientBuilder(IServiceCollection services)
-        {
-            Services = services;
-        }
+        Services = services;
     }
 }

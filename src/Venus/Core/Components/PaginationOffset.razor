@@ -1,0 +1,141 @@
+@    using System.Text;
+    using Ocluse.LiquidSnow.Venus.Values;
+@inherits PaginationBase
+
+<div class="@base.GetClass()" style="@GetStyle()">
+
+    @if (_totalPages > 0)
+    {
+        int startPage = CurrentPage - 5;
+        if (startPage < 0)
+        {
+            startPage = 0;
+        }
+
+        int endPage = startPage + 9;
+        if (endPage > _totalPages)
+        {
+            endPage = _totalPages - 1;
+            startPage = endPage - 9;
+            if (startPage < 0)
+            {
+                startPage = 0;
+            }
+        }
+
+        @if (LinkGenerator != null)
+        {
+            <a class="@GetAppliedPreviousClass()" @attributes="GetPreviousAttributes()">
+                @if (PaginationPreviousContent != null)
+                {
+                    @PaginationPreviousContent
+                }
+                else
+                {
+                    if (Resolver.IconStyle == IconStyle.Fluent)
+                    {
+                        <FluentIcon Icon="@ComponentIcons.Fluent.ChevronLeft" Size="Resolver.DefaultButtonIconSize" />
+                    }
+                    else
+                    {
+                        <FeatherIcon Icon="@ComponentIcons.Feather.ChevronLeft" Size="Resolver.DefaultButtonIconSize" />
+                    }
+                }
+            </a>
+
+            for (int i = startPage; i <= endPage; i++)
+            {
+                var buttonNumber = i;
+                var isActive = i == CurrentPage;
+
+                <a class="@GetPaginationItemClass(isActive)" @attributes="GetItemAttributes(buttonNumber, isActive)">
+                    @if (PaginationItemTemplate != null)
+                    {
+                        @PaginationItemTemplate(buttonNumber + 1)
+                    }
+                    else
+                    {
+                        @(buttonNumber + 1)
+                    }
+                </a>
+            }
+
+            <a class="@GetAppliedNextClass()" @attributes="GetNextAttributes()">
+                @if (PaginationNextContent != null)
+                {
+                    @PaginationPreviousContent
+                }
+                else
+                {
+                    if (Resolver.IconStyle == IconStyle.Fluent)
+                    {
+                        <FluentIcon Icon="@ComponentIcons.Fluent.ChevronRight" Size="Resolver.DefaultButtonIconSize" />
+                    }
+                    else
+                    {
+                        <FeatherIcon Icon="@ComponentIcons.Feather.ChevronRight" Size="Resolver.DefaultButtonIconSize" />
+                    }
+                }
+            </a>
+        }
+        else
+        {
+            <button class="@GetAppliedPreviousClass()" @onclick="MovePrevious" disabled="@(CanGoPrevious!)">
+                @if (PaginationPreviousContent != null)
+                {
+                    @PaginationPreviousContent
+                }
+                else
+                {
+                    if (Resolver.IconStyle == IconStyle.Fluent)
+                    {
+                        <FluentIcon Icon="@ComponentIcons.Fluent.ChevronLeft" Size="Resolver.DefaultButtonIconSize" />
+                    }
+                    else
+                    {
+                        <FeatherIcon Icon="@ComponentIcons.Feather.ChevronLeft" Size="Resolver.DefaultButtonIconSize" />
+                    }
+                }
+
+            </button>
+
+            for (int i = startPage; i <= endPage; i++)
+            {
+                var buttonNumber = i;
+                var isActive = i == CurrentPage;
+
+                <button class="@GetPaginationItemClass(isActive)" @onclick="(() => ChangePage(buttonNumber))" disabled="@(isActive)">
+                    @if (PaginationItemTemplate != null)
+                    {
+                        @PaginationItemTemplate(buttonNumber + 1)
+                    }
+                    else
+                    {
+
+                        @(buttonNumber + 1)
+                    }
+                </button>
+            }
+
+            <button class="@GetAppliedNextClass()" @onclick="MoveNext" disabled="@(CanGoNext!)">
+                @if (PaginationNextContent != null)
+                {
+                    @PaginationNextContent
+                }
+                else
+                {
+                    if (Resolver.IconStyle == IconStyle.Fluent)
+                    {
+                        <FluentIcon Icon="@ComponentIcons.Fluent.ChevronRight" Size="Resolver.DefaultButtonIconSize" />
+                    }
+                    else
+                    {
+                        <FeatherIcon Icon="@ComponentIcons.Feather.ChevronRight" Size="Resolver.DefaultButtonIconSize" />
+                    }
+                }
+            </button>
+        }
+    }
+
+</div>
+

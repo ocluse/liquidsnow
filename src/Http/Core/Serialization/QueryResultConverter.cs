@@ -2,76 +2,75 @@
 using System.Text.Json;
 using Ocluse.LiquidSnow.Extensions;
 
-namespace Ocluse.LiquidSnow.Http.Serialization
+namespace Ocluse.LiquidSnow.Http.Serialization;
+
+/// <summary>
+/// Converts a <see cref="QueryResult{T}"/> to and from JSON.
+/// </summary>
+public class QueryResultConverter<T> : JsonConverter<QueryResult<T>>
 {
     /// <summary>
-    /// Converts a <see cref="QueryResult{T}"/> to and from JSON.
+    /// The type to use when deserializing a custom query result.
     /// </summary>
-    public class QueryResultConverter<T> : JsonConverter<QueryResult<T>>
-    {
-        /// <summary>
-        /// The type to use when deserializing a custom query result.
-        /// </summary>
-        protected virtual Type CustomQueryResultType { get; } = typeof(CustomQueryResult<T>);
+    protected virtual Type CustomQueryResultType { get; } = typeof(CustomQueryResult<T>);
 
-        /// <summary>
-        /// Returns the type matching the specified <see cref="QueryType"/>.
-        /// </summary>
-        protected virtual Type ResolveType(QueryType queryType)
+    /// <summary>
+    /// Returns the type matching the specified <see cref="QueryType"/>.
+    /// </summary>
+    protected virtual Type ResolveType(QueryType queryType)
+    {
+        return queryType switch
         {
-            return queryType switch
-            {
-                QueryType.Cursor => typeof(CursorQueryResult<T>),
-                QueryType.Offset => typeof(OffsetQueryResult<T>),
-                QueryType.Ids => typeof(IdsQueryResult<T>),
-                QueryType.Custom => CustomQueryResultType,
-                _ => throw new JsonException($"Unknown QueryType: {queryType}")
-            };
+            QueryType.Cursor => typeof(CursorQueryResult<T>),
+            QueryType.Offset => typeof(OffsetQueryResult<T>),
+            QueryType.Ids => typeof(IdsQueryResult<T>),
+            QueryType.Custom => CustomQueryResultType,
+            _ => throw new JsonException($"Unknown QueryType: {queryType}")
+        };
+    }
+
+    ///<inheritdoc/>
+    public override QueryResult<T>? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.Null)
+        {
+            return null;
         }
 
-        ///<inheritdoc/>
-        public override QueryResult<T>? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        if (reader.TokenType != JsonTokenType.StartObject)
         {
-            if (reader.TokenType == JsonTokenType.Null)
+            throw new JsonException();
+        }
+
+        QueryResult<T>? result;
+
+        if (JsonDocument.TryParseValue(ref reader, out var doc))
+        {
+            if (doc.RootElement.TryGetPropertyNoCase(nameof(QueryResult<object>.QType), out var queryTypeProperty))
             {
-                return null;
-            }
+                QueryType queryType = (QueryType)queryTypeProperty.GetInt32();
 
-            if (reader.TokenType != JsonTokenType.StartObject)
-            {
-                throw new JsonException();
-            }
+                Type type = ResolveType(queryType);
 
-            QueryResult<T>? result;
-
-            if (JsonDocument.TryParseValue(ref reader, out var doc))
-            {
-                if (doc.RootElement.TryGetPropertyNoCase(nameof(QueryResult<object>.QType), out var queryTypeProperty))
-                {
-                    QueryType queryType = (QueryType)queryTypeProperty.GetInt32();
-
-                    Type type = ResolveType(queryType);
-
-                    result = (QueryResult<T>?)doc.Deserialize(type, options);
-                }
-                else
-                {
-                    throw new JsonException($"{nameof(QueryType)} missing");
-                }
+                result = (QueryResult<T>?)doc.Deserialize(type, options);
             }
             else
             {
-                throw new JsonException("Failed to parse JsonDocument");
+                throw new JsonException($"{nameof(QueryType)} missing");
             }
-
-            return result;
         }
-
-        ///<inheritdoc/>
-        public override void Write(Utf8JsonWriter writer, QueryResult<T> value, JsonSerializerOptions options)
+        else
         {
-            var type = value.GetType();
-            JsonSerializer.Serialize(writer, value, type, options);
+            throw new JsonException("Failed to parse JsonDocument");
         }
+
+        return result;
+    }
+
+    ///<inheritdoc/>
+    public override void Write(Utf8JsonWriter writer, QueryResult<T> value, JsonSerializerOptions options)
+    {
+        var type = value.GetType();
+        JsonSerializer.Serialize(writer, value, type, options);
     }
 }

@@ -7,7 +7,7 @@
 	<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	<GenerateDocumentationFile>true</GenerateDocumentationFile>
-	<Version>0.5.2</Version>
+	<Version>0.6.0-preview1.0</Version>
 	<Authors>Ocluse</Authors>
 	<PackageOutputPath>..\..\..\build</PackageOutputPath>
 	<Description>Provides utilities for performing easy cryptographic operations such as encryption and decryption. It also adds support for generating random numbers, strings, and IDs.</Description>

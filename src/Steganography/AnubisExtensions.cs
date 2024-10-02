@@ -1,38 +1,37 @@
 ﻿using System.Collections;
 
-namespace Ocluse.LiquidSnow.Steganography
+namespace Ocluse.LiquidSnow.Steganography;
+
+internal static class AnubisExtensions
 {
-    internal static class AnubisExtensions
+    public static ulong ToULong(this BitArray ba)
     {
-        public static ulong ToULong(this BitArray ba)
+        int len = Math.Min(64, ba.Count);
+        ulong n = 0;
+        for (int i = 0; i < len; i++)
         {
-            int len = Math.Min(64, ba.Count);
-            ulong n = 0;
-            for (int i = 0; i < len; i++)
-            {
-                if (ba.Get(i))
-                    n |= 1UL << i;
-            }
-            return n;
+            if (ba.Get(i))
+                n |= 1UL << i;
         }
+        return n;
+    }
 
-        public static void Reverse(this BitArray array)
+    public static void Reverse(this BitArray array)
+    {
+        int length = array.Length;
+        int mid = length / 2;
+
+        for (int i = 0; i < mid; i++)
         {
-            int length = array.Length;
-            int mid = length / 2;
-
-            for (int i = 0; i < mid; i++)
-            {
-                (array[length - i - 1], array[i]) = (array[i], array[length - i - 1]);
-            }
+            (array[length - i - 1], array[i]) = (array[i], array[length - i - 1]);
         }
+    }
 
-        public static byte[] ToBytes(this BitArray bits)
-        {
-            // Make sure we have enough space allocated even when number of bits is not a multiple of 8
-            byte[] bytes = new byte[(bits.Length - 1) / 8 + 1];
-            bits.CopyTo(bytes, 0);
-            return bytes;
-        }
+    public static byte[] ToBytes(this BitArray bits)
+    {
+        // Make sure we have enough space allocated even when number of bits is not a multiple of 8
+        byte[] bytes = new byte[(bits.Length - 1) / 8 + 1];
+        bits.CopyTo(bytes, 0);
+        return bytes;
     }
 }

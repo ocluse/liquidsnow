@@ -1,35 +1,34 @@
 ﻿using System.Text;
 
-namespace Ocluse.LiquidSnow.Venus
+namespace Ocluse.LiquidSnow.Venus;
+
+/// <summary>
+/// Utility class for building a string of CSS styles.
+/// </summary>
+public class StyleBuilder : BuilderBase
 {
     /// <summary>
-    /// Utility class for building a string of CSS styles.
+    /// Returns a well formatted css style string represented by all the styles in the builder.
     /// </summary>
-    public class StyleBuilder : BuilderBase
+    public override string Build()
     {
-        /// <summary>
-        /// Returns a well formatted css style string represented by all the styles in the builder.
-        /// </summary>
-        public override string Build()
+        if (Items.Count == 0)
         {
-            if (Items.Count == 0)
-            {
-                return string.Empty;
-            }
-
-            StringBuilder sb = new();
-
-            foreach (var item in Items)
-            {
-                sb.Append(item);
-
-                if (!item.EndsWith(';'))
-                {
-                    sb.Append(';');
-                }
-            }
-
-            return sb.ToString();
+            return string.Empty;
         }
+
+        StringBuilder sb = new();
+
+        foreach (var item in Items)
+        {
+            sb.Append(item);
+
+            if (!item.EndsWith(';'))
+            {
+                sb.Append(';');
+            }
+        }
+
+        return sb.ToString();
     }
 }

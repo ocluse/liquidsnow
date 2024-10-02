@@ -1,19 +1,15 @@
-﻿namespace Ocluse.LiquidSnow.Cqrs
+﻿namespace Ocluse.LiquidSnow.Cqrs;
+
+/// <summary>
+/// A contract for creating handlers for queries which are executed after the query is executed by its main handler.
+/// </summary>
+public interface IPostQueryExecutionHandler<TQuery, TQueryResult>
 {
     /// <summary>
-    /// A contract for creating handlers for queries which are executed after the query is executed.
+    /// Executes the handler and returns the result of the operation.
     /// </summary>
-    public interface IPostQueryExecutionHandler<TQuery, TQueryResult>
-    {
-        /// <summary>
-        /// Executes this handler.
-        /// </summary>
-        /// <remarks>
-        /// The value returned by this handler will be deemed the final result of the query execution.
-        /// </remarks>
-        /// <param name="query">The query being executed</param>
-        /// <param name="result">The result from the execution of the query</param>
-        /// <param name="cancellationToken">The token used to cancel the operation</param>
-        Task<TQueryResult> Handle(TQuery query, TQueryResult result, CancellationToken cancellationToken = default);
-    }
+    /// <remarks>
+    /// The value returned by this handler will be deemed the final result of the query execution.
+    /// </remarks>
+    Task<TQueryResult> HandleAsync(TQuery query, TQueryResult result, CancellationToken cancellationToken = default);
 }

@@ -1,16 +1,11 @@
-﻿namespace Ocluse.LiquidSnow.Cqrs.Internal
+﻿namespace Ocluse.LiquidSnow.Cqrs.Internal;
+
+internal class QueryDispatcher(IServiceProvider serviceProvider) : IQueryDispatcher
 {
-    internal class QueryDispatcher : IQueryDispatcher
+    public async Task<TQueryResult> DispatchAsync<TQueryResult>(IQuery<TQueryResult> query, CancellationToken cancellationToken)
     {
-        private readonly IServiceProvider _serviceProvider;
+        ExecutionDescriptor descriptor = ExecutionsHelper.GetDescriptor<TQueryResult>(ExecutionKind.Query, query);
 
-        public QueryDispatcher(IServiceProvider serviceProvider) => _serviceProvider = serviceProvider;
-
-        public async Task<TQueryResult> Dispatch<TQueryResult>(IQuery<TQueryResult> query, CancellationToken cancellationToken)
-        {
-            ExecutionDescriptor descriptor = ExecutionsHelper.GetDescriptor<TQueryResult>(ExecutionKind.Query, query);
-
-            return await ExecutionsHelper.ExecuteDescriptor<TQueryResult>(query, descriptor, _serviceProvider, cancellationToken);
-        }
+        return await ExecutionsHelper.ExecuteDescriptorAsync<TQueryResult>(query, descriptor, serviceProvider, cancellationToken);
     }
 }

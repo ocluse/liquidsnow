@@ -2,44 +2,43 @@
 using System.Reflection;
 using Ocluse.LiquidSnow.Orchestrations;
 
-namespace Ocluse.LiquidSnow.DependencyInjection
+namespace Ocluse.LiquidSnow.DependencyInjection;
+
+/// <summary>
+/// Builder for adding orchestrations to the service collection.
+/// </summary>
+public class OrchestratorBuilder
 {
+    private readonly ServiceLifetime _stepLifetime;
+
     /// <summary>
-    /// Builder for adding orchestrations to the service collection.
+    /// Gets the service collection where the orchestration steps are configured.
     /// </summary>
-    public class OrchestratorBuilder
+    public IServiceCollection Services { get; }
+
+    internal OrchestratorBuilder(ServiceLifetime handlerLifetime, IServiceCollection services)
     {
-        private readonly ServiceLifetime _stepLifetime;
+        _stepLifetime = handlerLifetime;
+        Services = services;
+    }
 
-        /// <summary>
-        /// Gets the service collection where the orchestration steps are configured.
-        /// </summary>
-        public IServiceCollection Services { get; }
+    ///<inheritdoc cref="AddSteps(IEnumerable{Assembly})"/>
+    public OrchestratorBuilder AddSteps(params Assembly[] assemblies)
+    {
+        return AddSteps(assemblies.AsEnumerable());
+    }
 
-        internal OrchestratorBuilder(ServiceLifetime handlerLifetime, IServiceCollection services)
+    /// <summary>
+    /// Adds orchestration steps from the provided assemblies.
+    /// </summary>
+    public OrchestratorBuilder AddSteps(IEnumerable<Assembly> assemblies)
+    {
+        foreach (var assembly in assemblies)
         {
-            _stepLifetime = handlerLifetime;
-            Services = services;
+            Services.AddImplementers(typeof(IOrchestrationStep<,>), assembly, _stepLifetime, false);
+            Services.AddImplementers(typeof(IPreliminaryOrchestrationStep<,>), assembly, _stepLifetime, false);
+            Services.AddImplementers(typeof(IFinalOrchestrationStep<,>), assembly, _stepLifetime, false);
         }
-
-        ///<inheritdoc cref="AddSteps(IEnumerable{Assembly})"/>
-        public OrchestratorBuilder AddSteps(params Assembly[] assemblies)
-        {
-            return AddSteps(assemblies.AsEnumerable());
-        }
-
-        /// <summary>
-        /// Adds orchestration steps from the provided assemblies.
-        /// </summary>
-        public OrchestratorBuilder AddSteps(IEnumerable<Assembly> assemblies)
-        {
-            foreach (var assembly in assemblies)
-            {
-                Services.AddImplementers(typeof(IOrchestrationStep<,>), assembly, _stepLifetime, false);
-                Services.AddImplementers(typeof(IPreliminaryOrchestrationStep<,>), assembly, _stepLifetime, false);
-                Services.AddImplementers(typeof(IFinalOrchestrationStep<,>), assembly, _stepLifetime, false);
-            }
-            return this;
-        }
+        return this;
     }
 }
