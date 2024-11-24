@@ -15,7 +15,7 @@ public class ChipPicker<T> : InputBase<T>, ICollectionView<T>
     /// Gets or sets an advanced variant for rendering items, which includes a boolean indicating if the item is selected.
     /// </summary>
     [Parameter]
-    public RenderFragment<(T, bool)>? AdvancedItemTemplate { get; set; }
+    public RenderFragment<(T Item, bool Selected)>? AdvancedItemTemplate { get; set; }
 
     /// <summary>
     /// Gets or sets the CSS class applied to each item.
@@ -75,28 +75,30 @@ public class ChipPicker<T> : InputBase<T>, ICollectionView<T>
                 {
                     builder.OpenElement(3, "div");
                     {
-                        bool isSelected = SelectionMode == SelectionMode.Multiple ? SelectedValues.Contains(item) : EqualityComparer<T>.Default.Equals(item, Value);
-                        builder.AddAttribute(4, "class", ClassBuilder.Join( isSelected 
+                        builder.SetKey(item);
+
+                        bool selected = SelectionMode == SelectionMode.Multiple ? SelectedValues.Contains(item) : EqualityComparer<T>.Default.Equals(item, Value);
+                        builder.AddAttribute(4, "class", ClassBuilder.Join( selected 
                             ? ClassNameProvider.ChipPicker_ItemSelected 
                             : ClassNameProvider.ChipPicker_Item, 
                             ItemClass));
-                        builder.AddAttribute(5, "onclick", EventCallback.Factory.Create(this, () => HandleOnClick(item)));
+                        builder.AddAttribute(5, "onclick", EventCallback.Factory.Create(this, async () => await HandleItemClickAsync(item)));
 
-                        if (ItemTemplate == null && AdvancedItemTemplate == null)
+                        if (AdvancedItemTemplate != null)
                         {
-                            builder.OpenElement(6, "span");
+                            builder.AddContent(6, AdvancedItemTemplate, (item, selected));
+                        }
+                        else if (ItemTemplate != null)
+                        {
+                            builder.AddContent(7, ItemTemplate, item);
+                        }
+                        else
+                        {
+                            builder.OpenElement(8, "span");
                             {
-                                builder.AddContent(7, item.GetDisplayValue(ToStringFunc));
+                                builder.AddContent(9, item.GetDisplayValue(ToStringFunc));
                             }
                             builder.CloseElement();
-                        }
-                        else if (AdvancedItemTemplate != null)
-                        {
-                            builder.AddContent(8, AdvancedItemTemplate, (item, isSelected));
-                        }
-                        else if (AdvancedItemTemplate != null)
-                        {
-                            builder.AddContent(9, ItemTemplate, item);
                         }
                     }
                 }
@@ -109,7 +111,7 @@ public class ChipPicker<T> : InputBase<T>, ICollectionView<T>
         builder.CloseElement();
     }
 
-    private async Task HandleOnClick(T value)
+    private async Task HandleItemClickAsync(T value)
     {
         await NotifyValueChange(value);
 

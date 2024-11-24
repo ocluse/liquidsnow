@@ -3,12 +3,12 @@
 namespace Ocluse.LiquidSnow.Venus.Components;
 
 /// <summary>
-/// A component that represents a dialog.
+/// The base component for dialog components.
 /// </summary>
 public class DialogComponentBase : ComponentBase
 {
     /// <summary>
-    /// Gets or sets the component that is hosting the dialog.
+    /// [Cascaded] Gets or sets the component that is hosting the dialog.
     /// </summary>
     [CascadingParameter]
     protected IDialogHost DialogHost { get; private set; } = null!;

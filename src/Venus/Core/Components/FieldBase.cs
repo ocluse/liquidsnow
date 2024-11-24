@@ -55,7 +55,7 @@ public abstract class FieldBase<TValue> : InputBase<TValue>
     protected abstract bool HasAuxiliaryContent { get; }
 
     ///<inheritdoc/>
-    protected override void BuildRenderTree(RenderTreeBuilder builder)
+    protected override sealed void BuildRenderTree(RenderTreeBuilder builder)
     {
         builder.OpenElement(1, "div");
         {
@@ -162,7 +162,7 @@ public abstract class FieldBase<TValue> : InputBase<TValue>
     /// <summary>
     /// Renders auxiliary content, just before the field is closed.
     /// </summary>
-    protected abstract void BuildAuxiliaryContent(RenderTreeBuilder builder);
+    protected virtual void BuildAuxiliaryContent(RenderTreeBuilder builder) { }
 
     ///<inheritdoc/>
     protected override string GetValidationClass()

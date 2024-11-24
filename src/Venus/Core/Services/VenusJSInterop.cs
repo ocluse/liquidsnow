@@ -2,7 +2,7 @@
 
 namespace Ocluse.LiquidSnow.Venus.Services;
 
-internal class JSInterop(IJSRuntime jsRuntime) : IAsyncDisposable
+internal sealed class VenusJSInterop(IJSRuntime jsRuntime) : IAsyncDisposable, IVenusJSInterop
 {
     private readonly Lazy<Task<IJSObjectReference>> _moduleTask = new(() => jsRuntime.InvokeAsync<IJSObjectReference>(
             "import", "./_content/Ocluse.LiquidSnow.Venus/venus.js").AsTask());
@@ -26,5 +26,23 @@ internal class JSInterop(IJSRuntime jsRuntime) : IAsyncDisposable
     {
         var module = await _moduleTask.Value;
         await module.InvokeVoidAsync("showDialog", dialog);
+    }
+
+    public async ValueTask InitializeDropdownWatcher()
+    {
+        var module = await _moduleTask.Value;
+        await module.InvokeVoidAsync("initializeDropdownWatcher");
+    }
+
+    public async ValueTask WatchDropdownAsync(DotNetObjectReference<IDropdown> dropdown)
+    {
+        var module = await _moduleTask.Value;
+        await module.InvokeVoidAsync("watchDropdown", dropdown);
+    }
+
+    public async ValueTask UnwatchDropdownAsync(DotNetObjectReference<IDropdown> dropdown)
+    {
+        var module = await _moduleTask.Value;
+        await module.InvokeVoidAsync("unwatchDropdown", dropdown);
     }
 }

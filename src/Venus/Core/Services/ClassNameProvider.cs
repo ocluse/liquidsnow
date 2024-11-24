@@ -116,6 +116,18 @@ public class ClassNameProvider
 
     public string TextBox => "textbox";
 
+    public string Dropdown => "dropdown";
+
+    public string DropdownOpen => "open";
+
+    public string DropdownClosed => "closed";
+
+    public string Dropdown_List => "list";
+
+    public string Dropdown_Item => "item";
+
+    public string Dropdown_ItemSelected => $"{Dropdown_Item} {ComponentActive}";
+
     public string TextBox_Content => ComponentContent;
 
     public string TextBox_Header => ComponentHeader;

@@ -13,16 +13,16 @@ public class VenusResolver : IVenusResolver
     public virtual int DefaultPageSize => 10;
 
     ///<inheritdoc/>
-    public virtual int DefaultButtonIconSize => DefaultSize.Size18;
+    public virtual double DefaultButtonIconSize => DefaultSize.Size18;
 
     ///<inheritdoc/>
-    public virtual int DefaultIconSize => DefaultSize.Size24;
+    public virtual double DefaultIconSize => DefaultSize.Size24;
 
     ///<inheritdoc/>
-    public virtual int DefaultAvatarSize => DefaultSize.Size48;
+    public virtual double DefaultAvatarSize => DefaultSize.Size48;
 
     ///<inheritdoc/>
-    public virtual int SnackbarIconSize => DefaultSize.Size18;
+    public virtual double SnackbarIconSize => DefaultSize.Size18;
 
     ///<inheritdoc/>
     public virtual IconStyle IconStyle => IconStyle.Feather;
@@ -44,6 +44,18 @@ public class VenusResolver : IVenusResolver
 
     ///<inheritdoc/>
     public virtual StrokeLineJoin FeatherIconStrokeLineJoin => StrokeLineJoin.Round;
+
+    ///<inheritdoc/>
+    public virtual CssUnit DefaultIconSizeUnit => CssUnit.Px;
+
+    ///<inheritdoc/>
+    public virtual CssUnit DefaultImageSizeUnit => CssUnit.Px;
+
+    ///<inheritdoc/>
+    public virtual string DefaultImageFallbackSrc => "/images/placeholder.svg";
+
+    ///<inheritdoc/>
+    public virtual string DefaultAvatarFallbackSrc => "/images/anonymous.svg";
 
     ///<inheritdoc/>
     public virtual Type ResolveContainerStateToComponentType(int containerState)

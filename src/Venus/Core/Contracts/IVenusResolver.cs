@@ -20,12 +20,12 @@ public interface IVenusResolver
     /// <summary>
     /// Gets the default icon size used by a <see cref="Button"/> component.
     /// </summary>
-    int DefaultButtonIconSize { get; }
+    double DefaultButtonIconSize { get; }
 
     /// <summary>
     /// Gets the default icon size used by a <see cref="FeatherIcon"/> or <see cref="FluentIcon"/> component.
     /// </summary>
-    int DefaultIconSize { get; }
+    double DefaultIconSize { get; }
 
     /// <summary>
     /// Gets the default unit used by icon sizes.
