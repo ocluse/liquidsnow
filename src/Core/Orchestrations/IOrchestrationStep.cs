@@ -3,20 +3,20 @@
 namespace Ocluse.LiquidSnow.Orchestrations;
 
 /// <summary>
-/// A step that is executed in an orchestration.
+/// Defines a step that is executed in an orchestration.
 /// </summary>
 public interface IOrchestrationStep<in T, TResult>
     where T : IOrchestration<TResult>
 {
     /// <summary>
-    /// The order in which the step is executed.
+    /// Gets a value defining where the step is ordered in orchestration.
     /// </summary>
     int Order { get; }
 
     /// <summary>
-    /// Execute the step.
+    /// Executes the step and returns the result.
     /// </summary>
-    Task<IOrchestrationStepResult> Execute(IOrchestrationData<T> data, CancellationToken cancellationToken = default);
+    Task<IOrchestrationStepResult> ExecuteAsync(IOrchestrationData<T> data, CancellationToken cancellationToken = default);
 }
 
 ///<inheritdoc cref="IOrchestrationStep{T, TResult}"/>

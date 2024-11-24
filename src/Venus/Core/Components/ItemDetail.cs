@@ -51,31 +51,39 @@ public class ItemDetail : ControlBase
     {
         if (ItemContent != null)
         {
-            builder.OpenElement(3, "dt");
-            builder.AddMultipleAttributes(4, GetAttributes());
-            builder.AddContent(5, ItemContent);
+            builder.OpenElement(1, "dt");
+            {
+                builder.AddMultipleAttributes(2, GetAttributes());
+                builder.AddContent(3, ItemContent);
+            }
             builder.CloseElement();
         }
         else if (Item != null)
         {
-            builder.OpenElement(0, "dt");
-            builder.AddMultipleAttributes(1, GetAttributes());
-            builder.AddContent(2, Item);
+            builder.OpenElement(4, "dt");
+            {
+                builder.AddMultipleAttributes(5, GetAttributes());
+                builder.AddContent(6, Item);
+            }
             builder.CloseElement();
         }
 
         if (ChildContent != null)
         {
-            builder.OpenElement(6, "dd");
-            builder.AddMultipleAttributes(7, GetAttributes());
-            builder.AddContent(8, ChildContent);
+            builder.OpenElement(7, "dd");
+            {
+                builder.AddMultipleAttributes(8, GetAttributes());
+                builder.AddContent(9, ChildContent);
+            }
             builder.CloseElement();
         }
         else if (Detail != null)
         {
-            builder.OpenElement(3, "dd");
-            builder.AddMultipleAttributes(4, GetAttributes());
-            builder.AddContent(5, Detail);
+            builder.OpenElement(10, "dd");
+            {
+                builder.AddMultipleAttributes(11, GetAttributes());
+                builder.AddContent(12, Detail);
+            }
             builder.CloseElement();
         }
     }

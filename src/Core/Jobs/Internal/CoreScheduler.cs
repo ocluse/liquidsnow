@@ -1,27 +1,36 @@
-﻿namespace Ocluse.LiquidSnow.Jobs.Internal;
+﻿using System.Collections.Concurrent;
 
-internal abstract class CoreScheduler : IJobExecutor
+namespace Ocluse.LiquidSnow.Jobs.Internal;
+
+internal abstract class CoreScheduler : IJobSubscriptionHandler
 {
-    private readonly Dictionary<object, JobSubscription> _subscriptions = [];
+    private readonly ConcurrentDictionary<object, JobSubscription> _subscriptions = [];
 
-    public abstract Task Execute(IJob job, long tick, CancellationToken cancellationToken);
+    public abstract Task HandleAsync(JobSubscription jobSubscription);
 
-    public IDisposable Subscribe(IJob job)
+    public IDisposable Subscribe<T>(T job) where T : IJob
     {
-        //Cancel any jobs with the same ID
         Cancel(job.Id);
-        JobSubscription subscription = new(job, this);
-        _subscriptions.Add(job.Id, subscription);
+        
+        JobSubscription subscription = new(job, this, typeof(T)); 
+        
+        if(_subscriptions.TryAdd(job.Id, subscription))
+        {
+            subscription.Disposed += OnSubscriptionDisposed;
 
-        subscription.Disposed += OnSubscriptionDisposed;
+            subscription.Activate();
 
-        subscription.Activate();
-        return subscription;
+            return subscription;
+        }
+        else
+        {
+            throw new InvalidOperationException("Failed to add job: Job with the same ID was added in a different thread!");
+        }
     }
 
     private void OnSubscriptionDisposed(object? sender, JobSubscription e)
     {
-        _subscriptions.Remove(e.Job.Id);
+        _subscriptions.TryRemove(e.Job.Id, out _);
     }
 
     public bool Cancel(object id)

@@ -6,7 +6,7 @@ namespace Ocluse.LiquidSnow.Venus.Components;
 /// The base class for controls that accept user input.
 /// </summary>
 /// <typeparam name="TValue">The type of the value accepted by the input</typeparam>
-public abstract class InputBase<TValue> : ControlBase, IValidatable, IInput, IDisposable
+public abstract class InputBase<TValue> : ControlBase, IValidatable, IFormControl, IDisposable
 {
     private bool _valueHasChanged;
     private bool _disposedValue;
@@ -14,31 +14,31 @@ public abstract class InputBase<TValue> : ControlBase, IValidatable, IInput, IDi
     private readonly string _defaultName = Guid.NewGuid().ToString();
 
     /// <summary>
-    /// The content to display before the input.
+    /// Gets or sets the content to display before the input.
     /// </summary>
     [Parameter]
     public RenderFragment? PrefixContent { get; set; }
 
     /// <summary>
-    /// The content to display after the input.
+    /// Gets or sets the content to display after the input.
     /// </summary>
     [Parameter]
     public RenderFragment? SuffixContent { get; set; }
 
     /// <summary>
-    /// The content to display in the validation area of the input.
+    /// Gets or sets the content to display in the validation area of the input.
     /// </summary>
     [Parameter]
-    public RenderFragment? ValidationContent { get; set; }
+    public RenderFragment<ValidationResult?>? ValidationContent { get; set; }
 
     /// <summary>
-    /// The currently selected value of the input.
+    /// Gets or sets the currently selected value of the input.
     /// </summary>
     [Parameter]
     public TValue? Value { get; set; }
 
     /// <summary>
-    /// A callback for when the value of the input changes.
+    /// Gets or sets the callback for when the value changes.
     /// </summary>
     [Parameter]
     public EventCallback<TValue?> ValueChanged { get; set; }
@@ -56,11 +56,11 @@ public abstract class InputBase<TValue> : ControlBase, IValidatable, IInput, IDi
     public string? Header { get; set; }
 
     /// <summary>
-    /// Gets or sets the 'name' of the input.
+    /// Gets or sets the 'name' attribute of the input.
     /// </summary>
     /// <remarks>
-    /// By default, the 'name' is generated from a random Guid if not provided.
-    /// If a <see cref="Header"/> is provided, it will be used as the actual name.
+    /// If not provided the <see cref="Header"/> value will be used as the name, 
+    /// otherwise it falls back to a randomly generated string.
     /// </remarks>
     [Parameter]
     public string? Name { get; set; }
@@ -90,14 +90,11 @@ public abstract class InputBase<TValue> : ControlBase, IValidatable, IInput, IDi
     /// <summary>
     /// Gets or sets the class to apply when the input is disabled.
     /// </summary>
-    /// <remarks>
-    /// If the class is not provided, a default 'disabled' class will be added instead.
-    /// </remarks>
     [Parameter]
     public string? DisabledClass { get; set; }
 
     /// <summary>
-    /// Gets or sets a value that, if true, a readonly attribute will be added to the input.
+    /// Gets or sets a value that determines if the readonly attribute will be added to the input..
     /// </summary>
     [Parameter]
     public bool ReadOnly { get; set; }
@@ -105,9 +102,6 @@ public abstract class InputBase<TValue> : ControlBase, IValidatable, IInput, IDi
     /// <summary>
     /// Gets or sets the class to apply when the input is readonly.
     /// </summary>
-    /// <remarks>
-    /// If not provided, a default 'read-only' class will be added instead.
-    /// </remarks>
     [Parameter]
     public string? ReadOnlyClass { get; set; }
 
@@ -118,31 +112,34 @@ public abstract class InputBase<TValue> : ControlBase, IValidatable, IInput, IDi
     public string? HasValueClass { get; set; }
 
     /// <summary>
-    /// Gets or sets a value that, if true, will enable debounce for the input.
+    /// Gets or sets the CSS class to apply when the value of the component is not valid.
+    /// </summary>
+    [Parameter]
+    public string? ErrorClass { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value that determines whether to run the debounce logic on value change.
     /// </summary>
     [Parameter]
     public bool EnableDebounce { get; set; }
 
     /// <summary>
-    /// Gets or sets the debouncing interval that after which, the <see cref="UserFinished"/> callback is invoked.
+    /// Gets or sets the debouncing interval in milliseconds that after which, the <see cref="UserFinished"/> callback is invoked.
     /// </summary>
     [Parameter]
-    public int DebounceInterval { get; set; } = 500;
+    public int? DebounceInterval { get; set; }
 
     /// <summary>
-    /// Gets or sets a callback invoked once the user has finished interacting with the input when <see cref="EnableDebounce"/> is true.
+    /// Gets or sets a callback invoked once the user has finished interacting with the input when debouncing is enabled.
     /// </summary>
     [Parameter]
     public EventCallback UserFinished { get; set; }
 
-    /// <summary>
-    /// The containing from parent.
-    /// </summary>
     [CascadingParameter]
-    public IForm? FormContainer { get; private set; }
+    private IForm? Form { get; set; }
 
     /// <summary>
-    /// The final name that is added as an attribute.
+    /// Gets the final name that is added as an attribute.
     /// </summary>
     protected string AppliedName => string.IsNullOrEmpty(Name) ? string.IsNullOrEmpty(Header) ? _defaultName : Header : Name;
 
@@ -150,7 +147,7 @@ public abstract class InputBase<TValue> : ControlBase, IValidatable, IInput, IDi
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        FormContainer?.Register(this);
+        Form?.Register(this);
     }
 
     /// <inheritdoc/>
@@ -175,17 +172,22 @@ public abstract class InputBase<TValue> : ControlBase, IValidatable, IInput, IDi
         // We also only want to validate if the value has changed.
         if (valueChanged && !EnableDebounce && _valueHasChanged)
         {
+            _valueHasChanged = false;
             await InvokeAsync(InvokeValidate);
         }
     }
 
-    /// <summary>
-    /// Invoked when the value of the input changes.
-    /// </summary>
-    protected async Task OnChange(ChangeEventArgs e)
+    private async void OnUserFinish()
     {
-        var newValue = GetValue(e.Value);
+        await InvokeAsync(InvokeValidate);
+        await UserFinished.InvokeAsync();
+    }
 
+    /// <summary>
+    /// Updates the value of the input and runs validation or debounce.
+    /// </summary>
+    protected async Task NotifyValueChange(TValue? newValue)
+    {
         await ValueChanged.InvokeAsync(newValue);
         _valueHasChanged = true;
         _debounceSubscription?.Dispose();
@@ -193,7 +195,7 @@ public abstract class InputBase<TValue> : ControlBase, IValidatable, IInput, IDi
         if (EnableDebounce)
         {
             _debounceSubscription = Observable
-                .Timer(TimeSpan.FromMilliseconds(DebounceInterval))
+                .Timer(TimeSpan.FromMilliseconds(DebounceInterval ?? Resolver.DefaultDebounceInterval))
                 .Subscribe((t) =>
                 {
                     InvokeAsync(OnUserFinish);
@@ -202,23 +204,7 @@ public abstract class InputBase<TValue> : ControlBase, IValidatable, IInput, IDi
         }
     }
 
-    /// <summary>
-    /// Invoked once the user has finished interacting with the input.
-    /// </summary>
-    private async void OnUserFinish()
-    {
-        await InvokeAsync(InvokeValidate);
-        await UserFinished.InvokeAsync();
-    }
-
-    /// <summary>
-    /// Implemented by inheriting classes to convert the provided value to the input type.
-    /// </summary>
-    protected abstract TValue? GetValue(object? value);
-
-    /// <summary>
-    /// Called to validate the input value.
-    /// </summary>
+    /// <inheritdoc/>
     public virtual async Task<bool> InvokeValidate()
     {
         bool result;
@@ -238,50 +224,31 @@ public abstract class InputBase<TValue> : ControlBase, IValidatable, IInput, IDi
     }
 
     /// <inheritdoc/>
-    protected override sealed void BuildClass(ClassBuilder classBuilder)
+    protected override sealed void BuildClass(ClassBuilder builder)
     {
-        base.BuildClass(classBuilder);
+        base.BuildClass(builder);
 
-        BuildInputClass(classBuilder);
+        BuildInputClass(builder);
 
-        if (Validation?.IsValid == false)
-        {
-            classBuilder.Add("error");
-        }
-
-        if (Disabled)
-        {
-            classBuilder.Add(DisabledClass ?? "disabled");
-        }
-
-        if (ReadOnly)
-        {
-            classBuilder.Add(ReadOnlyClass ?? "read-only");
-        }
-
-        if (Value != null)
-        {
-            classBuilder.Add(HasValueClass ?? "has-value");
-        }
+        builder.AddIf(Validation?.IsValid == false, ClassNameProvider.InputError, ErrorClass)
+            .AddIf(Disabled, ClassNameProvider.InputDisabled, DisabledClass)
+            .AddIf(ReadOnly, ClassNameProvider.InputReadOnly, ReadOnlyClass)
+            .AddIf(Value != null, ClassNameProvider.InputHasValue, HasValueClass);
     }
 
     /// <summary>
     /// Allows inheriting classes to add relevant CSS classes to the builder.
     /// </summary>
-    /// <param name="classBuilder"></param>
-    protected virtual void BuildInputClass(ClassBuilder classBuilder)
-    {
-
-    }
+    protected virtual void BuildInputClass(ClassBuilder classBuilder) { }
 
     /// <summary>
-    /// Gets the CSS class to apply to the validation label depending on the validation state.
+    /// Returns the CSS class to apply to the validation label depending on the validation state.
     /// </summary>
     protected virtual string GetValidationClass()
     {
         return new ClassBuilder()
-            .AddIf(Validation?.IsValid == true, "validation-success")
-            .AddIf(Validation?.IsValid == false, "validation-error")
+            .AddIf(Validation?.IsValid == true, ClassNameProvider.ValidationSuccess)
+            .AddIf(Validation?.IsValid == false, ClassNameProvider.ValidationError)
             .Build();
     }
 
@@ -290,7 +257,7 @@ public abstract class InputBase<TValue> : ControlBase, IValidatable, IInput, IDi
     {
         if (!_disposedValue && disposing)
         {
-            FormContainer?.Unregister(this);
+            Form?.Unregister(this);
             _debounceSubscription?.Dispose();
 
             _disposedValue = true;

@@ -35,10 +35,7 @@ public static class CollectionExtensions
     /// </summary>
     public static bool HasDuplicate<T>(this IEnumerable<T> source, IEqualityComparer<T>? comparer = null)
     {
-        if (source == null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
+        ArgumentNullException.ThrowIfNull(source);
 
         HashSet<T> checkBuffer;
         if (comparer == null)
@@ -67,10 +64,7 @@ public static class CollectionExtensions
     /// </summary>
     public static IEnumerable<T> GetDuplicates<T>(this IEnumerable<T> source, IEqualityComparer<T>? comparer = null)
     {
-        if (source == null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
+        ArgumentNullException.ThrowIfNull(source);
 
         HashSet<T> checkBuffer;
 
@@ -114,7 +108,9 @@ public static class CollectionExtensions
         var oldIndex = list.IndexOf(item);
 
         if (oldIndex == -1)
+        {
             throw new InvalidOperationException("Item not found in list");
+        }
 
         list.Move(oldIndex, newIndex);
     }
@@ -293,16 +289,29 @@ public static class CollectionExtensions
     /// <summary>
     /// Gets the value associated with the specified key or adds a new value if the key does not exist.
     /// </summary>
-    public static T GetOrAdd<TKey, T>(this IDictionary<TKey, T> dictionary, TKey key, Func<T> valueFactory)
+    public static T GetOrAdd<TKey, T>(this IDictionary<TKey, T> dictionary, TKey key, Func<TKey, T> valueFactory)
     {
         if (dictionary.TryGetValue(key, out var value))
         {
             return value;
         }
 
-        value = valueFactory();
+        value = valueFactory(key);
         dictionary.Add(key, value);
         return value;
+    }
+
+    ///<inheritdoc cref="GetOrAdd{TKey, T}(IDictionary{TKey, T}, TKey, Func{TKey, T})"/>
+    public static async Task<T> GetOrAddAsync<TKey,T>(this IDictionary<TKey, T> dictionary, TKey key, Func<TKey, Task<T>> valueFactory)
+    {
+        if (dictionary.TryGetValue(key, out var value))
+        {
+            return value;
+        }
+
+        var result = await valueFactory(key);
+        dictionary.Add(key, result);
+        return result;
     }
 
     /// <summary>

@@ -37,7 +37,7 @@ public class DialogComponentBase : ComponentBase
     /// <summary>
     /// Allows derived components to specify CSS styles to be added to the dialog.
     /// </summary>
-    protected void BuildClass(ClassBuilder builder) { }
+    protected virtual void BuildClass(ClassBuilder builder) { }
 
     /// <summary>
     /// Called by derived classes to rebuild the dialog CSS classes.
@@ -45,5 +45,6 @@ public class DialogComponentBase : ComponentBase
     protected void UpdateClass()
     {
         ClassBuilder builder = new();
+        BuildClass(builder);
     }
 }

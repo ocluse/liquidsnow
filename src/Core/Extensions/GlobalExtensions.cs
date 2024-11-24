@@ -201,15 +201,15 @@ public static class GlobalExtensions
         {
             result = number % 10;
 
-            if(result == 1)
+            if (result == 1)
             {
                 return number + "st";
             }
-            else if(result == 2)
+            else if (result == 2)
             {
                 return number + "nd";
             }
-            else if(result == 3)
+            else if (result == 3)
             {
                 return number + "rd";
             }
@@ -596,5 +596,15 @@ public static class GlobalExtensions
         {
             return num.ToString("0B", cultureInfo);
         }
+    }
+
+    /// <summary>
+    /// Checks if a type implements a specific generic interface.
+    /// </summary>
+    public static bool ImplementsGenericInterface(this Type type, Type genericInterfaceType)
+    {
+        return type.GetInterfaces().Any(x =>
+            x.IsGenericType &&
+            x.GetGenericTypeDefinition() == genericInterfaceType);
     }
 }

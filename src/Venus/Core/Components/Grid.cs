@@ -33,6 +33,22 @@ public class Grid : ControlBase, IGrid
 
     ///<inheritdoc/>
     [Parameter]
+    public CssUnit? GapUnit { get; set; }
+
+    ///<inheritdoc/>
+    public double? GapLg { get; set; }
+
+    ///<inheritdoc/>
+    public double? GapMd { get; set; }
+
+    ///<inheritdoc/>
+    public double? GapSm { get; set; }
+
+    ///<inheritdoc/>
+    public double? GapXs { get; set; }
+
+    ///<inheritdoc/>
+    [Parameter]
     public double? ColumnGap { get; set; }
 
     ///<inheritdoc/>
@@ -42,7 +58,7 @@ public class Grid : ControlBase, IGrid
     ///<inheritdoc/>
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
-
+    
     ///<inheritdoc/>
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
@@ -70,13 +86,13 @@ public class Grid : ControlBase, IGrid
     protected override void BuildClass(ClassBuilder classBuilder)
     {
         base.BuildClass(classBuilder);
-        classBuilder.Add("grid");
+        classBuilder.Add(ClassNameProvider.Grid);
     }
 
     ///<inheritdoc/>
     protected override void BuildStyle(StyleBuilder styleBuilder)
     {
         base.BuildStyle(styleBuilder);
-        styleBuilder.AddAll(this.GetGridStyles());
+        styleBuilder.AddAll(this.GetGridStyles(Resolver));
     }
 }

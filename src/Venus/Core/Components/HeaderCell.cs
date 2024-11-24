@@ -3,7 +3,7 @@
 namespace Ocluse.LiquidSnow.Venus.Components;
 
 /// <summary>
-/// A component that represents a header cell in a table, rendered as a th element.
+/// A component that renders a th element.
 /// </summary>
 public class HeaderCell : ControlBase
 {
@@ -17,9 +17,10 @@ public class HeaderCell : ControlBase
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
         builder.OpenElement(0, "th");
-
-        builder.AddMultipleAttributes(1, GetAttributes());
-        builder.AddContent(2, ChildContent);
+        {
+            builder.AddMultipleAttributes(1, GetAttributes());
+            builder.AddContent(2, ChildContent);
+        }
         builder.CloseElement();
     }
 }

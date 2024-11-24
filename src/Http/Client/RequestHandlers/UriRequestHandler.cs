@@ -3,21 +3,19 @@
 /// <summary>
 /// A handler that sends http request to a server and returns a result
 /// </summary>
-public class UriRequestHandler<TResult> : RequestHandler<TResult>
+public class UriRequestHandler<TResult>(
+    HttpMethod httpMethod, 
+    ISnowHttpClientFactory httpClientFactory, 
+    string path, 
+    IHttpHandler? httpHandler = null, 
+    string? clientName = null) 
+    : RequestHandler<TResult>(httpClientFactory, path, httpHandler, clientName)
 {
-    /// <summary>
-    /// Creates a new instance of the <see cref="UriRequestHandler{TResult}"/> class
-    /// </summary>
-    public UriRequestHandler(HttpMethod httpMethod, ISnowHttpClientFactory httpClientFactory, string path, IHttpHandler? httpHandler = null, string? clientName = null)
-        : base(httpClientFactory, path, httpHandler, clientName)
-    {
-        HttpMethod = httpMethod;
-    }
 
     /// <summary>
     /// The http method to use when sending the request
     /// </summary>
-    public HttpMethod HttpMethod { get; }
+    public HttpMethod HttpMethod { get; } = httpMethod;
 
     /// <summary>
     /// Gets the url path to send the request to by combining the <see cref="Path"/> and the <paramref name="uri"/>.

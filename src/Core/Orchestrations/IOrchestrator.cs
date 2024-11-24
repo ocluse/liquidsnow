@@ -1,12 +1,12 @@
 ﻿namespace Ocluse.LiquidSnow.Orchestrations;
 
 /// <summary>
-/// An orchestrator that executes an orchestration.
+/// Defines methods that orchestrates a series of steps.
 /// </summary>
 public interface IOrchestrator
 {
     /// <summary>
-    /// Execute an orchestration.
+    /// Execute an orchestration and returns the result.
     /// </summary>
-    Task<T> Execute<T>(IOrchestration<T> orchestration, CancellationToken cancellationToken = default);
+    Task<T> ExecuteAsync<T>(IOrchestration<T> orchestration, CancellationToken cancellationToken = default);
 }

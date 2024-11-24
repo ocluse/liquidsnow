@@ -18,7 +18,7 @@ internal class OrchestrationData<T> : IOrchestrationData<T>
         Orchestration = value;
     }
 
-    public void Advance(IOrchestrationStepResult result)
+    public void AddResult(IOrchestrationStepResult result)
     {
         _results.Add(result);
     }

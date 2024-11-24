@@ -1,53 +1,39 @@
 ﻿using Ocluse.LiquidSnow.Http.Client.RequestHandlers.Crud;
-using Ocluse.LiquidSnow.Http.Cqrs;
 
 namespace Ocluse.LiquidSnow.Http.Client;
 
 ///<inheritdoc cref="ICrudRequestBuilder{TCreate, TUpdate, TList, TModel, TSummary}"/>
-public class CrudRequestBuilder<TKey, TCreate, TUpdate, TList, TModel, TSummary>
+public class CrudRequestBuilder<TKey, TCreate, TUpdate, TList, TModel, TSummary>(
+    ISnowHttpClientFactory httpClientFactory, 
+    string path, 
+    IHttpHandler? httpHandler = null,
+    string? clientName = null)
     : ICrudRequestBuilder<TKey, TCreate, TUpdate, TList, TModel, TSummary> 
-    where TUpdate : IKeyCommand<TKey, TModel>
+    where TUpdate : IHasId<TKey>
 {
-    private readonly CreateRequestHandler<TCreate, TModel> _createHandler;
-    private readonly UpdateRequestHandler<TKey, TUpdate, TModel> _updateHandler;
-    private readonly ReadRequestHandler<TKey, TModel> _readHandler;
-    private readonly DeleteRequestHandler<TKey> _deleteHandler;
-    private readonly ListRequestHandler<TList, TSummary> _listHandler;
-
-    /// <summary>
-    /// Creates the request builder for the specified REST path.
-    /// </summary>
-    public CrudRequestBuilder(ISnowHttpClientFactory httpClientFactory, string path, IHttpHandler? httpHandler = null, string? clientName = null)
-    {
-        _createHandler = new(httpClientFactory, path, httpHandler, clientName);
-        _updateHandler = new(httpClientFactory, path, httpHandler, clientName);
-        _readHandler = new(httpClientFactory, path, httpHandler, clientName);
-        _deleteHandler = new(httpClientFactory, path, httpHandler, clientName);
-        _listHandler = new(httpClientFactory, path, httpHandler, clientName);
-
-        Path = path;
-        HttpClientFactory = httpClientFactory;
-        HttpHandler = httpHandler;
-        ClientName = clientName;
-    }
+    private readonly CreateRequestHandler<TCreate, TModel> _createHandler = new(httpClientFactory, path, httpHandler, clientName);
+    private readonly UpdateRequestHandler<TKey, TUpdate, TModel> _updateHandler = new(httpClientFactory, path, httpHandler, clientName);
+    private readonly ReadRequestHandler<TKey, TModel> _readHandler = new(httpClientFactory, path, httpHandler, clientName);
+    private readonly DeleteRequestHandler<TKey> _deleteHandler = new(httpClientFactory, path, httpHandler, clientName);
+    private readonly ListRequestHandler<TList, TSummary> _listHandler = new(httpClientFactory, path, httpHandler, clientName);
 
     ///<inheritdoc/>
-    public string Path { get; }
+    public string Path { get; } = path;
 
     /// <summary>
     /// The factory used to create HTTP clients.
     /// </summary>
-    protected ISnowHttpClientFactory HttpClientFactory { get; }
+    protected ISnowHttpClientFactory HttpClientFactory { get; } = httpClientFactory;
 
     /// <summary>
     /// The handler used to handle requests and responses.
     /// </summary>
-    protected IHttpHandler? HttpHandler { get; }
+    protected IHttpHandler? HttpHandler { get; } = httpHandler;
 
     /// <summary>
     /// The name of the client to use when creating HTTP clients.
     /// </summary>
-    protected string? ClientName { get; }
+    protected string? ClientName { get; } = clientName;
 
     ///<inheritdoc/>
     public async Task<TModel> CreateAsync(TCreate create, CancellationToken cancellationToken = default)
@@ -81,16 +67,12 @@ public class CrudRequestBuilder<TKey, TCreate, TUpdate, TList, TModel, TSummary>
 }
 
 ///<inheritdoc/>
-public class CrudRequestBuilder<TKey, TCreate, TUpdate, TList, TModel>
-    : CrudRequestBuilder<TKey, TCreate, TUpdate, TList, TModel, TModel>,
+public class CrudRequestBuilder<TKey, TCreate, TUpdate, TList, TModel>(
+    ISnowHttpClientFactory httpClientFactory, 
+    string path, IHttpHandler? httpHandler = null,
+    string? clientName = null)
+    : CrudRequestBuilder<TKey, TCreate, TUpdate, TList, TModel, TModel>(httpClientFactory, path, httpHandler, clientName),
     ICrudRequestBuilder<TKey, TCreate, TUpdate, TList, TModel>
-    where TUpdate : IKeyCommand<TKey, TModel>
+    where TUpdate : IHasId<TKey>
 {
-    /// <summary>
-    /// Creates the request builder for the specified REST path.
-    /// </summary>
-    public CrudRequestBuilder(ISnowHttpClientFactory httpClientFactory, string path, IHttpHandler? httpHandler = null, string? clientName = null)
-        : base(httpClientFactory, path, httpHandler, clientName)
-    {
-    }
 }

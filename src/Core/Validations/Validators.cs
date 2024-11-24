@@ -8,7 +8,7 @@ public static class Validators
     /// <summary>
     /// Provides a set of common validators.
     /// </summary>
-    public static CommonValidators Common { get; } = new CommonValidators();
+    public static CommonValidators Common { get; set; } = new CommonValidators();
 
     /// <summary>
     /// Checks if all the items are valid.

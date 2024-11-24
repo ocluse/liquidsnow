@@ -1,9 +1,9 @@
 ﻿namespace Ocluse.LiquidSnow.Venus.Components;
 
 /// <summary>
-/// A component for selecting <see cref="DateOnly"/> values.
+/// An input that collects <see cref="DateOnly"/> values.
 /// </summary>
-public class DatePicker : InputControlBase<DateOnly?>
+public class DatePicker : TextBoxBase<DateOnly?>
 {
     ///<inheritdoc/>
     protected override string InputType => "date";

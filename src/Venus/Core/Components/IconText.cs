@@ -23,6 +23,12 @@ public class IconText : ControlBase
     public int? IconSize { get; set; }
 
     /// <summary>
+    /// Gets or sets the unit of the icon size.
+    /// </summary>
+    [Parameter]
+    public CssUnit? IconSizeUnit { get; set; }
+
+    /// <summary>
     /// Gets or sets the color of the icon.
     /// </summary>
     /// <remarks>
@@ -52,38 +58,41 @@ public class IconText : ControlBase
     ///<inheritdoc/>
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
-        builder.OpenElement(0, "div");
-
-        builder.AddMultipleAttributes(1, GetAttributes());
-        if (Icon != null)
+        builder.OpenElement(1, "div");
         {
-            var iconStyle = IconStyle ?? Resolver.IconStyle;
-
-            if (iconStyle == Venus.IconStyle.Feather)
+            builder.AddMultipleAttributes(2, GetAttributes());
+            if (Icon != null)
             {
-                builder.OpenComponent<FeatherIcon>(2);
+                var iconStyle = IconStyle ?? Resolver.IconStyle;
+                var componentType = iconStyle == Venus.IconStyle.Feather ? typeof(FeatherIcon) : typeof(FluentIcon);
+
+                builder.OpenComponent(3, componentType);
+                {
+                    builder.AddAttribute(4, nameof(ISvgIcon.Icon), Icon);
+                    builder.AddAttribute(5, nameof(ISvgIcon.Size), IconSize ?? Resolver.ResolveTextStyleToIconSize(TextStyle));
+                    if (IconSize != null && IconSizeUnit != null)
+                    {
+                        builder.AddAttribute(6, nameof(ISvgIcon.Unit), IconSizeUnit);
+                    }
+
+                    if (IconColor != null)
+                    {
+                        builder.AddAttribute(7, nameof(Color), IconColor);
+                    }
+
+                }
+                builder.CloseComponent();
             }
-            else
+
+            if (ChildContent != null)
             {
-                builder.OpenComponent<FluentIcon>(3);
+                builder.OpenComponent<TextBlock>(8);
+                {
+                    builder.AddAttribute(9, nameof(TextBlock.TextStyle), TextStyle);
+                    builder.AddAttribute(10, nameof(TextBlock.ChildContent), ChildContent);
+                }
+                builder.CloseComponent();
             }
-
-            builder.AddAttribute(4, "Icon", Icon);
-            builder.AddAttribute(5, "Size", IconSize ?? Resolver.ResolveTextStyleToIconSize(TextStyle));
-
-            if (IconColor != null)
-            {
-                builder.AddAttribute(6, "Color", IconColor);
-            }
-
-            builder.CloseComponent();
-        }
-        if (ChildContent != null)
-        {
-            builder.OpenComponent<TextBlock>(7);
-            builder.AddAttribute(8, nameof(TextBlock.TextStyle), TextStyle);
-            builder.AddAttribute(9, nameof(TextBlock.ChildContent), ChildContent);
-            builder.CloseComponent();
         }
         builder.CloseElement();
     }
@@ -92,6 +101,6 @@ public class IconText : ControlBase
     protected override void BuildClass(ClassBuilder classBuilder)
     {
         base.BuildClass(classBuilder);
-        classBuilder.Add("icon-text");
+        classBuilder.Add(ClassNameProvider.IconText);
     }
 }

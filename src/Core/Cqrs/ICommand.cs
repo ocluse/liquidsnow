@@ -3,7 +3,7 @@
 namespace Ocluse.LiquidSnow.Cqrs;
 
 /// <summary>
-/// Describes an instruction that is issued to an application to perform an operation. 
+/// Represents a request to change the system state, typically resulting in data modification.
 /// </summary>
 public interface ICommand<TCommandResult>
 {
@@ -12,5 +12,4 @@ public interface ICommand<TCommandResult>
 ///<inheritdoc cref="ICommand{TCommandResult}"/>
 public interface ICommand : ICommand<Unit>
 {
-
 }

@@ -2,56 +2,51 @@
 
 namespace Ocluse.LiquidSnow.Cqrs.Internal;
 
-internal readonly struct ExecutionDescriptor
+internal sealed record ExecutionDescriptor
 {
     public const string HANDLE_METHOD_NAME = nameof(ICommandHandler<ICommand>.HandleAsync);
-
-    public ExecutionDescriptor(Type preExecutionHandler, Type postExecutionHandler, Type executionHandler, Type executionType, Type resultType)
+    public const string E_HANLE_METHOD_NOT_FOUND = "Handle method not found on handler";
+    public const string E_VALUE_PROPERTY_NOT_FOUND = "'Result' property not found on the Task result type";
+    
+    public ExecutionDescriptor(Type executionType, Type resultType, Type handlerType, Type preprocessorType, Type postprocessorType)
     {
-        PreExecutionHandler = preExecutionHandler;
-        PostExecutionHandler = postExecutionHandler;
-        ExecutionHandler = executionHandler;
-        ResultType = resultType;
         ExecutionType = executionType;
+        ResultType = resultType;
+        HandlerType = handlerType;
+        PreprocessorType = preprocessorType;
+        PostprocessorType = postprocessorType;
 
-        StopExecutionResultType = typeof(PreExecutionResult.HaltExecutionResult<>).MakeGenericType(ResultType);
+        Type[] processParamTypes = [executionType, typeof(CancellationToken)];
+        Type[] postprocessParamTypes = [executionType, resultType, typeof(CancellationToken)];
 
-        var paramTypes = new Type[] { ExecutionType, typeof(CancellationToken) };
-        
-        PreExecute = PreExecutionHandler.GetMethod(HANDLE_METHOD_NAME, paramTypes)
-            ?? throw new InvalidOperationException("Handle method not found on handler");
+        PreprocessMethodInfo = PreprocessorType.GetMethod(HANDLE_METHOD_NAME, processParamTypes)
+            ?? throw new InvalidOperationException(E_HANLE_METHOD_NOT_FOUND);
 
-        Execute = ExecutionHandler.GetMethod(HANDLE_METHOD_NAME, paramTypes)
-                    ?? throw new InvalidOperationException("Handle method not found on handler");
+        HandleMethodInfo = HandlerType.GetMethod(HANDLE_METHOD_NAME, processParamTypes)
+            ?? throw new InvalidOperationException(E_HANLE_METHOD_NOT_FOUND);
 
-        var postParamTypes = new Type[] { ExecutionType, ResultType, typeof(CancellationToken) };
+        PostprocessMethodInfo = PostprocessorType.GetMethod(HANDLE_METHOD_NAME, postprocessParamTypes)
+            ?? throw new InvalidOperationException(E_HANLE_METHOD_NOT_FOUND);
 
-        PostExecute = PostExecutionHandler.GetMethod(HANDLE_METHOD_NAME, postParamTypes)
-                    ?? throw new InvalidOperationException("Handle method not found on handler");
-
-        StopExecutionResultType = typeof(PreExecutionResult.HaltExecutionResult<>).MakeGenericType(ResultType);
-
-        StopExecutionResultValuePropertyInfo = StopExecutionResultType.GetProperty("Value")
-                    ?? throw new InvalidOperationException("Value property not found on stop execution result");
+        TaskResultPropertyInfo = typeof(Task<>).MakeGenericType(executionType).GetProperty(nameof(Task<object>.Result))
+            ?? throw new InvalidOperationException(E_VALUE_PROPERTY_NOT_FOUND);
     }
 
     public Type ExecutionType { get; }
 
-    public Type PreExecutionHandler { get; }
-
-    public Type PostExecutionHandler { get; }
-
-    public Type ExecutionHandler { get; }
-
-    public Type StopExecutionResultType{ get; }
-
-    public PropertyInfo StopExecutionResultValuePropertyInfo { get; }
-
     public Type ResultType { get; }
 
-    public MethodInfo PreExecute { get; }
+    public Type HandlerType { get; }
 
-    public MethodInfo Execute{get;}
+    public Type PreprocessorType { get; }
 
-    public MethodInfo PostExecute { get; }
+    public Type PostprocessorType { get; }
+
+    public MethodInfo PreprocessMethodInfo { get; } 
+
+    public MethodInfo HandleMethodInfo { get; }
+
+    public MethodInfo PostprocessMethodInfo { get; }
+
+    public PropertyInfo TaskResultPropertyInfo { get; }
 }

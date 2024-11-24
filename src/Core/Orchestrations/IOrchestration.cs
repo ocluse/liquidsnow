@@ -3,9 +3,8 @@
 namespace Ocluse.LiquidSnow.Orchestrations;
 
 /// <summary>
-/// An action that is executed as an orchestration.
+/// Represents an action that is executed as an orchestration of steps.
 /// </summary>
-/// <typeparam name="T"></typeparam>
 public interface IOrchestration<T>
 {
 

@@ -1,7 +1,7 @@
 ﻿namespace Ocluse.LiquidSnow.Jobs;
 
 /// <summary>
-/// Represents a job that is executed on a specific queue.
+/// Represents a <see cref="IJob"/> that is executed on a specific queue.
 /// </summary>
 /// <remarks>
 /// When the queue is empty, the job will be run immediately.

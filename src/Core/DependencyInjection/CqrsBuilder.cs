@@ -1,47 +1,96 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Ocluse.LiquidSnow.Cqrs;
+using Ocluse.LiquidSnow.Cqrs.Internal;
 using System.Reflection;
 
 namespace Ocluse.LiquidSnow.DependencyInjection;
 
 /// <summary>
-///  Builder for adding CQRS handlers to the service collection.
+///  Provides methods for configuring CQRS in a service collection.
 ///  </summary>
 public class CqrsBuilder
 {
-    private readonly ServiceLifetime _handlerLifetime;
-
     /// <summary>
-    /// Gets the service collection where the handlers are configured.
+    /// Gets the service collection where CQRS is configured.
     /// </summary>
     public IServiceCollection Services { get; }
 
-    internal CqrsBuilder(ServiceLifetime handlerLifetime, IServiceCollection services)
+    /// <summary>
+    /// Creates a new instance of <see cref="CqrsBuilder"/> and adds essential CQRS services.
+    /// </summary>
+    public CqrsBuilder(IServiceCollection services)
     {
-        _handlerLifetime = handlerLifetime;
         Services = services;
+        AddCore();
     }
 
-    /// <inheritdoc cref="AddHandlers(IEnumerable{Assembly})"/>
-    public CqrsBuilder AddHandlers(params Assembly[] assemblies)
+    /// <summary>
+    /// Creates a new instance of the <see cref="CqrsBuilder"/>, adds essential CQRS services and adds handlers from the provided assembly.
+    /// </summary>
+    public CqrsBuilder(IServiceCollection services, Assembly assembly, ServiceLifetime handlerLifetime = ServiceLifetime.Transient)
     {
-        return AddHandlers(assemblies.AsEnumerable());
+        Services = services;
+        AddCore();
+        AddHandlers(assembly, handlerLifetime);
+    }
+
+    private void AddCore()
+    {
+        Services.TryAddTransient<ICommandDispatcher, CommandDispatcher>();
+        Services.TryAddTransient<IQueryDispatcher, QueryDispatcher>();
+        Services.TryAddTransient<CoreDispatcher>();
+        Services.TryAddSingleton<ExecutionDescriptorCache>();
+    }
+
+    /// <summary>
+    /// Adds CQRS handlers from the provided assembly.
+    /// </summary>
+    public CqrsBuilder AddHandlers(Assembly assembly, ServiceLifetime handlerLifetime = ServiceLifetime.Transient)
+    {
+        Services.TryAddImplementersOfGenericAsImplemented(typeof(IQueryHandler<,>), assembly, handlerLifetime);
+        Services.TryAddImplementersOfGenericAsImplemented(typeof(ICommandHandler<,>), assembly, handlerLifetime);
+        Services.TryAddImplementersOfGenericAsImplemented(typeof(ICommandPreprocessor<,>), assembly, handlerLifetime);
+        Services.TryAddImplementersOfGenericAsImplemented(typeof(ICommandPostprocessor<,>), assembly, handlerLifetime);
+        Services.TryAddImplementersOfGenericAsImplemented(typeof(IQueryPreprocessor<,>), assembly, handlerLifetime);
+        Services.TryAddImplementersOfGenericAsImplemented(typeof(IQueryPostprocessor<,>), assembly, handlerLifetime);
+        return this;
     }
 
     /// <summary>
     /// Adds CQRS handlers from the provided assemblies.
     /// </summary>
-    public CqrsBuilder AddHandlers(IEnumerable<Assembly> assemblies)
+    public CqrsBuilder AddHandlers(IEnumerable<Assembly> assemblies, ServiceLifetime handlerLifetime = ServiceLifetime.Transient)
     {
         foreach (var assembly in assemblies)
         {
-            Services.AddImplementers(typeof(IQueryHandler<,>), assembly, _handlerLifetime);
-            Services.AddImplementers(typeof(ICommandHandler<,>), assembly, _handlerLifetime);
-            Services.AddImplementers(typeof(IPreCommandExecutionHandler<,>), assembly, _handlerLifetime);
-            Services.AddImplementers(typeof(IPostCommandExecutionHandler<,>), assembly, _handlerLifetime);
-            Services.AddImplementers(typeof(IPreQueryExecutionHandler<,>), assembly, _handlerLifetime);
-            Services.AddImplementers(typeof(IPostQueryExecutionHandler<,>), assembly, _handlerLifetime);
+            AddHandlers(assembly, handlerLifetime);
         }
+        return this;
+    }
+
+    ///<inheritdoc cref="AddHandler(Type, ServiceLifetime)"/>
+    public CqrsBuilder AddHandler<T>(ServiceLifetime serviceLifetime = ServiceLifetime.Transient)
+    {
+        return AddHandler(typeof(T), serviceLifetime);
+    }
+
+    /// <summary>
+    /// Adds the specified command/query handler.
+    /// </summary>
+    /// <remarks>
+    /// If the specified type implements multiple handler interfaces, it will be registered for each.
+    /// </remarks>
+    public CqrsBuilder AddHandler(Type type, ServiceLifetime serviceLifetime = ServiceLifetime.Transient)
+    {
+
+        IEnumerable<ServiceDescriptor> descriptors = type
+            .GetInterfaces()
+            .Where(i => i.IsGenericType && (i.GetGenericTypeDefinition() == typeof(ICommandHandler<,>) || i.GetGenericTypeDefinition() == typeof(IQueryHandler<,>)))
+            .Select(i => new ServiceDescriptor(i, type, serviceLifetime));
+
+        Services.TryAdd(descriptors);
+
         return this;
     }
 }

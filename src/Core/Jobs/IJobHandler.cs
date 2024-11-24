@@ -1,7 +1,7 @@
 ﻿namespace Ocluse.LiquidSnow.Jobs;
 
 /// <summary>
-/// Provides a contract for creating handlers for jobs, which will execute the job.
+/// Defines a handler that processes a specific type of job.
 /// </summary>
 public interface IJobHandler<in T> where T : IJob
 {

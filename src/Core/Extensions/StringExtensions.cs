@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Text;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ocluse.LiquidSnow.Extensions;
 
@@ -9,6 +10,22 @@ namespace Ocluse.LiquidSnow.Extensions;
 /// </summary>
 public static partial class StringExtensions
 {
+    /// <summary>
+    /// Checks if a string is null or empty.
+    /// </summary>
+    public static bool IsNotEmpty([NotNullWhen(true)] this string? value)
+    {
+        return !string.IsNullOrEmpty(value);
+    }
+
+    /// <summary>
+    /// Checks if a string is null or whitespace.
+    /// </summary>
+    public static bool IsNotWhiteSpace([NotNullWhen(true)] this string? value)
+    {
+        return !string.IsNullOrWhiteSpace(value);
+    }
+
     /// <summary>
     /// Transform a string in Pascal case to the equivalent Kebab case.
     /// </summary>

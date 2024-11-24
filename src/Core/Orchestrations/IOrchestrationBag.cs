@@ -1,7 +1,7 @@
 ﻿namespace Ocluse.LiquidSnow.Orchestrations;
 
 /// <summary>
-/// A bag of data that is passed between steps in an orchestration.
+/// Defines bag that can be used to share data between steps in an orchestration.
 /// </summary>
 public interface IOrchestrationBag : IReadOnlyDictionary<string, object?>
 {

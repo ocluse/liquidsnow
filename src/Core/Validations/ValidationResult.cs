@@ -3,8 +3,6 @@
 /// <summary>
 /// Represents the result of a validation.
 /// </summary>
-/// <param name="Message">A list of messages describing the result of the validation.</param>
-/// <param name="IsValid">A value indicating whether the state of the object is valid.</param>
 public record ValidationResult(bool IsValid, string? Message)
 {
     /// <summary>

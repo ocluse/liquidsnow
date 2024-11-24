@@ -3,26 +3,18 @@
 /// <summary>
 /// A request handler used to send a request with an id based path
 /// </summary>d
-public class IdRequestHandler<TKey, TResult> : RequestHandler<TResult>
+public class IdRequestHandler<TKey, TResult>(
+    HttpMethod httpMethod,
+    ISnowHttpClientFactory httpClientFactory,
+    string path,
+    IHttpHandler? httpHandler = null,
+    string? clientName = null) : RequestHandler<TResult>(httpClientFactory, path, httpHandler, clientName)
 {
-    /// <summary>
-    /// Creates a new instance of the <see cref="IdRequestHandler{TKey, TResult}"/> class
-    /// </summary>
-    public IdRequestHandler(
-        HttpMethod httpMethod, 
-        ISnowHttpClientFactory httpClientFactory, 
-        string path, 
-        IHttpHandler? httpHandler = null, 
-        string? clientName = null)
-        : base(httpClientFactory, path, httpHandler, clientName)
-    {
-        HttpMethod = httpMethod;
-    }
 
     /// <summary>
     /// The http method to use for the request
     /// </summary>
-    public HttpMethod HttpMethod { get; }
+    public HttpMethod HttpMethod { get; } = httpMethod;
 
     /// <summary>
     /// Gets the url path for the request

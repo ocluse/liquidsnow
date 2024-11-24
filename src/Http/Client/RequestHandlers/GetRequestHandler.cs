@@ -1,20 +1,17 @@
 ﻿namespace Ocluse.LiquidSnow.Http.Client.RequestHandlers;
 
 /// <summary>
-/// A handler used to send get requests to a resource
+/// A handler used to send get requests to a resource.
 /// </summary>
-public class GetRequestHandler<TResult> : RequestHandler<TResult>
+public class GetRequestHandler<TResult>(
+    ISnowHttpClientFactory httpClientFactory, 
+    string path, IHttpHandler? httpHandler = null,
+    string? clientName = null) 
+    : RequestHandler<TResult>(httpClientFactory, path, httpHandler, clientName)
 {
-    /// <summary>
-    /// Creates a new instance of the <see cref="GetRequestHandler{TResult}"/> class
-    /// </summary>
-    public GetRequestHandler(ISnowHttpClientFactory httpClientFactory, string path, IHttpHandler? httpHandler = null, string ? clientName = null)
-        : base(httpClientFactory, path, httpHandler, clientName)
-    {
-    }
 
     /// <summary>
-    /// Gets the url path for the request
+    /// Gets the url path for the request.
     /// </summary>
     /// <remarks>
     /// The path returned by this method will be transformed by the <see cref="GetTransformedUrlPath"/> method before making the request.

@@ -16,18 +16,18 @@ public class WaveFileJector : Jector
     ///<inheritdoc/>
     public override Task InjectAsync(Stream source, Stream destination, Stream data, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
     {
-        using WaveFile input = new WaveFile(source);
-        using WaveFile output = new WaveFile(destination);
+        using WaveFile input = new(source);
+        using WaveFile output = new(destination);
         output.DuplicateFormat(input);
 
-        List<byte> ls_data = new List<byte>(data.ReadAllBytes());
+        List<byte> ls_data = new(data.ReadAllBytes());
 
         if (Eof != null)
         {
             ls_data.AddRange(Eof);
         }
 
-        BitArray message = new BitArray(ls_data.ToArray());
+        BitArray message = new(ls_data.ToArray());
 
         int count = message.Length;
         int maxData = input.DataSize * input.Format.NumChannels * LsbDepth;
@@ -56,7 +56,7 @@ public class WaveFileJector : Jector
             {
                 if (stop == true) break;
 
-                BitArray bitArray = new BitArray(channel.Data);
+                BitArray bitArray = new(channel.Data);
 
                 for (int i = 0; i < LsbDepth; i++)
                 {
@@ -84,10 +84,10 @@ public class WaveFileJector : Jector
     ///<inheritdoc/>
     public override Task EjectAsync(Stream source, Stream destination, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
     {
-        using WaveFile input = new WaveFile(source);
+        using WaveFile input = new(source);
         int count = input.DataSize * input.Format.NumChannels * LsbDepth;
         int pos = 0;
-        BitArray message = new BitArray(count, false);
+        BitArray message = new(count, false);
         while (true)
         {
             if (cancellationToken.IsCancellationRequested)
@@ -100,7 +100,7 @@ public class WaveFileJector : Jector
 
             foreach (Channel channel in sample.Channels)
             {
-                BitArray bitArray = new BitArray(channel.Data);
+                BitArray bitArray = new(channel.Data);
                 for (int i = 0; i < LsbDepth; i++)
                 {
                     message[pos] = bitArray[i];

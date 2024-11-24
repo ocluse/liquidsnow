@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 namespace Ocluse.LiquidSnow.Observables;
 
 /// <summary>
-/// <see cref="HttpContent"/> that implements see <see cref="INotifyPropertyChanged"/> that can be used to determine the progress of a stream transfer.
+/// A variant of the <see cref="StreamContent"/> that implements <see cref="INotifyPropertyChanged"/> that can be used to determine the progress of a stream transfer.
 /// </summary>
 public class ObservableStreamContent : HttpContent, INotifyPropertyChanged
 {

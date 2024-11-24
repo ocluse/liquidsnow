@@ -1,20 +1,18 @@
 ﻿namespace Ocluse.LiquidSnow.Http.Client.RequestHandlers;
 
 /// <summary>
-/// A handler user to delete a resource
+/// A handler user to delete a resource.
 /// </summary>
-public class DeleteRequestHandler<TResult> : RequestHandler<TResult>
+public class DeleteRequestHandler<TResult>(
+    ISnowHttpClientFactory httpClientFactory,
+    string path, 
+    IHttpHandler? httpHandler = null, 
+    string? clientName = null) 
+    : RequestHandler<TResult>(httpClientFactory, path, httpHandler, clientName)
 {
-    /// <summary>
-    /// Creates a new instance of the <see cref="DeleteRequestHandler{TResult}"/> class
-    /// </summary>
-    public DeleteRequestHandler(ISnowHttpClientFactory httpClientFactory, string path, IHttpHandler? httpHandler = null, string? clientName = null)
-        : base(httpClientFactory, path, httpHandler, clientName)
-    {
-    }
 
     /// <summary>
-    /// Gets the url path for the request
+    /// Gets the url path for the request.
     /// </summary>
     /// <remarks>
     /// The path returned by this method will be transformed by the <see cref="GetTransformedUrlPath"/> method before making the request.
@@ -25,7 +23,7 @@ public class DeleteRequestHandler<TResult> : RequestHandler<TResult>
     }
 
     /// <summary>
-    /// The method used to make the final transformation to the url path before making the request
+    /// The method used to make the final transformation to the url path before making the request.
     /// </summary>
     protected virtual string GetTransformedUrlPath()
     {

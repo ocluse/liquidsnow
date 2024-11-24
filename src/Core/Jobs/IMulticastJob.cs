@@ -1,9 +1,7 @@
-﻿using Ocluse.LiquidSnow.Events;
-
-namespace Ocluse.LiquidSnow.Jobs;
+﻿namespace Ocluse.LiquidSnow.Jobs;
 
 /// <summary>
-/// A job that can be handled by multiple handlers
+/// Represents a <see cref="IJob"/> that can be handled by multiple handlers
 /// </summary>
 public interface IMulticastJob : IJob
 {
@@ -12,19 +10,3 @@ public interface IMulticastJob : IJob
     /// </summary>
     bool ExecuteParallel { get; }
 }
-
-/// <summary>
-/// A strategy for executing <see cref="IMulticastJob"/> jobs
-/// </summary>
-public enum MulticastStrategy
-{
-    /// <summary>
-    /// Handlers will be executed sequentially
-    ///</summary>
-    Sequential,
-    /// <summary>
-    /// Handlers will be executed in parallel
-    /// </summary>
-    Parallel
-}
-

@@ -1,6 +1,6 @@
 ﻿namespace Ocluse.LiquidSnow.Venus.Values;
 
-internal class ComponentIcons
+internal static class ComponentIcons
 {
     public static class Feather
     {
@@ -30,5 +30,45 @@ internal class ComponentIcons
         public const string Success = @"<path d=""M12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2ZM12 3.5C7.30558 3.5 3.5 7.30558 3.5 12C3.5 16.6944 7.30558 20.5 12 20.5C16.6944 20.5 20.5 16.6944 20.5 12C20.5 7.30558 16.6944 3.5 12 3.5ZM10.75 13.4393L15.2197 8.96967C15.5126 8.67678 15.9874 8.67678 16.2803 8.96967C16.5466 9.23594 16.5708 9.6526 16.3529 9.94621L16.2803 10.0303L11.2803 15.0303C11.0141 15.2966 10.5974 15.3208 10.3038 15.1029L10.2197 15.0303L7.71967 12.5303C7.42678 12.2374 7.42678 11.7626 7.71967 11.4697C7.98594 11.2034 8.4026 11.1792 8.69621 11.3971L8.78033 11.4697L10.75 13.4393L15.2197 8.96967L10.75 13.4393Z""/>";
         public const string Warning = @"<path d=""M12.9993 17C12.9993 16.4484 12.5522 16.0013 12.0006 16.0013C11.4491 16.0013 11.002 16.4484 11.002 17C11.002 17.5515 11.4491 17.9986 12.0006 17.9986C12.5522 17.9986 12.9993 17.5515 12.9993 17ZM12.7401 9.1467C12.6901 8.78066 12.3761 8.49876 11.9964 8.49906C11.5822 8.49939 11.2467 8.83545 11.247 9.24966L11.2506 13.7513L11.2575 13.853C11.3075 14.2191 11.6215 14.501 12.0012 14.5007C12.4154 14.5003 12.7509 14.1643 12.7506 13.7501L12.747 9.24846L12.7401 9.1467ZM13.9693 3.65888C13.113 2.11108 10.8878 2.1111 10.0316 3.65893L2.28634 17.6604C1.45678 19.16 2.5414 20.9995 4.25518 20.9995H19.7462C21.46 20.9995 22.5446 19.16 21.715 17.6603L13.9693 3.65888ZM11.3442 4.38501C11.6296 3.86907 12.3713 3.86906 12.6567 4.38499L20.4025 18.3865C20.679 18.8863 20.3175 19.4995 19.7462 19.4995H4.25518C3.68392 19.4995 3.32238 18.8863 3.5989 18.3865L11.3442 4.38501Z""/>";
 
+    }
+
+    public static string Get(IconStyle style, ComponentIcon icon)
+    {
+        if (style == IconStyle.Feather)
+        {
+            return icon switch
+            {
+                ComponentIcon.Close => Feather.Close,
+                ComponentIcon.ChevronLeft => Feather.ChevronLeft,
+                ComponentIcon.ChevronRight => Feather.ChevronRight,
+                ComponentIcon.Filter => Feather.Filter,
+                ComponentIcon.Sort => Feather.Sort,
+                ComponentIcon.Error => Feather.Error,
+                ComponentIcon.Information => Feather.Information,
+                ComponentIcon.Success => Feather.Success,
+                ComponentIcon.Warning => Feather.Warning,
+                _ => throw new ArgumentOutOfRangeException(nameof(icon), icon, null)
+            };
+        }
+        else if (style == IconStyle.Fluent)
+        {
+            return icon switch
+            {
+                ComponentIcon.Close => Fluent.Close,
+                ComponentIcon.ChevronLeft => Fluent.ChevronLeft,
+                ComponentIcon.ChevronRight => Fluent.ChevronRight,
+                ComponentIcon.Filter => Fluent.Filter,
+                ComponentIcon.Sort => Fluent.Sort,
+                ComponentIcon.Error => Fluent.Error,
+                ComponentIcon.Information => Fluent.Information,
+                ComponentIcon.Success => Fluent.Success,
+                ComponentIcon.Warning => Fluent.Warning,
+                _ => throw new ArgumentOutOfRangeException(nameof(icon), icon, null)
+            };
+        }
+        else
+        {
+            throw new ArgumentOutOfRangeException(nameof(style), style, null);
+        }
     }
 }

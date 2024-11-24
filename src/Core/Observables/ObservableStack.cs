@@ -4,7 +4,7 @@ using System.ComponentModel;
 namespace Ocluse.LiquidSnow.Observables;
 
 /// <summary>
-/// A see <see cref="Stack{T}"/> that raises events when changed.
+/// A <see cref="Stack{T}"/> that raises events when changed.
 /// </summary>
 public class ObservableStack<T> : Stack<T>, INotifyPropertyChanged, INotifyCollectionChanged
 {

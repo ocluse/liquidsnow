@@ -1,6 +1,4 @@
-﻿using Ocluse.LiquidSnow.Venus.Models;
-
-namespace Ocluse.LiquidSnow.Venus.Contracts;
+﻿namespace Ocluse.LiquidSnow.Venus.Contracts;
 
 /// <summary>
 /// A contract for components that can show snackbar messages.

@@ -3,26 +3,18 @@
 /// <summary>
 /// A request handler that sends a HTTP request with a content and an id based path
 /// </summary>
-public class ContentWithIdRequestHandler<TKey, TContent, TResult> : RequestHandler<TResult>
+public class ContentWithIdRequestHandler<TKey, TContent, TResult>(
+    HttpMethod httpMethod,
+    ISnowHttpClientFactory httpClientFactory,
+    string path,
+    IHttpHandler? httpHandler = null,
+    string? clientName = null) : RequestHandler<TResult>(httpClientFactory, path, httpHandler, clientName)
 {
-    /// <summary>
-    /// Creates a new instance of the <see cref="ContentWithIdRequestHandler{TKey, TContent,TResult}"/> class
-    /// </summary>
-    public ContentWithIdRequestHandler(
-        HttpMethod httpMethod,
-        ISnowHttpClientFactory httpClientFactory,
-        string path,
-        IHttpHandler? httpHandler = null,
-        string? clientName = null)
-        : base(httpClientFactory, path, httpHandler, clientName)
-    {
-        HttpMethod = httpMethod;
-    }
 
     /// <summary>
     /// The HTTP method to use
     /// </summary>
-    public HttpMethod HttpMethod { get; }
+    public HttpMethod HttpMethod { get; } = httpMethod;
 
     /// <summary>
     /// Gets the path to use for the request.

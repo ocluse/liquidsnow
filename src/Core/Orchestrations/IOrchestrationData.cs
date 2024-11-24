@@ -1,18 +1,17 @@
 ﻿namespace Ocluse.LiquidSnow.Orchestrations;
 
 /// <summary>
-/// The data that is passed between steps in an orchestration.
+/// Defines the data that is passed between steps in an orchestration.
 /// </summary>
-/// <typeparam name="T"></typeparam>
 public interface IOrchestrationData<out T>
 {
     /// <summary>
-    /// The results of each step in the orchestration.
+    /// Gets the results of each step in the orchestration thus far.
     /// </summary>
     IReadOnlyList<IOrchestrationStepResult> Results { get; }
 
     /// <summary>
-    /// The bag of data that is shared between steps in the orchestration.
+    /// Gets the <see cref="IOrchestrationBag"/> in use by the current orchestration.
     /// </summary>
     IOrchestrationBag Bag { get; }
 

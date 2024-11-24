@@ -9,7 +9,7 @@ namespace Ocluse.LiquidSnow.Venus.Models;
 /// <param name="Sort">The selected sorting option if provided</param>
 /// <param name="Filter">The selected filtering option if provided</param>
 /// <param name="Ordering">The ordering of the selected sort option</param>
-public record PaginationState(int PageSize, object? Sort, object? Filter, Ordering Ordering);
+public abstract record PaginationState(int PageSize, object? Sort, object? Filter, Ordering Ordering);
 
 /// <summary>
 /// The pagination state of an <see cref="CollectionView{T}"/> component when cursor pagination is used.

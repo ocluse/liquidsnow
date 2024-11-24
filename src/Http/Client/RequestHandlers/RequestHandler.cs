@@ -1,9 +1,7 @@
 ﻿using System.Net.Http.Json;
 using System.Reactive;
-using System.Runtime.Intrinsics.X86;
 using System.Text;
 using System.Text.Json;
-using System.Web;
 
 namespace Ocluse.LiquidSnow.Http.Client.RequestHandlers;
 

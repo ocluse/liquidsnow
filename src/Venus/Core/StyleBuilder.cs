@@ -1,12 +1,23 @@
-﻿using System.Text;
+﻿using Ocluse.LiquidSnow.Extensions;
+using System.Text;
 
 namespace Ocluse.LiquidSnow.Venus;
 
 /// <summary>
 /// Utility class for building a string of CSS styles.
 /// </summary>
-public class StyleBuilder : BuilderBase
+public class StyleBuilder : CssBuilderBase
 {
+    ///<inheritdoc cref="CssBuilderBase.Add(string?)"/>
+    public StyleBuilder Add(string name, string? value)
+    {
+        if (value.IsNotWhiteSpace())
+        {
+            Add($"{name}: {value}");
+        }
+        return this;
+    }
+
     /// <summary>
     /// Returns a well formatted css style string represented by all the styles in the builder.
     /// </summary>

@@ -3,9 +3,9 @@
 namespace Ocluse.LiquidSnow.Venus.Components;
 
 /// <summary>
-/// A component that collects user input as text.
+/// An input that collects a <see cref="string"/> value.
 /// </summary>
-public class TextBox : InputControlBase<string>
+public class TextBox : TextBoxBase<string>
 {
     /// <summary>
     /// Gets or sets the keyboard that determines the collectable value type.

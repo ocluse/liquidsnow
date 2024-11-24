@@ -1,13 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Ocluse.LiquidSnow.Validations;
-using Ocluse.LiquidSnow.Venus.Contracts;
-using Ocluse.LiquidSnow.Venus.Services;
-using System.Drawing;
-using System;
-using System.Globalization;
 using System.Numerics;
 using System.Text;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Ocluse.LiquidSnow.Venus;
 
@@ -49,7 +42,7 @@ public static class Extensions
     /// <summary>
     /// Adds a item to the builder.
     /// </summary>
-    public static T Add<T>(this T builder, string? itemName) where T : BuilderBase
+    public static T Add<T>(this T builder, string? itemName) where T : CssBuilderBase
     {
         if (itemName != null)
         {
@@ -61,11 +54,11 @@ public static class Extensions
     /// <summary>
     /// Adds a item to the builder if the condition is true.
     /// </summary>
-    public static T AddIf<T>(this T builder, bool condition, string? itemName) where T : BuilderBase
+    public static T AddIf<T>(this T builder, bool condition, params string?[] itemNames) where T : CssBuilderBase
     {
-        if (condition)
+        if (condition && itemNames.Length > 0)
         {
-            builder.Add(itemName);
+            builder.AddRange(itemNames);
         }
         return builder;
     }
@@ -73,7 +66,7 @@ public static class Extensions
     /// <summary>
     /// Adds a item to the builder if the condition is true, otherwise adds the elseClassName.
     /// </summary>
-    public static T AddIfElse<T>(this T builder, bool condition, string? itemName, string? elseItemName) where T : BuilderBase
+    public static T AddIfElse<T>(this T builder, bool condition, string? itemName, string? elseItemName) where T : CssBuilderBase
     {
         if (condition)
         {
@@ -89,7 +82,7 @@ public static class Extensions
     /// <summary>
     /// Adds the item returned by a function to the builder if the condition is true.
     /// </summary>
-    public static T AddIf<T>(this T builder, bool condition, Func<string?> itemName) where T : BuilderBase
+    public static T AddIf<T>(this T builder, bool condition, Func<string?> itemName) where T : CssBuilderBase
     {
         if (condition)
         {
@@ -101,7 +94,7 @@ public static class Extensions
     /// <summary>
     /// Adds one or the other of items depending on a condition.
     /// </summary>
-    public static T AddIfElse<T>(this T builder, bool condition, Func<string?> itemName, Func<string?> elseItemName) where T : BuilderBase
+    public static T AddIfElse<T>(this T builder, bool condition, Func<string?> itemName, Func<string?> elseItemName) where T : CssBuilderBase
     {
         if (condition)
         {
@@ -115,7 +108,7 @@ public static class Extensions
     }
 
     /// <inheritdoc cref="AddIfElse{T}(T, bool, Func{string?}, Func{string?})"/>
-    public static T AddIfElse<T>(this T builder, bool condition, Func<string?> itemName, string? elseItemName) where T : BuilderBase
+    public static T AddIfElse<T>(this T builder, bool condition, Func<string?> itemName, string? elseItemName) where T : CssBuilderBase
     {
         if (condition)
         {
@@ -129,7 +122,7 @@ public static class Extensions
     }
 
     /// <inheritdoc cref="AddIfElse{T}(T, bool, Func{string?}, Func{string?})"/>
-    public static T AddIfElse<T>(this T builder, bool condition, string? itemName, Func<string?> elseItemName) where T : BuilderBase
+    public static T AddIfElse<T>(this T builder, bool condition, string? itemName, Func<string?> elseItemName) where T : CssBuilderBase
     {
         if (condition)
         {
@@ -145,7 +138,7 @@ public static class Extensions
     /// <summary>
     /// Adds all the items to the builder.
     /// </summary>
-    public static T AddAll<T>(this T builder, IEnumerable<string?> itemNames) where T : BuilderBase
+    public static T AddAll<T>(this T builder, IEnumerable<string?> itemNames) where T : CssBuilderBase
     {
         foreach (var itemName in itemNames)
         {
@@ -177,40 +170,79 @@ public static class Extensions
     #endregion
 
     /// <summary>
-    /// Returns a string that will be displayed for the provided value.
+    /// Returns the HTML attribute value for the provided stroke line cap.
     /// </summary>
-    public static string? GetDisplayMemberValue<T>(this T? value, Func<T?, string>? displayMemberFunc, string? displayMemberPath)
+    public static string ToHtmlAttributeValue(this StrokeLineCap strokeLineCap)
     {
-        if (displayMemberFunc != null)
+        return strokeLineCap switch
         {
-            return displayMemberFunc(value);
-        }
-        if (value == null)
-        {
-            return null;
-        }
-        if (displayMemberPath == null)
-        {
-            return value.ToString();
-        }
-        var property = value.GetType().GetProperty(displayMemberPath);
-        if (property == null)
-        {
-            return null;
-        }
-        return property.GetValue(value)?.ToString();
+            StrokeLineCap.Butt => "butt",
+            StrokeLineCap.Round => "round",
+            StrokeLineCap.Square => "square",
+            _ => throw new NotImplementedException()
+        };
     }
 
     /// <summary>
-    /// Returns the HTML attribute key for the provided update trigger.
+    /// Returns the value suffixed with the appropriate CSS unit.
+    /// </summary>
+    /// <param name="value"></param>
+    /// <param name="unit"></param>
+    /// <returns></returns>
+    public static string ToCssUnitValue<T>(this T value, CssUnit unit) where T : INumber<T>
+    {
+        return $"{value}{unit.ToCssValue()}";
+    }
+
+    /// <summary>
+    /// Returns the HTML attribute value for the provided stroke line join.
+    /// </summary>
+    public static string ToHtmlAttributeValue(this StrokeLineJoin strokeLineJoin)
+    {
+        return strokeLineJoin switch
+        {
+            StrokeLineJoin.Arcs => "arcs",
+            StrokeLineJoin.Bevel => "bevel",
+            StrokeLineJoin.Round => "round",
+            StrokeLineJoin.Miter => "miter",
+            StrokeLineJoin.MiterClip => "miter-clip",
+            _ => throw new NotImplementedException()
+        };
+    }
+
+    /// <summary>
+    /// Returns the HTML attribute value for the provided update trigger.
     /// </summary>
     /// <exception cref="NotImplementedException"></exception>
-    public static string ToHtmlAttributeKey(this UpdateTrigger updateTrigger)
+    public static string ToHtmlAttributeValue(this UpdateTrigger updateTrigger)
     {
         return updateTrigger switch
         {
             UpdateTrigger.OnChange => "onchange",
             UpdateTrigger.OnInput => "oninput",
+            _ => throw new NotImplementedException()
+        };
+    }
+
+
+    /// <summary>
+    /// Returns the CSS unit suffix for the provided CSS unit.
+    /// </summary>
+    public static string ToCssValue(this CssUnit unit)
+    {
+        return unit switch
+        {
+            CssUnit.Em => "em",
+            CssUnit.Rem => "rem",
+            CssUnit.Px => "px",
+            CssUnit.Percent => "%",
+            CssUnit.Fr => "fr",
+            CssUnit.VW => "vw",
+            CssUnit.VH => "vh",
+            CssUnit.VMin => "vmin",
+            CssUnit.VMax => "vmax",
+            CssUnit.DVH => "dvh",
+            CssUnit.DVW => "dvw",
             _ => throw new NotImplementedException()
         };
     }
@@ -239,6 +271,24 @@ public static class Extensions
         }
     }
 
+    internal static string GetIconSize(this ISvgIcon icon, IVenusResolver resolver)
+    {
+        return (icon.Size ?? resolver.DefaultIconSize).ToCssUnitValue(icon.Unit ?? resolver.DefaultIconSizeUnit);
+    }
+
+    internal static string? GetDisplayValue<T>(this T? value, Func<T?, string>? displayMemberFunc)
+    {
+        if (displayMemberFunc != null)
+        {
+            return displayMemberFunc(value);
+        }
+        if (value == null)
+        {
+            return null;
+        }
+        return value.ToString();
+    }
+
     internal static string ParseThicknessValues(this string value)
     {
         var values = value
@@ -257,8 +307,10 @@ public static class Extensions
         }
     }
 
-    internal static IEnumerable<string> GetGridStyles(this IGrid grid)
+    internal static IEnumerable<string> GetGridStyles(this IGrid grid, IVenusResolver resolver)
     {
+        string gapSuffix = (grid.GapUnit ?? resolver.DefaultGapUnit).ToCssValue();
+
         List<string> styleList =
             [
                 $"--grid-columns:{TranslateToGridTemplate(grid.Columns)}"
@@ -282,11 +334,11 @@ public static class Extensions
 
         //Column Gap
         double columnGap = grid.ColumnGap ?? grid.Gap;
-        styleList.Add($"--grid-column-gap: {columnGap / 2}rem");
+        styleList.Add($"--grid-column-gap: {columnGap / 2}{gapSuffix}");
 
         //Row Gap
         double rowGap = grid.RowGap ?? grid.Gap;
-        styleList.Add($"--grid-row-gap: {rowGap / 2}rem;");
+        styleList.Add($"--grid-row-gap: {rowGap / 2}{gapSuffix};");
 
         return styleList;
     }

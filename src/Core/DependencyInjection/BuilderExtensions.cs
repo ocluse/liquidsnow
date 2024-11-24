@@ -1,15 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
-using Ocluse.LiquidSnow.Cqrs.Internal;
-using Ocluse.LiquidSnow.Cqrs;
-using Ocluse.LiquidSnow.Events;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Ocluse.LiquidSnow.Extensions;
-using Ocluse.LiquidSnow.Orchestrations.Internal;
-using Ocluse.LiquidSnow.Orchestrations;
-using Ocluse.LiquidSnow.Events.Internal;
-using Ocluse.LiquidSnow.Jobs;
-using Ocluse.LiquidSnow.Jobs.Internal;
 
 namespace Ocluse.LiquidSnow.DependencyInjection;
 
@@ -21,64 +13,22 @@ public static class BuilderExtensions
     #region CQRS
 
     /// <summary>
-    /// Adds CQRS from the calling assembly using default configuration.
+    /// Adds the CQRS dispatchers and handlers implemented in the calling assembly.
     /// </summary>
-    public static CqrsBuilder AddCqrs(this IServiceCollection services)
+    public static CqrsBuilder AddCqrs(this IServiceCollection services, ServiceLifetime handlerLifetime = ServiceLifetime.Transient)
     {
-        return services.AddCqrs(Assembly.GetCallingAssembly());
+        return services.AddCqrs(Assembly.GetCallingAssembly(), handlerLifetime);
     }
 
     /// <summary>
-    /// Adds CQRS from the provided options.
+    /// Adds the CQRS dispatchers and handlers from the provided assembly.
     /// </summary>
     public static CqrsBuilder AddCqrs(
         this IServiceCollection services,
         Assembly assembly,
-        ServiceLifetime dispatcherLifetime = ServiceLifetime.Transient,
-        ServiceLifetime handlerLifetime = ServiceLifetime.Scoped)
-    {
-        ServiceDescriptor commandsDescriptor
-            = new(typeof(ICommandDispatcher), typeof(CommandDispatcher), dispatcherLifetime);
-
-        ServiceDescriptor queriesDescriptor
-            = new(typeof(IQueryDispatcher), typeof(QueryDispatcher), dispatcherLifetime);
-
-        services.TryAdd(commandsDescriptor);
-        services.TryAdd(queriesDescriptor);
-
-        CqrsBuilder builder = new(handlerLifetime, services);
-
-        return builder.AddHandlers(assembly);
-    }
-
-    #endregion
-
-    #region JOBS
-
-    /// <summary>
-    /// Adds jobs from the calling assembly using default configuration.
-    /// </summary>
-    public static JobsBuilder AddJobs(this IServiceCollection services)
-    {
-        return services.AddJobs(Assembly.GetCallingAssembly());
-    }
-
-    /// <summary>
-    /// Adds jobs from the provided options.
-    /// </summary>
-    public static JobsBuilder AddJobs(
-        this IServiceCollection services,
-        Assembly assembly,
         ServiceLifetime handlerLifetime = ServiceLifetime.Transient)
     {
-        ServiceDescriptor schedulerDescriptor
-            = new(typeof(IJobScheduler), typeof(JobScheduler), ServiceLifetime.Singleton);
-
-        services.TryAdd(schedulerDescriptor);
-
-        JobsBuilder builder = new(handlerLifetime, services);
-
-        return builder.AddHandlers(assembly);
+        return new CqrsBuilder(services, assembly, handlerLifetime);
     }
 
     #endregion
@@ -86,41 +36,46 @@ public static class BuilderExtensions
     #region EVENT BUS
 
     /// <summary>
-    /// Adds the Event Bus and event handlers from the calling assembly using the default configuration
+    /// Adds the Event Bus and event listeners from the calling assembly using the default configuration.
     /// </summary>
-    public static EventBusBuilder AddEventBus(this IServiceCollection services)
+    public static EventBusBuilder AddEventBus(this IServiceCollection services, ServiceLifetime listenerLifetime = ServiceLifetime.Transient)
     {
-        return services.AddEventBus(Assembly.GetCallingAssembly());
+        return services.AddEventBus(Assembly.GetCallingAssembly(), listenerLifetime);
     }
 
     /// <summary>
-    /// Adds the Event Bus and event handlers using the provided options.
+    /// Adds the Event Bus and event listeners using the provided options.
     /// </summary>
     public static EventBusBuilder AddEventBus(
         this IServiceCollection services,
         Assembly assembly,
-        ServiceLifetime busLifetime = ServiceLifetime.Singleton,
-        ServiceLifetime handlerLifetime = ServiceLifetime.Transient,
-        PublishStrategy publishStrategy = PublishStrategy.Sequential)
+        ServiceLifetime listenerLifetime = ServiceLifetime.Transient)
     {
-        var options = new EventBusOptions()
-        {
-            PublishStrategy = publishStrategy,
-            BusLifetime = busLifetime,
-            HandlerLifetime = handlerLifetime
-        };
+        return new EventBusBuilder(services, assembly, listenerLifetime);
+    }
 
-        services.TryAddSingleton(options);
+    #endregion
 
-        ServiceDescriptor busDescriptor
-            = new(typeof(IEventBus), typeof(EventBus), busLifetime);
+    #region JOBS
 
-        services.TryAdd(busDescriptor);
+    /// <summary>
+    /// Adds the job scheduler and handlers implemented from the calling assembly.
+    /// </summary>
+    public static JobsBuilder AddJobs(this IServiceCollection services, ServiceLifetime handlerLifetime = ServiceLifetime.Transient)
+    {
+        return services.AddJobs(Assembly.GetCallingAssembly(), handlerLifetime);
+    }
 
-
-        EventBusBuilder builder = new(handlerLifetime, services);
-
-        return builder.AddHandlers(assembly);
+    /// <summary>
+    /// Adds the job scheduler and handlers from the provided assembly.
+    /// </summary>
+    public static JobsBuilder AddJobs(
+        this IServiceCollection services,
+        Assembly assembly,
+        ServiceLifetime handlerLifetime = ServiceLifetime.Transient)
+    {
+        return new JobsBuilder(services)
+            .AddHandlers(assembly, handlerLifetime);
     }
 
     #endregion
@@ -130,9 +85,9 @@ public static class BuilderExtensions
     /// <summary>
     /// Adds the orchestrator from the calling assembly using the default configuration.
     /// </summary>
-    public static OrchestratorBuilder AddOrchestrator(this IServiceCollection services)
+    public static OrchestratorBuilder AddOrchestrator(this IServiceCollection services, ServiceLifetime stepLifetime = ServiceLifetime.Transient)
     {
-        return services.AddOrchestrator(Assembly.GetCallingAssembly());
+        return services.AddOrchestrator(Assembly.GetCallingAssembly(), stepLifetime);
     }
 
     /// <summary>
@@ -141,94 +96,84 @@ public static class BuilderExtensions
     public static OrchestratorBuilder AddOrchestrator(
         this IServiceCollection services,
         Assembly assembly,
-        ServiceLifetime orchestratorLifetime = ServiceLifetime.Scoped,
         ServiceLifetime stepLifetime = ServiceLifetime.Transient)
     {
-
-        ServiceDescriptor orchestratorDescriptor = new(typeof(IOrchestrator), typeof(Orchestrator), orchestratorLifetime);
-
-        services.TryAdd(orchestratorDescriptor);
-
-        OrchestratorBuilder builder = new(stepLifetime, services);
-
-        return builder.AddSteps(assembly);
+        return new OrchestratorBuilder(services, assembly, stepLifetime);
     }
     #endregion
 
-    #region MISCELLANEOUS
+    #region REQUESTS
+
     /// <summary>
-    /// Adds all types that implement the provided interface type from the provided assembly to the service collection.
+    /// Adds requests from the calling assembly using default configuration.
     /// </summary>
-    public static IServiceCollection AddImplementers(
+    public static RequestsBuilder AddRequests(this IServiceCollection services, ServiceLifetime handlerLifetime = ServiceLifetime.Transient)
+    {
+        return services.AddRequests(Assembly.GetCallingAssembly(), handlerLifetime);
+    }
+
+    /// <summary>
+    /// Adds requests from the provided assembly.
+    /// </summary>
+    public static RequestsBuilder AddRequests(
         this IServiceCollection services,
-        Type type,
         Assembly assembly,
-        ServiceLifetime lifetime,
-        bool doNotAddDuplicates = true)
+        ServiceLifetime handlerLifetime = ServiceLifetime.Transient)
+    {
+        return new(services, assembly, handlerLifetime);
+    }
+
+    #endregion
+
+    #region MISCELLANEOUS
+
+    /// <summary>
+    /// Adds all types that implement the generic interface represented from the provided assembly to the service collection.
+    /// The types are added as the interface they implement.
+    /// </summary>
+    public static IServiceCollection TryAddImplementersOfGenericAsImplemented(
+        this IServiceCollection services,
+        Type genericType,
+        Assembly assembly,
+        ServiceLifetime lifetime)
     {
         List<ServiceDescriptor> descriptors = [];
-        assembly.GetTypes()
-            .Where(item => item.GetInterfaces()
-            .Where(i => i.IsGenericType).Any(i => i.GetGenericTypeDefinition() == type) && !item.IsAbstract && !item.IsInterface)
-            .ToList()
-            .ForEach(assignedType =>
+
+        IEnumerable<Type> implementationTypes = assembly.GetTypes()
+            .Where(item => item.ImplementsGenericInterface(genericType) && !item.IsAbstract && !item.IsInterface);
+
+        foreach (Type implementationType in implementationTypes)
+        {
+            IEnumerable<Type> serviceTypes = implementationType.GetInterfaces().Where(i => i.GetGenericTypeDefinition() == genericType);
+
+            foreach (var serviceType in serviceTypes)
             {
-                var serviceTypes = assignedType.GetInterfaces().Where(i => i.GetGenericTypeDefinition() == type);
-
-                foreach (var serviceType in serviceTypes)
-                {
-                    ServiceDescriptor descriptor = new(serviceType, assignedType, lifetime);
-                    descriptors.Add(descriptor);
-                }
-            });
-
-        if (doNotAddDuplicates)
-        {
-            services.TryAdd(descriptors);
+                ServiceDescriptor descriptor = new(serviceType, implementationType, lifetime);
+                descriptors.Add(descriptor);
+            }
         }
-        else
-        {
-            services.AddRange(descriptors);
-        }
+        services.TryAddEnumerable(descriptors);
 
         return services;
     }
 
     /// <summary>
-    /// Adds all types that implement the provided interface type from the provided assembly to the service collection.
-    /// The types are added as their concrete selves.
+    /// Adds all types that implement the generic interface represented from the provided assembly to the service collection.
+    /// The types are added as the concrete type they are.
     /// </summary>
-    public static IServiceCollection AddImplementersAsSelf(
+    public static IServiceCollection TryAddImplementersOfGenericAsSelf(
         this IServiceCollection services,
-        Type type,
+        Type genericType,
         Assembly assembly,
-        ServiceLifetime lifetime,
-        bool doNotAddDuplicates = true)
+        ServiceLifetime lifetime)
     {
-        List<ServiceDescriptor> descriptors = [];
-        assembly.GetTypes()
-            .Where(item => item.GetInterfaces()
-            .Where(i => i.IsGenericType).Any(i => i.GetGenericTypeDefinition() == type) && !item.IsAbstract && !item.IsInterface)
-            .ToList()
-            .ForEach(assignedType =>
-            {
-                var serviceTypes = assignedType.GetInterfaces().Where(i => i.GetGenericTypeDefinition() == type);
 
-                foreach (var serviceType in serviceTypes)
-                {
-                    ServiceDescriptor descriptor = new(assignedType, assignedType, lifetime);
-                    descriptors.Add(descriptor);
-                }
-            });
+        IEnumerable<ServiceDescriptor> descriptors = assembly.GetTypes()
+            .Where(item => item.ImplementsGenericInterface(genericType) && !item.IsAbstract && !item.IsInterface)
+            .ToHashSet()
+            .Select(x => new ServiceDescriptor(x, x, lifetime));
 
-        if (doNotAddDuplicates)
-        {
-            services.TryAdd(descriptors);
-        }
-        else
-        {
-            services.AddRange(descriptors);
-        }
+        services.TryAddEnumerable(descriptors);
 
         return services;
     }

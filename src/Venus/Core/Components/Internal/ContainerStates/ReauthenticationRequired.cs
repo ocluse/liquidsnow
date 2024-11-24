@@ -2,7 +2,7 @@
 
 namespace Ocluse.LiquidSnow.Venus.Components.Internal.ContainerStates;
 
-internal class ReauthenticationRequired : ComponentBase
+internal sealed class ReauthenticationRequired : ComponentBase
 {
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {

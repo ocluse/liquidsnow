@@ -2,13 +2,19 @@
 
 namespace Ocluse.LiquidSnow.Jobs.Internal;
 
-internal class JobSubscription(IJob job, IJobExecutor executor) : IDisposable
+internal sealed class JobSubscription(IJob job, IJobSubscriptionHandler handler, Type jobType) : IDisposable
 {
     private readonly CancellationTokenSource _cts = new();
-    private long _currentTick;
-    protected IDisposable? _handle;
+    
+    private IDisposable? _handle;
 
     public IJob Job { get; } = job;
+
+    public Type JobType { get; } = jobType;
+
+    public long CurrentTick { get; private set; }
+
+    public CancellationToken CancellationToken => _cts.Token;
 
     public event EventHandler<JobSubscription>? Disposed;
 
@@ -43,22 +49,23 @@ internal class JobSubscription(IJob job, IJobExecutor executor) : IDisposable
                  //Task series sets its own tick
                  if (Job is not ITaskSeriesJob)
                  {
-                     _currentTick = tick;
+                     CurrentTick = tick;
                  }
 
-                 await Execute();
+                 await DispatchAsync();
              });
     }
 
-    private async Task Execute()
+    private async Task DispatchAsync()
     {
-        await executor.Execute(Job, _currentTick, _cts.Token);
+        await handler.HandleAsync(this);
+        //await dispatcher.DispatchAsync(Job, JobType, CurrentTick, false, _cts.Token);
 
         if (Job is ITaskSeriesJob or not IRoutineJob)
         {
             if (Job is ITaskSeriesJob taskSeriesJob)
             {
-                _currentTick++;
+                CurrentTick++;
                 _handle = Subscribe(DateTimeOffset.Now + taskSeriesJob.Interval, null);
             }
             else

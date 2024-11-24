@@ -1,29 +1,36 @@
 ﻿using Microsoft.AspNetCore.Components.Rendering;
+using Ocluse.LiquidSnow.Extensions;
 
 namespace Ocluse.LiquidSnow.Venus.Components;
 
 /// <summary>
-/// Represents a checkbox input component for selecting a boolean value.
+/// An input for collecting boolean values.
 /// </summary>
 public class CheckBox : InputBase<bool>
 {
     /// <summary>
-    /// The content displayed next to the checkbox.
+    /// Gets or sets the content displayed next to the checkbox.
     /// </summary>
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
     /// <summary>
-    /// Gets or sets the CSS class applied to the inner input element
+    /// Gets or sets the CSS class applied to the core html input element.
     /// </summary>
     [Parameter]
     public string? InputClass { get; set; }
+
+    private async Task OnInputChange(ChangeEventArgs e)
+    {
+        var newValue = bool.Parse(e.Value?.ToString() ?? "false");
+        await NotifyValueChange(newValue);
+    }
 
     ///<inheritdoc/>
     protected override void BuildInputClass(ClassBuilder classBuilder)
     {
         base.BuildInputClass(classBuilder);
-        classBuilder.Add("checkbox");
+        classBuilder.Add(ClassNameProvider.CheckBox);
     }
 
     ///<inheritdoc/>
@@ -36,27 +43,27 @@ public class CheckBox : InputBase<bool>
     ///<inheritdoc/>
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
-        builder.OpenElement(0, "label");
+        builder.OpenElement(1, "label");
         {
-            builder.AddMultipleAttributes(1, GetAttributes());
+            builder.AddMultipleAttributes(2, GetAttributes());
 
-            if (string.IsNullOrEmpty(Header))
+            if (Header.IsNotWhiteSpace())
             {
-                builder.AddContent(3, ChildContent);
+                builder.AddContent(3, Header);
             }
             else
             {
-                builder.AddContent(4, Header);
+                builder.AddContent(4, ChildContent);
             }
 
             builder.OpenElement(5, "input");
             {
                 builder.AddAttribute(6, "type", "checkbox");
-                builder.AddAttribute(7, "onchange", OnChange);
+                builder.AddAttribute(7, "onchange", OnInputChange);
                 builder.AddAttribute(8, "checked", Value);
                 builder.AddAttribute(9, "name", AppliedName);
 
-                if (!string.IsNullOrWhiteSpace(InputClass))
+                if (InputClass.IsNotWhiteSpace())
                 {
                     builder.AddAttribute(10, "class", InputClass);
                 }
@@ -75,24 +82,11 @@ public class CheckBox : InputBase<bool>
 
             builder.OpenElement(13, "span");
             {
-                builder.AddAttribute(14, "class", "checkmark");
+                builder.AddAttribute(14, "class", ClassNameProvider.Checkbox_Checkmark);
             }
             builder.CloseElement();
 
         }
         builder.CloseElement();
-    }
-
-    ///<inheritdoc/>
-    protected override bool GetValue(object? value)
-    {
-        if (bool.TryParse(value?.ToString(), out bool result))
-        {
-            return result;
-        }
-        else
-        {
-            return false;
-        }
     }
 }

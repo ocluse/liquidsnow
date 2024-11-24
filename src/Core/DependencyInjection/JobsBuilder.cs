@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Ocluse.LiquidSnow.Jobs;
+using Ocluse.LiquidSnow.Jobs.Internal;
 using System.Reflection;
 
 namespace Ocluse.LiquidSnow.DependencyInjection;
@@ -9,12 +11,32 @@ namespace Ocluse.LiquidSnow.DependencyInjection;
 /// </summary>
 public class JobsBuilder
 {
-    private readonly ServiceLifetime _handlerLifetime;
-
-    internal JobsBuilder(ServiceLifetime handlerLifetime, IServiceCollection services)
+    /// <summary>
+    /// Creates a new instance of <see cref="JobsBuilder"/> and adds essential Jobs services.
+    /// </summary>
+    public JobsBuilder(IServiceCollection services)
     {
-        _handlerLifetime = handlerLifetime;
         Services = services;
+
+        AddCore();
+    }
+
+    /// <summary>
+    /// Creates a new instance of the <see cref="JobsBuilder"/>, adds essential Jobs services and adds handlers from the provided assembly.
+    /// </summary>
+    public JobsBuilder(IServiceCollection services, Assembly assembly, ServiceLifetime handlerLifetime = ServiceLifetime.Transient)
+    {
+        Services = services;
+
+        AddCore();
+        AddHandlers(assembly, handlerLifetime);
+    }
+
+    private void AddCore()
+    {
+        Services.TryAddSingleton<IJobScheduler, JobScheduler>();
+        Services.TryAddSingleton<JobDescriptorCache>();
+        Services.TryAddTransient<IJobDispatcher, JobDispatcher>();
     }
 
     /// <summary>
@@ -22,21 +44,23 @@ public class JobsBuilder
     /// </summary>
     public IServiceCollection Services { get; }
 
-
-    /// <inheritdoc cref="AddHandlers(IEnumerable{Assembly})"/>
-    public JobsBuilder AddHandlers(params Assembly[] assemblies)
+    /// <summary>
+    /// Adds job handlers from the provided assembly.
+    /// </summary>
+    public JobsBuilder AddHandlers(Assembly assembly, ServiceLifetime handlerLifetime = ServiceLifetime.Transient)
     {
-        return AddHandlers(assemblies.AsEnumerable());
+        Services.TryAddImplementersOfGenericAsImplemented(typeof(IJobHandler<>), assembly, handlerLifetime);
+        return this;
     }
 
     /// <summary>
     /// Adds job handlers from the provided assemblies.
     /// </summary>
-    public JobsBuilder AddHandlers(IEnumerable<Assembly> assemblies)
-    {
+    public JobsBuilder AddHandlers(IEnumerable<Assembly> assemblies, ServiceLifetime handlerLifetime = ServiceLifetime.Transient)
+    {        
         foreach (var assembly in assemblies)
         {
-            Services.AddImplementers(typeof(IJobHandler<>), assembly, _handlerLifetime, false);
+            AddHandlers(assembly, handlerLifetime);
         }
         return this;
     }

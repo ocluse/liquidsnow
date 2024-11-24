@@ -16,15 +16,17 @@ public class ItemDetailContainer : ControlBase
     ///<inheritdoc/>
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
-        builder.OpenElement(0, "dl");
-        builder.AddMultipleAttributes(1, GetAttributes());
-        builder.AddContent(2, ChildContent);
+        builder.OpenElement(1, "dl");
+        {
+            builder.AddMultipleAttributes(2, GetAttributes());
+            builder.AddContent(3, ChildContent);
+        }
         builder.CloseElement();
     }
 
     ///<inheritdoc/>
     protected override void BuildClass(ClassBuilder builder)
     {
-        builder.Add("item-detail-container");
+        builder.Add(ClassNameProvider.ItemDetailContainer);
     }
 }

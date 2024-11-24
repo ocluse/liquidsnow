@@ -31,6 +31,21 @@ public class VenusResolver : IVenusResolver
     public virtual int IconStrokeWidth => FeatherIcon.STROKE_WIDTH;
 
     ///<inheritdoc/>
+    public virtual int DefaultMaxPaginatorItems => 10;
+
+    ///<inheritdoc/>
+    public virtual double DefaultDebounceInterval => 500;
+
+    ///<inheritdoc/>
+    public virtual CssUnit DefaultGapUnit => CssUnit.Rem;
+
+    ///<inheritdoc/>
+    public virtual StrokeLineCap FeatherIconStrokeCap => StrokeLineCap.Round;
+
+    ///<inheritdoc/>
+    public virtual StrokeLineJoin FeatherIconStrokeLineJoin => StrokeLineJoin.Round;
+
+    ///<inheritdoc/>
     public virtual Type ResolveContainerStateToComponentType(int containerState)
     {
         return containerState switch

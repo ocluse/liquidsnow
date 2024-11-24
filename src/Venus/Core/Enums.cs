@@ -17,6 +17,21 @@ public enum Keyboard
     Color,
 }
 
+public enum CssUnit
+{
+    Px,
+    Percent,
+    Rem,
+    Em,
+    Fr,
+    VW,
+    VH,
+    VMin,
+    VMax,
+    DVH,
+    DVW,
+}
+
 public enum Ordering
 {
     Ascending,
@@ -41,4 +56,40 @@ public enum IconStyle
 {
     Feather,
     Fluent,
+}
+
+public enum SelectionMode
+{
+    Single,
+    SingleToggle,
+    Multiple
+}
+
+public enum ComponentIcon
+{
+    Close,
+    ChevronLeft,
+    ChevronRight,
+    Filter,
+    Sort,
+    Error,
+    Information,
+    Success,
+    Warning,
+}
+
+public enum StrokeLineJoin
+{
+    Arcs,
+    Bevel,
+    Miter,
+    MiterClip,
+    Round,
+}
+
+public enum StrokeLineCap
+{
+    Butt,
+    Round,
+    Square
 }

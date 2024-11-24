@@ -3,7 +3,7 @@
 namespace Ocluse.LiquidSnow.Venus.Components;
 
 /// <summary>
-/// A component that represents a data cell in a table, rendered as a td element.
+/// A component that renders a td element.
 /// </summary>
 public class DataCell : ControlBase
 {
@@ -16,10 +16,11 @@ public class DataCell : ControlBase
     ///<inheritdoc/>
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
-        builder.OpenElement(0, "td");
-
-        builder.AddMultipleAttributes(1, GetAttributes());
-        builder.AddContent(2, ChildContent);
+        builder.OpenElement(1, "td");
+        {
+            builder.AddMultipleAttributes(2, GetAttributes());
+            builder.AddContent(3, ChildContent);
+        }
         builder.CloseElement();
     }
 }

@@ -3,26 +3,26 @@
 namespace Ocluse.LiquidSnow.Venus.Components;
 
 /// <summary>
-/// A component that represents a button.
+/// A button.
 /// </summary>
-public class Button : ButtonBase
+public class Button : ClickableBase
 {
     /// <summary>
-    /// The content displayed in the bounds of the button
+    /// Get or sets the content of the button.
     /// </summary>
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
     ///<inheritdoc/>
-    protected override void BuildButtonClass(ClassBuilder classBuilder)
+    protected override void BuildControlClass(ClassBuilder builder)
     {
-        base.BuildButtonClass(classBuilder);
-        classBuilder.Add("button");
+        base.BuildControlClass(builder);
+        builder.Add(ClassNameProvider.Button);
     }
 
     ///<inheritdoc/>
     protected override void BuildContent(RenderTreeBuilder builder)
     {
-        builder.AddContent(2, ChildContent);
+        builder.AddContent(1, ChildContent);
     }
 }

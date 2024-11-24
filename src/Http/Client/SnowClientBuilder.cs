@@ -2,11 +2,7 @@
 
 namespace Ocluse.LiquidSnow.Http.Client;
 
-internal class SnowClientBuilder : ISnowClientBuilder
+internal class SnowClientBuilder(IServiceCollection services) : ISnowClientBuilder
 {
-    public IServiceCollection Services { get; }
-    public SnowClientBuilder(IServiceCollection services)
-    {
-        Services = services;
-    }
+    public IServiceCollection Services { get; } = services;
 }

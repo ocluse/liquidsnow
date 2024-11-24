@@ -1,6 +1,4 @@
-﻿using Ocluse.LiquidSnow.Venus.Models;
-
-namespace Ocluse.LiquidSnow.Venus.Services;
+﻿namespace Ocluse.LiquidSnow.Venus.Services;
 
 internal class SnackbarService : ISnackbarService
 {

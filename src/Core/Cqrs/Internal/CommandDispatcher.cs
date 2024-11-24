@@ -1,11 +1,15 @@
 ﻿namespace Ocluse.LiquidSnow.Cqrs.Internal;
 
-internal class CommandDispatcher(IServiceProvider serviceProvider) : ICommandDispatcher
+internal sealed class CommandDispatcher(CoreDispatcher coreDispatcher, IServiceProvider serviceProvider)
+    : ICommandDispatcher
 {
     public async Task<TCommandResult> DispatchAsync<TCommandResult>(ICommand<TCommandResult> command, CancellationToken cancellationToken)
     {
-        ExecutionDescriptor descriptor = ExecutionsHelper.GetDescriptor<TCommandResult>(ExecutionKind.Command, command);
+        return await coreDispatcher.DispatchAsync<TCommandResult>(ExecutionKind.Command, command.GetType(),  command, serviceProvider, cancellationToken);
+    }
 
-        return await ExecutionsHelper.ExecuteDescriptorAsync<TCommandResult>(command, descriptor, serviceProvider, cancellationToken);
+    public Task<TCommandResult> DispatchAsync<TCommand, TCommandResult>(TCommand command, CancellationToken cancellationToken = default) where TCommand : ICommand<TCommandResult>
+    {
+        return coreDispatcher.DispatchAsync<TCommandResult>(ExecutionKind.Command, typeof(TCommand), command, serviceProvider, cancellationToken);
     }
 }

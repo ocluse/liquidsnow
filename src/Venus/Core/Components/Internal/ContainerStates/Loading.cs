@@ -2,7 +2,7 @@
 
 namespace Ocluse.LiquidSnow.Venus.Components.Internal.ContainerStates;
 
-internal class Loading : ComponentBase
+internal sealed class Loading : ComponentBase
 {
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {

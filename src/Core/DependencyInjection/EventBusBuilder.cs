@@ -1,42 +1,77 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Ocluse.LiquidSnow.Events;
+using Ocluse.LiquidSnow.Events.Internal;
 using System.Reflection;
 
 namespace Ocluse.LiquidSnow.DependencyInjection;
 
 /// <summary>
-/// Builder for adding event handlers to the service collection.
+/// Provides methods for configuring EventBus in a service collection.
 /// </summary>
 public class EventBusBuilder
 {
-    private readonly ServiceLifetime _handlerLifetime;
-
     /// <summary>
     /// Gets the service collection where the handlers are configured.
     /// </summary>
     public IServiceCollection Services { get; }
 
-    internal EventBusBuilder(ServiceLifetime handlerLifetime, IServiceCollection services)
+    /// <summary>
+    /// Creates a new instance of <see cref="EventBusBuilder"/> and adds essential EventBus services.
+    /// </summary>
+    public EventBusBuilder(IServiceCollection services)
     {
-        _handlerLifetime = handlerLifetime;
         Services = services;
-    }
-
-    ///<inheritdoc cref="AddHandlers(IEnumerable{Assembly})"/>
-    public EventBusBuilder AddHandlers(params Assembly[] assemblies)
-    {
-        return AddHandlers(assemblies.AsEnumerable());
+        AddCore();
     }
 
     /// <summary>
-    /// Adds event handlers from the provided assemblies.
+    /// Creates a new instance of the <see cref="EventBusBuilder"/>, adds essential EventBus services and adds handlers from the provided assembly.
     /// </summary>
-    public EventBusBuilder AddHandlers(IEnumerable<Assembly> assemblies)
+    public EventBusBuilder(IServiceCollection services, Assembly assembly, ServiceLifetime listenerLifetime = ServiceLifetime.Transient)
     {
+        Services = services;
+        AddCore();
+        AddListeners(assembly, listenerLifetime);
+    }
+
+    private void AddCore()
+    {
+        Services.TryAddSingleton<EventDescriptorCache>();
+        Services.TryAddTransient<IEventBus, EventBus>();
+    }
+
+    /// <summary>
+    /// Adds listeners from the provided assembly.
+    /// </summary>
+    public EventBusBuilder AddListeners(Assembly assembly, ServiceLifetime listenerLifetime = ServiceLifetime.Transient)
+    {
+        Services.TryAddImplementersOfGenericAsImplemented(typeof(IEventListener<>), assembly, listenerLifetime);
+        return this;
+    }
+
+    /// <summary>
+    /// Adds event listeners from the provided assemblies.
+    /// </summary>
+    public EventBusBuilder AddListeners(IEnumerable<Assembly> assemblies, ServiceLifetime listenerLifetime = ServiceLifetime.Transient)
+    {        
         foreach (var assembly in assemblies)
         {
-            Services.AddImplementers(typeof(IEventHandler<>), assembly, _handlerLifetime, false);
+            AddListeners(assembly, listenerLifetime);
         }
+        
+        return this;
+    }
+
+    /// <summary>
+    /// Adds the specified event listeners to the service collection.
+    /// </summary>
+    public EventBusBuilder AddListener<TEvent, TListener>(ServiceLifetime listenerLifetime = ServiceLifetime.Transient) 
+        where TListener : IEventListener<TEvent>
+    {
+        ServiceDescriptor descriptor = new(typeof(IEventListener<TEvent>), typeof(TListener), listenerLifetime);
+        Services.TryAdd(descriptor);
+
         return this;
     }
 }

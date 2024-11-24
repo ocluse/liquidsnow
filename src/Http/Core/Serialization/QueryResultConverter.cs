@@ -25,7 +25,7 @@ public class QueryResultConverter<T> : JsonConverter<QueryResult<T>>
             QueryType.Offset => typeof(OffsetQueryResult<T>),
             QueryType.Ids => typeof(IdsQueryResult<T>),
             QueryType.Custom => CustomQueryResultType,
-            _ => throw new JsonException($"Unknown QueryType: {queryType}")
+            _ => throw new JsonException($"Unknown {nameof(QueryType)}: {queryType}")
         };
     }
 

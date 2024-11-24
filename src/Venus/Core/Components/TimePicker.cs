@@ -1,9 +1,9 @@
 ﻿namespace Ocluse.LiquidSnow.Venus.Components;
 
 /// <summary>
-/// A component that allows the user to select a time value.
+/// An input that collects a <see cref="TimeOnly"/> value.
 /// </summary>
-public class TimePicker : InputControlBase<TimeOnly?>
+public class TimePicker : TextBoxBase<TimeOnly?>
 {
     ///<inheritdoc/>
     protected override string InputType => "time";

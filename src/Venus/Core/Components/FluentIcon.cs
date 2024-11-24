@@ -3,21 +3,21 @@
 namespace Ocluse.LiquidSnow.Venus.Components;
 
 /// <summary>
-/// A component for displaying FluentUI icons.
+/// A component that renders FluentUI icons.
 /// </summary>
-public class FluentIcon : ControlBase
+public class FluentIcon : ControlBase, ISvgIcon
 {
-    /// <summary>
-    /// Gets or sets the inner svg content of the icon to display.
-    /// </summary>
+    ///<inheritdoc/>
     [Parameter]
     public string? Icon { get; set; }
 
-    /// <summary>
-    /// Gets or sets the size of he icon in pixels.
-    /// </summary>
+    ///<inheritdoc/>
     [Parameter]
-    public int? Size { get; set; }
+    public CssUnit? Unit { get; set; }
+
+    ///<inheritdoc/>
+    [Parameter]
+    public double? Size { get; set; }
 
     /// <summary>
     /// The size of the view box for the icon.
@@ -29,24 +29,36 @@ public class FluentIcon : ControlBase
     {
         if (!string.IsNullOrEmpty(Icon))
         {
-            builder.OpenElement(0, "svg");
-
-            Dictionary<string, object> attributes = new()
-            {
-                { "height", Size ?? Resolver.DefaultIconSize},
-                { "width", Size ?? Resolver.DefaultIconSize},
-                { "xmlns", "http://www.w3.org/2000/svg" },
-                { "viewBox", $"0 0 {ViewBox} {ViewBox}" },
-                { "fill", "currentColor" }
-            };
-
-            builder.AddMultipleAttributes(1, attributes);
-            builder.AddMultipleAttributes(2, GetAttributes());
             MarkupString content = new(Icon);
 
-            builder.AddContent(3, content);
+            builder.OpenElement(0, "svg");
+            {
+                builder.AddMultipleAttributes(1, GetAttributes());
+
+                builder.AddContent(2, content);
+            }            
             builder.CloseElement();
         }
+    }
+
+    ///<inheritdoc/>
+    protected override void BuildAttributes(IDictionary<string, object> attributes)
+    {
+        string size = this.GetIconSize(Resolver);
+
+        base.BuildAttributes(attributes);
+        attributes.Add("height", size);
+        attributes.Add("width", size);
+        attributes.Add("xmlns", "http://www.w3.org/2000/svg");
+        attributes.Add("viewBox", $"0 0 {ViewBox} {ViewBox}");
+        attributes.Add("fill", "currentColor");
+    }
+
+    ///<inheritdoc/>
+    protected override void BuildClass(ClassBuilder builder)
+    {
+        base.BuildClass(builder);
+        builder.Add(ClassNameProvider.FluentIcon);
     }
 }
 

@@ -2,7 +2,7 @@
 
 namespace Ocluse.LiquidSnow.Venus.Components.Internal.ContainerStates;
 
-internal class Unauthorized : ComponentBase
+internal sealed class Unauthorized : ComponentBase
 {
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {

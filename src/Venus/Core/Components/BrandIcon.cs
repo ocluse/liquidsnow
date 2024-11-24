@@ -1,45 +1,54 @@
 ﻿using Microsoft.AspNetCore.Components.Rendering;
+using Ocluse.LiquidSnow.Extensions;
 
 namespace Ocluse.LiquidSnow.Venus.Components;
 
 /// <summary>
-/// A component for displaying brand icons designed under Venus principles.
+/// A control that displays brand icons designed under Venus principles.
 /// </summary>
-public class BrandIcon : ControlBase
+public class BrandIcon : ControlBase, ISvgIcon
 {
-    /// <summary>
-    /// Gets or sets the SVG content of the icon to display.
-    /// </summary>
+    ///<inheritdoc/>
     [Parameter]
     public string? Icon { get; set; }
 
-    /// <summary>
-    /// Gets or sets the size of the icon in pixels.
-    /// </summary>
+    ///<inheritdoc/>
     [Parameter]
-    public int? Size { get; set; }
+    public double? Size { get; set; }
+
+    ///<inheritdoc/>
+    [Parameter]
+    public CssUnit? Unit { get; set; }
 
     ///<inheritdoc/>
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
-        if (!string.IsNullOrEmpty(Icon))
+        if (Icon.IsNotEmpty())
         {
-            builder.OpenElement(0, "svg");
-
-            Dictionary<string, object> attributes = new()
+            builder.OpenElement(1, "svg");
             {
-                { "height", Size ?? Resolver.DefaultIconSize},
-                { "width", Size ?? Resolver.DefaultIconSize},
-                { "xmlns", "http://www.w3.org/2000/svg" },
-                { "viewBox", "0 0 48 48" },
-            };
-
-            builder.AddMultipleAttributes(1, attributes);
-            builder.AddMultipleAttributes(2, GetAttributes()!);
-            MarkupString content = new(Icon);
-
-            builder.AddContent(3, content);
+                builder.AddMultipleAttributes(2, GetAttributes());
+                builder.AddContent(3, new MarkupString(Icon));
+            }
             builder.CloseElement();
         }
+    }
+
+    ///<inheritdoc/>
+    protected override void BuildAttributes(IDictionary<string, object> attributes)
+    {
+        base.BuildAttributes(attributes);
+        string size = this.GetIconSize(Resolver);
+        attributes.Add("height", size);
+        attributes.Add("width", size);
+        attributes.Add("xmlns", "http://www.w3.org/2000/svg");
+        attributes.Add("viewBox", "0 0 48 48");
+    }
+
+    ///<inheritdoc/>
+    protected override void BuildClass(ClassBuilder builder)
+    {
+        base.BuildClass(builder);
+        builder.Add(ClassNameProvider.BrandIcon);
     }
 }

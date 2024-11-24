@@ -1,9 +1,9 @@
 ﻿namespace Ocluse.LiquidSnow.Venus.Components;
 
 /// <summary>
-/// A component that allows the user to pick a date and time.
+/// An input that collects <see cref="DateTimeOffset"/> values set to local time.
 /// </summary>
-public class DateTimePicker : InputControlBase<DateTimeOffset?>
+public class DateTimePicker : TextBoxBase<DateTimeOffset?>
 {
     ///<inheritdoc/>
     protected override string InputType => "datetime-local";

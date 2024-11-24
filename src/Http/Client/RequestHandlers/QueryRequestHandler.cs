@@ -3,9 +3,6 @@
 /// <summary>
 /// A handler that sends http request to a server by query string parameters.
 /// </summary>
-/// <remarks>
-/// Creates a new instance of the <see cref="QueryRequestHandler{TQuery,TResult}"/> class
-/// </remarks>
 public class QueryRequestHandler<TQuery, TResult>(
     HttpMethod httpMethod, 
     ISnowHttpClientFactory httpClientFactory, 

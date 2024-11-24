@@ -1,12 +1,12 @@
 ﻿namespace Ocluse.LiquidSnow.Cqrs;
 
 /// <summary>
-/// Provides a contract for creating handlers for queries.
+/// Defines a handler that processes a specific type of query.
 /// </summary>
 public interface IQueryHandler<in TQuery, TQueryResult> where TQuery : IQuery<TQueryResult>
 {
     /// <summary>
-    /// Runs the query and returns the result of the operation.
+    /// Executes the query and returns the result.
     /// </summary>
     Task<TQueryResult> HandleAsync(TQuery query, CancellationToken cancellationToken = default);
 }

@@ -38,7 +38,7 @@ public class BitmapJector : Jector
             ls_data.AddRange(Eof);
         }
 
-        BitArray message = new BitArray(ls_data.ToArray());
+        BitArray message = new(ls_data.ToArray());
 
         int count = message.Count;
 
@@ -81,7 +81,7 @@ public class BitmapJector : Jector
                 {
                     if (!UseAlphaChannel && v == 0) continue;
 
-                    BitArray bitArray = new BitArray(new[] { values[v] });
+                    BitArray bitArray = new(new[] { values[v] });
                     for (int i = 0; i < LsbDepth; i++)
                     {
                         if (pos == count)
@@ -122,7 +122,7 @@ public class BitmapJector : Jector
         int width = inputImage.Width;
 
         int count = width * height * LsbDepth * (UseAlphaChannel ? 4 : 3);
-        BitArray message = new BitArray(count, false);
+        BitArray message = new(count, false);
         int pos = 0;
 
         for (int y = 0; y < height; y++)
@@ -141,7 +141,7 @@ public class BitmapJector : Jector
 
                 foreach (byte val in values)
                 {
-                    BitArray bitArray = new BitArray(new[] { val });
+                    BitArray bitArray = new(new[] { val });
                     for (int i = 0; i < LsbDepth; i++)
                     {
                         message[pos] = bitArray[i];

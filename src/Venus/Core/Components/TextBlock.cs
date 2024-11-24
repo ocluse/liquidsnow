@@ -29,14 +29,14 @@ public class TextBlock : ControlBase
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
         builder.OpenElement(0, Resolver.ResolveTextHierarchy(Hierarchy));
-
-        builder.AddMultipleAttributes(1, GetAttributes());
-
-        if (ChildContent != null)
         {
-            builder.AddContent(2, ChildContent);
-        }
+            builder.AddMultipleAttributes(1, GetAttributes());
 
+            if (ChildContent != null)
+            {
+                builder.AddContent(2, ChildContent);
+            }
+        }
         builder.CloseElement();
     }
 

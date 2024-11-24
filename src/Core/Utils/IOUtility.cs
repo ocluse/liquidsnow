@@ -53,7 +53,7 @@ public static class IOUtility
     /// <exception cref="ArgumentNullException"></exception>
     public static string UnixifyPath(string path)
     {
-        if (path == null) throw new ArgumentNullException(nameof(path));
+        ArgumentNullException.ThrowIfNull(path);
         return path.Replace("\\", "/");
     }
 

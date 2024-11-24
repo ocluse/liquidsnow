@@ -1,9 +1,8 @@
 ﻿namespace Ocluse.LiquidSnow.Cqrs;
 
 /// <summary>
-/// Describes a task that queries the application for information.
+/// Represents a request to retrieve data from the system, typically without modifying the system state.
 /// </summary>
-/// <typeparam name="TResult">The expected result after completion of the query</typeparam>
 public interface IQuery<TResult>
 {
 }

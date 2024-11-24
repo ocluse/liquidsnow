@@ -3,21 +3,20 @@
 /// <summary>
 /// A request handler that sends a request with content.
 /// </summary>
-public class ContentRequestHandler<TContent, TResult> : RequestHandler<TResult>
+
+public class ContentRequestHandler<TContent, TResult>(
+    HttpMethod httpMethod, 
+    ISnowHttpClientFactory httpClientFactory, 
+    string path, 
+    IHttpHandler? httpHandler = null, 
+    string? clientName = null) 
+    : RequestHandler<TResult>(httpClientFactory, path, httpHandler, clientName)
 {
-    /// <summary>
-    /// Creates a new instance of <see cref="ContentRequestHandler{TContent, TResult}"/>
-    /// </summary>
-    public ContentRequestHandler(HttpMethod httpMethod, ISnowHttpClientFactory httpClientFactory, string path, IHttpHandler? httpHandler = null, string? clientName = null)
-        : base(httpClientFactory, path, httpHandler, clientName)
-    {
-        HttpMethod = httpMethod;
-    }
 
     /// <summary>
     /// The HTTP method used to send the request.
     /// </summary>
-    public HttpMethod HttpMethod { get; }
+    public HttpMethod HttpMethod { get; } = httpMethod;
 
     /// <summary>
     /// Gets the path to send the request to.

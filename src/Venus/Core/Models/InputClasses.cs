@@ -3,7 +3,7 @@
 namespace Ocluse.LiquidSnow.Venus.Models;
 
 /// <summary>
-/// CSS classes that are applied to child components of a <see cref="InputControlBase{T}"/>
+/// CSS classes that are applied to child components of a <see cref="TextBoxBase{T}"/>
 /// </summary>
 public record InputClasses
 {

@@ -1,5 +1,4 @@
-﻿using Ocluse.LiquidSnow.Extensions;
-using System.Text;
+﻿using System.Text;
 
 namespace Ocluse.LiquidSnow.Steganography.Media.Internals;
 
@@ -56,21 +55,21 @@ internal class WaveFile : IDisposable
     private void LoadHeader()
     {
         _stream.Position = 0;
-        using BinaryReader reader = new BinaryReader(_stream, Encoding.ASCII, true);
+        using BinaryReader reader = new(_stream, Encoding.ASCII, true);
 
         //--------------------------------VALIDITY--------------------------------//
         //RIFF Marker
         char[] str = reader.ReadChars(4);
-        if (!str.IsString("RIFF")) throw new InvalidDataException("The file is not a valid WAV file");
+        if (!str.SequenceEqual("RIFF")) throw new InvalidDataException("The file is not a valid WAV file");
 
         //ChunkSize
         _chunkSize = reader.ReadInt32();
 
         //Format Marker
-        if (!reader.ReadChars(4).IsString("WAVE")) throw new InvalidDataException("The file is not a valid wave file");
+        if (!reader.ReadChars(4).SequenceEqual("WAVE")) throw new InvalidDataException("The file is not a valid wave file");
 
         //----------------------------DATA 1-------------------------------------//
-        if (!reader.ReadChars(4).IsString("fmt ")) throw new InvalidDataException("Invalid or unrecognized WAV file");
+        if (!reader.ReadChars(4).SequenceEqual("fmt ")) throw new InvalidDataException("Invalid or unrecognized WAV file");
 
         //fmt Chunk size
         _fmtChunkSize = reader.ReadInt32();
@@ -102,7 +101,7 @@ internal class WaveFile : IDisposable
         reader.BaseStream.Position += _fmtChunkSize - 16;
 
         //==========================DATA 2============================//
-        string strBuffer = new string(reader.ReadChars(4));
+        string strBuffer = new(reader.ReadChars(4));
 
         if (strBuffer != "data")
         {
@@ -115,7 +114,7 @@ internal class WaveFile : IDisposable
 
                 //try to find data:
 
-                if (!reader.ReadChars(4).IsString("data")) throw new InvalidDataException("Invalid/unknown WAV file");
+                if (!reader.ReadChars(4).SequenceEqual("data")) throw new InvalidDataException("Invalid/unknown WAV file");
             }
             else
             {
@@ -137,7 +136,7 @@ internal class WaveFile : IDisposable
     {
         //Set stream position to origin:
         _stream.Position = 0;
-        using BinaryWriter writer = new BinaryWriter(_stream, Encoding.ASCII, true);
+        using BinaryWriter writer = new(_stream, Encoding.ASCII, true);
 
         //RIFF Marker
         writer.Write("RIFF".ToCharArray());
@@ -189,7 +188,7 @@ internal class WaveFile : IDisposable
             throw new InvalidDataException("Sample channels must be equal to WaveFile channel count");
 
 
-        using BinaryWriter writer = new BinaryWriter(_stream, Encoding.ASCII, true);
+        using BinaryWriter writer = new(_stream, Encoding.ASCII, true);
         foreach (Channel channel in sample.Channels)
         {
             if (channel.Data.Length != _format.BytesPerSample)
@@ -210,9 +209,9 @@ internal class WaveFile : IDisposable
 
     public Sample? GetNextSample()
     {
-        using BinaryReader reader = new BinaryReader(_stream, Encoding.ASCII, true);
+        using BinaryReader reader = new(_stream, Encoding.ASCII, true);
 
-        Sample sample = new Sample();
+        Sample sample = new();
         for (int i = 0; i < _format.NumChannels; i++)
         {
             if (reader.PeekChar() == -1)
@@ -227,7 +226,7 @@ internal class WaveFile : IDisposable
                 }
             }
             byte[] data = reader.ReadBytes(_format.BytesPerSample);
-            Channel channel = new Channel(data);
+            Channel channel = new(data);
             sample.Channels.Add(channel);
         }
 

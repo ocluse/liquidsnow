@@ -4,35 +4,35 @@ using System.Numerics;
 namespace Ocluse.LiquidSnow.Venus.Components;
 
 /// <summary>
-/// A component that allows the user to pick a number.
+/// An input that collects <see cref="INumber{TSelf}"/> values.
 /// </summary>
-public class NumberPicker<T> : InputControlBase<T> where T : struct, INumber<T>
+public class NumberPicker<TValue> : TextBoxBase<TValue> where TValue : struct, INumber<TValue>
 {
     /// <summary>
-    /// The minimum value that can be picked.
+    /// Gets or sets the minimum value that can be picked.
     /// </summary>
     [Parameter]
-    public T? Min { get; set; }
+    public TValue? Min { get; set; }
 
     /// <summary>
-    /// The maximum value that can be picked.
+    /// Gets or sets the maximum value that can be picked.
     /// </summary>
     [Parameter]
-    public T? Max { get; set; }
+    public TValue? Max { get; set; }
 
     ///<inheritdoc/>
     protected override string InputType => "number";
 
     ///<inheritdoc/>
-    protected override T GetValue(object? value)
+    protected override TValue GetValue(object? value)
     {
         string? s = value?.ToString();
         return string.IsNullOrWhiteSpace(s) ? Min ?? default : ParseValue(s) ?? default;
     }
 
-    private T? ParseValue(string? value)
+    private TValue? ParseValue(string? value)
     {
-        if (T.TryParse(value, CultureInfo.CurrentCulture, out var t))
+        if (TValue.TryParse(value, CultureInfo.CurrentCulture, out var t))
         {
             if (Min != null && t.CompareTo(Min) < 0)
             {

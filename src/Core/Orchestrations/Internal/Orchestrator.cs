@@ -1,160 +1,141 @@
-﻿using System.Reactive;
-using System.Reflection;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 
 namespace Ocluse.LiquidSnow.Orchestrations.Internal;
 
-internal class Orchestrator : IOrchestrator
+internal class Orchestrator(IServiceProvider serviceProvider, OrchestrationDescriptorCache descriptorCache) : IOrchestrator
 {
-    private readonly IServiceProvider _serviceProvider;
-
-    public Orchestrator(IServiceProvider serviceProvider)
-    {
-        _serviceProvider = serviceProvider;
-    }
-
-    private static T ReturnAsResult<T>(object? data)
-    {
-        if (data is T result)
-        {
-            return result;
-        }
-        throw new InvalidCastException($"The data returned by the orchestration is not of type {typeof(T).Name}");
-    }
-
-    private async Task<TResult> Execute<T, TResult>(T value, CancellationToken cancellationToken = default)
+    private async Task<TResult> ExecuteAsync<T, TResult>(T value, OrchestrationDescriptor descriptor, CancellationToken cancellationToken = default)
         where T : IOrchestration<TResult>
     {
-        Type orchestrationType = value.GetType();
-
-        Type[] typeArgs = [orchestrationType, typeof(TResult)];
-
-        Type orchestrationStepType = typeof(IOrchestrationStep<,>).MakeGenericType(typeArgs);
-
-        List<IOrchestrationStep<T, TResult>> steps = _serviceProvider
-            .GetServices(orchestrationStepType)
+        List<IOrchestrationStep<T, TResult>> steps = [.. serviceProvider
+            .GetServices(descriptor.StepType)
             .Cast<IOrchestrationStep<T, TResult>>()
-            .OrderBy(x => x.Order)
-            .ToList();
+            .OrderBy(x => x.Order)];
+
+        //ensure the orders do not have duplicates:
+        if (steps.Select(x => x.Order).Distinct().Count() != steps.Count)
+        {
+            throw new InvalidOperationException("Duplicate orders found in the orchestration steps");
+        }
 
         if (steps.Count == 0)
         {
-            throw new InvalidOperationException($"No steps found for orchestration {orchestrationType.Name}");
+            throw new InvalidOperationException($"No steps found for the orchestration");
         }
 
-        var preliminaryStep = _serviceProvider.GetService<IPreliminaryOrchestrationStep<T, TResult>>();
+        var preprocessor = serviceProvider.GetService<IOrchestrationPreprocessor<T, TResult>>();
 
         var data = new OrchestrationData<T>(value);
 
-        int order = steps[0].Order;
+        int startingIndex = 0;
 
-        RequiredState? previousState = null;
-
-        if (preliminaryStep != null)
+        if (preprocessor != null)
         {
-            IOrchestrationStepResult result = await preliminaryStep.Execute(data, cancellationToken);
+            IOrchestrationStepResult result = await preprocessor.ExecuteAsync(data, cancellationToken);
 
-            if (result is ISkipOrchestrationResult skip)
+            if (result is IFinalOrchestrationResult<TResult> skip)
             {
-                return ReturnAsResult<TResult>(skip.Data);
+                startingIndex = steps.Count;
             }
 
-            data.Advance(result);
+            data.AddResult(result);
 
-            previousState = result.IsSuccess ? RequiredState.Success : RequiredState.Failure;
-
-            if (result.JumpToOrder != null)
+            if (result.GoToOrder != null)
             {
-                order = result.JumpToOrder.Value;
+                startingIndex = steps.FindIndex(x => x.Order == result.GoToOrder.Value);
+
+                if (startingIndex == -1)
+                {
+                    throw new InvalidOperationException($"The orchestration step with order {result.GoToOrder.Value} was not found.");
+                }
             }
         }
 
-        while (true)
+        for (int i = startingIndex; i < steps.Count;)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            IOrchestrationStep<T, TResult> step = steps.FirstOrDefault(x => x.Order == order)
-                ?? throw new InvalidOperationException($"No step found with order {order}");
+            IOrchestrationStep<T, TResult> step = steps[i];
 
-            bool canExecute = true;
+            bool canExecute;
 
-            if (step is IStateDependentOrchestrationStep<T, TResult> stateDependentStep)
+            if (step is IConditionalOrchestrationStep<T, TResult> conditionalStep)
             {
-                canExecute = previousState == stateDependentStep.RequiredState;
-            }
-
-            if (canExecute)
-            {
-                if (step is IConditionalOrchestrationStep<T, TResult> conditionalStep)
-                {
-                    canExecute = await conditionalStep.CanExecute(data, cancellationToken);
-                }
-
-                int? jumpToOrder = null;
-
-                if (canExecute)
-                {
-                    IOrchestrationStepResult result = await step.Execute(data, cancellationToken);
-                    data.Advance(result);
-
-                    if (result is ISkipOrchestrationResult skip)
-                    {
-                        return ReturnAsResult<TResult>(skip.Data);
-                    }
-
-                    jumpToOrder = result.JumpToOrder;
-                    previousState = result.IsSuccess ? RequiredState.Success : RequiredState.Failure;
-                }
-
-                if (jumpToOrder != null)
-                {
-                    order = jumpToOrder.Value;
-                }
-                else if (steps[^1] == step)
-                {
-                    break;
-                }
-                else
-                {
-                    // set order to the next step
-                    order = steps[steps.IndexOf(step) + 1].Order;
-                }
-            }
-        }
-
-        var finalStep = _serviceProvider.GetService<IFinalOrchestrationStep<T, TResult>>();
-
-        if (finalStep != null)
-        {
-            return await finalStep.Execute(data, cancellationToken);
-        }
-        else
-        {
-            if (typeof(TResult) == typeof(Unit))
-            {
-                return (TResult)(object)Unit.Default;
-            }
-            else if (data.Results.Count == 0)
-            {
-                throw new InvalidOperationException($"The orchestration {orchestrationType.Name} produced no results after completion.");
+                canExecute = await conditionalStep.CanExecute(data, cancellationToken);
             }
             else
             {
-                return ReturnAsResult<TResult>(data.Results[^1]);
+                canExecute = true;
+            }
+
+            int? goToOrder = null;
+
+            if (canExecute)
+            {
+                IOrchestrationStepResult result = await step.ExecuteAsync(data, cancellationToken);
+
+                data.AddResult(result);
+
+                if (result is IFinalOrchestrationResult<TResult> skip)
+                {
+                    break;
+                }
+
+                goToOrder = result.GoToOrder;
+            }
+
+            if (goToOrder.HasValue)
+            {
+                i = steps.FindIndex(x => x.Order == goToOrder.Value);
+
+                if (i == -1)
+                {
+                    throw new InvalidOperationException($"The orchestration step with order {goToOrder.Value} was not found.");
+                }
+            }
+            else
+            {
+                i++;
+            }
+        }
+
+        var postprocessor = serviceProvider.GetService<IOrchestrationPostprocessor<T, TResult>>();
+
+        if (postprocessor != null)
+        {
+            return await postprocessor.ExecuteAsync(data, cancellationToken);
+        }
+        else
+        {
+            if (descriptor.IsUnit)
+            {
+                return default!;
+            }
+            else if (data.Results.Count > 1 && data.Results[^1] is IFinalOrchestrationResult<TResult> finalResult)
+            {
+                return finalResult.Data; 
+            }
+            else
+            {
+                throw new InvalidOperationException($"The orchestration produced no results after completion.");
             }
         }
     }
 
-    public Task<T> Execute<T>(IOrchestration<T> value, CancellationToken cancellationToken = default)
+    public Task<T> ExecuteAsync<T>(IOrchestration<T> value, CancellationToken cancellationToken = default)
     {
         Type orchestrationType = value.GetType();
 
-        Type[] typeArgs = [orchestrationType, typeof(T)];
+        OrchestrationDescriptor descriptor = descriptorCache.GetDescriptor(orchestrationType, typeof(T));
 
-        var methodInfo = GetType().GetMethod(nameof(Execute), BindingFlags.NonPublic | BindingFlags.Instance);
+        return (Task<T>)descriptor.OrchestratorExecuteMethodInfo.Invoke(this, [value, descriptor, cancellationToken])!;
+    }
 
-        var genericMethodInfo = methodInfo!.MakeGenericMethod(typeArgs);
+    public async Task<TResult> ExecuteAsync<T, TResult>(T orchestration, CancellationToken cancellationToken = default)
+        where T : IOrchestration<TResult>
+    {
+        OrchestrationDescriptor descriptor = descriptorCache.GetDescriptor(typeof(T), typeof(TResult));
 
-        return (Task<T>)genericMethodInfo.Invoke(this, [value, cancellationToken])!;
+        return await ExecuteAsync<T, TResult>(orchestration, descriptor, cancellationToken);
     }
 }

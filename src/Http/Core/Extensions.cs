@@ -1,6 +1,4 @@
-﻿using System.Text.Json;
-
-namespace Ocluse.LiquidSnow.Http;
+﻿namespace Ocluse.LiquidSnow.Http;
 
 /// <summary>
 /// Adds extension methods to types.

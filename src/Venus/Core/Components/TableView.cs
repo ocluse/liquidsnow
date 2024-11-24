@@ -5,7 +5,7 @@ namespace Ocluse.LiquidSnow.Venus.Components;
 /// <summary>
 /// A collection view component that renders items in a table.
 /// </summary>
-public class TableView<T> : CollectionView<T>
+public class TableView<T> : CollectionViewBase<T>
 {
     ///<inheritdoc/>
     protected override string ItemElement => "tr";
@@ -14,49 +14,79 @@ public class TableView<T> : CollectionView<T>
     protected override string ContainerElement => "table";
 
     /// <summary>
-    /// Gets or sets the template for the header of the table.
+    /// Gets or sets the template for the header of the table rendered as the thead element.
     /// </summary>
     [Parameter]
-    public RenderFragment? HeaderTemplate { get; set; }
+    public RenderFragment? TableHeader { get; set; }
 
     /// <summary>
-    /// Gets or sets the template for the footer of the table.
+    /// Gets or sets the CSS class applied to the thead element.
     /// </summary>
     [Parameter]
-    public RenderFragment? FooterTemplate { get; set; }
+    public string? TableHeaderClass { get; set; }
+
+    /// <summary>
+    /// Gets or sets the template for the footer of the table rendered as the tfoot element.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? TableFooter { get; set; }
+
+    /// <summary>
+    /// Gets or sets the CSS class applied to the tfoot element.
+    /// </summary>
+    [Parameter]
+    public string? TableFooterClass { get; set; }
 
     ///<inheritdoc/>
     protected override void BuildContainerClass(ClassBuilder builder)
     {
         base.BuildContainerClass(builder);
-        builder.Add("table");
+        builder.Add(ClassNameProvider.TableView_Container);
     }
 
     ///<inheritdoc/>
     protected override void BuildClass(ClassBuilder classBuilder)
     {
         base.BuildClass(classBuilder);
-        classBuilder.Add("table-view");
+        classBuilder.Add(ClassNameProvider.TableView);
     }
 
     ///<inheritdoc/>
-    protected override void RenderItems(RenderTreeBuilder builder, IEnumerable<T> items)
+    protected override void BuildItems(RenderTreeBuilder builder, IEnumerable<T> items)
     {
-        if (HeaderTemplate != null)
+        if (TableHeader != null)
         {
-            builder.OpenElement(30, "thead");
-            builder.AddContent(31, HeaderTemplate);
+            builder.OpenElement(1, "thead");
+            {
+                if (TableHeaderClass != null)
+                {
+                    builder.AddAttribute(2, "class", TableHeaderClass);
+                }
+                builder.AddContent(3, TableHeader);
+            }
             builder.CloseElement();
         }
 
-        builder.OpenElement(32, "tbody");
-        base.RenderItems(builder, items);
+        builder.OpenElement(4, "tbody");
+        {
+            builder.OpenRegion(5);
+            {
+                base.BuildItems(builder, items);
+            }
+            builder.CloseRegion();
+        }
         builder.CloseElement();
 
-        if (FooterTemplate != null)
+        if (TableFooter != null)
         {
-            builder.OpenElement(33, "tfoot");
-            builder.AddContent(34, FooterTemplate);
+            builder.OpenElement(6, "tfoot");
+            {
+                if (TableFooterClass != null)
+                {
+                    builder.AddAttribute(7, "class", TableFooterClass);
+                }
+                builder.AddContent(8, TableFooter);
+            }
             builder.CloseElement();
         }
     }

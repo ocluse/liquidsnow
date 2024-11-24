@@ -36,6 +36,11 @@ public interface IGrid
     double Gap { get; set; }
 
     /// <summary>
+    /// Gets or sets the unit of measurement for the gap.
+    /// </summary>
+    CssUnit? GapUnit { get; set; }
+
+    /// <summary>
     /// The gap between the columns and rows in the grid when the viewport is large e.g. desktop.
     /// </summary>
     double? GapLg { get; set; }

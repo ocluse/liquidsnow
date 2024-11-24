@@ -1,6 +1,4 @@
-﻿using Ocluse.LiquidSnow.Http.Cqrs;
-
-namespace Ocluse.LiquidSnow.Http.Client;
+﻿namespace Ocluse.LiquidSnow.Http.Client;
 
 /// <summary>
 /// Provides utility methods for making CRUD requests in a REST-ful manner
@@ -17,7 +15,7 @@ public interface ICrudRequestBuilder<TKey, TCreate, TUpdate, TList, TModel, TSum
     IUpdateRequestBuilder<TKey, TUpdate, TModel>,
     IDeleteRequestBuilder<TKey>,
     IListRequestBuilder<TList, TSummary>
-    where TUpdate : IKeyCommand<TKey, TModel>
+    where TUpdate : IHasId<TKey>
     
 {
     /// <summary>
@@ -28,7 +26,7 @@ public interface ICrudRequestBuilder<TKey, TCreate, TUpdate, TList, TModel, TSum
 
 ///<inheritdoc/>
 public interface ICrudRequestBuilder<TKey, TCreate, TUpdate, TList, TModel> : ICrudRequestBuilder<TKey, TCreate, TUpdate, TList, TModel, TModel>
-    where TUpdate : IKeyCommand<TKey, TModel>
+    where TUpdate : IHasId<TKey>
 {
 }
 
@@ -58,7 +56,7 @@ public interface IReadRequestBuilder<TKey, TResult>
 /// A utility contract for making a request to update a resource
 /// </summary>
 public interface IUpdateRequestBuilder<TKey, TUpdate, TResult>
-    where TUpdate : IKeyCommand<TKey, TResult>
+    where TUpdate : IHasId<TKey>
 {
     /// <summary>
     /// Sends a request to update a resource

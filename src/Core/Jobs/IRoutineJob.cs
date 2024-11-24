@@ -1,7 +1,7 @@
 ﻿namespace Ocluse.LiquidSnow.Jobs;
 
 /// <summary>
-/// Represents a job that, once started, is run at a regular interval.
+/// Represents a <see cref="IJob"/> that once started, is run at a regular interval.
 /// </summary>
 public interface IRoutineJob : IJob
 {

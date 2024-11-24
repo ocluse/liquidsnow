@@ -1,7 +1,7 @@
 ﻿namespace Ocluse.LiquidSnow.Jobs;
 
 /// <summary>
-/// Provides utility methods for scheduling and dispatching jobs.
+/// Defines methods for scheduling and cancelling jobs.
 /// </summary>
 public interface IJobScheduler
 {
@@ -14,7 +14,7 @@ public interface IJobScheduler
     /// <returns>
     /// Returns an <see cref="IDisposable"/> that can be used to cancel the job.
     /// </returns>
-    IDisposable Schedule(IJob job);
+    IDisposable Schedule<T>(T job) where T : IJob;
 
     /// <summary>
     /// Schedules a job to be added to the execution queue at a particular time.
@@ -26,7 +26,7 @@ public interface IJobScheduler
     /// <returns>
     /// Returns an <see cref="IDisposable"/> that can be used to cancel the job.
     /// </returns>
-    IDisposable Queue(IQueueJob job);
+    IDisposable Queue<T>(T job) where T : IQueueJob;
 
     /// <summary>
     /// Cancels a job with the provided id or prevents it from running.
@@ -38,7 +38,7 @@ public interface IJobScheduler
 
     /// <inheritdoc cref="Cancel(object)"/>
     /// <remarks>
-    /// This is the way to cancel jobs that were queued via <see cref="Queue(IQueueJob)"/>
+    /// This is the way to cancel jobs that were queued via <see cref="Queue{T}(T)"/>
     /// </remarks>
     bool Cancel(object queueId, object id);
 }

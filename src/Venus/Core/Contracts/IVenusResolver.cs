@@ -8,29 +8,64 @@ namespace Ocluse.LiquidSnow.Venus.Contracts;
 public interface IVenusResolver
 {
     /// <summary>
-    /// The default page size used by an <see cref="CollectionView{T}"/> component.
+    /// Gets the default page size used by an <see cref="CollectionViewBase{T}"/> component.
     /// </summary>
     int DefaultPageSize { get; }
 
     /// <summary>
-    /// The default icon size used by a <see cref="Button"/> component.
+    /// Gets the default maximum number of pagination items that can be displayed.
+    /// </summary>
+    int DefaultMaxPaginatorItems { get; }
+
+    /// <summary>
+    /// Gets the default icon size used by a <see cref="Button"/> component.
     /// </summary>
     int DefaultButtonIconSize { get; }
 
     /// <summary>
-    /// The default icon size used by a <see cref="FeatherIcon"/> or <see cref="FluentIcon"/> component.
+    /// Gets the default icon size used by a <see cref="FeatherIcon"/> or <see cref="FluentIcon"/> component.
     /// </summary>
     int DefaultIconSize { get; }
 
     /// <summary>
-    /// The size for snackbar item status icon.
+    /// Gets the default unit used by icon sizes.
     /// </summary>
-    int SnackbarIconSize { get; }
+    CssUnit DefaultIconSizeUnit { get; }
 
     /// <summary>
-    /// The default size, in pixels, for the <see cref="Avatar"/> component
+    /// Gets the size for snackbar item status icon.
     /// </summary>
-    int DefaultAvatarSize { get; }
+    double SnackbarIconSize { get; }
+
+    /// <summary>
+    /// Gets the default size, in pixels, for the <see cref="Avatar"/> component
+    /// </summary>
+    double DefaultAvatarSize { get; }
+
+    /// <summary>
+    /// Gets or set the default unit used by images for size.
+    /// </summary>
+    CssUnit DefaultImageSizeUnit { get; }
+
+    /// <summary>
+    /// Gets the default fallback image src used when loading images fail.
+    /// </summary>
+    string DefaultImageFallbackSrc { get; }
+
+    /// <summary>
+    /// Gets or sets the default fallback image src used by avatars when loading images fail.
+    /// </summary>
+    string DefaultAvatarFallbackSrc { get; }
+
+    /// <summary>
+    /// Gets the default debounce interval in milliseconds used by input components.
+    /// </summary>
+    double DefaultDebounceInterval { get; }
+
+    /// <summary>
+    /// Gets the default CSS unit for gaps used by grid components.
+    /// </summary>
+    CssUnit DefaultGapUnit { get; }
 
     /// <summary>
     /// The stroke width applied to icon's that accept a stroke-width value.
@@ -38,7 +73,17 @@ public interface IVenusResolver
     int IconStrokeWidth { get; }
 
     /// <summary>
-    /// The icon style used by various components.
+    /// Gets the default stroke line cap for Feather icons.
+    /// </summary>
+    StrokeLineCap FeatherIconStrokeCap { get; }
+
+    /// <summary>
+    /// Gets the default stroke line join for Feather icons.
+    /// </summary>
+    StrokeLineJoin FeatherIconStrokeLineJoin { get; }
+
+    /// <summary>
+    /// Gets the icon style used by various components.
     /// </summary>
     IconStyle IconStyle { get; }
 
