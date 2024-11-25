@@ -6,7 +6,7 @@
 public interface ISnackbarHost
 {
     /// <summary>
-    /// Shows a snackbar message.
+    /// Shows the snackbar item represented by the supplied <see cref="SnackbarItemDescriptor"/>.
     /// </summary>
-    ISnackbarItemHandle ShowMessage(SnackbarMessage message);
+    Task ShowSnackbarAsync(SnackbarItemDescriptor descriptor, CancellationToken cancellationToken);
 }

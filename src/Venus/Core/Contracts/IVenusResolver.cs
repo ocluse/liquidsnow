@@ -38,6 +38,11 @@ public interface IVenusResolver
     double SnackbarIconSize { get; }
 
     /// <summary>
+    /// Gets the maximum number of snackbar items that can be displayed.
+    /// </summary>
+    int MaxSnackbarItems { get; }
+
+    /// <summary>
     /// Gets the default size, in pixels, for the <see cref="Avatar"/> component
     /// </summary>
     double DefaultAvatarSize { get; }

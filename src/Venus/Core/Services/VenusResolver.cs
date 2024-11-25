@@ -25,6 +25,9 @@ public class VenusResolver : IVenusResolver
     public virtual double SnackbarIconSize => DefaultSize.Size18;
 
     ///<inheritdoc/>
+    public virtual int MaxSnackbarItems => 6;
+
+    ///<inheritdoc/>
     public virtual IconStyle IconStyle => IconStyle.Feather;
 
     ///<inheritdoc/>

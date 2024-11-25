@@ -1,7 +1,7 @@
 ﻿using Microsoft.JSInterop;
 using Ocluse.LiquidSnow.Venus.Components;
 
-namespace Ocluse.LiquidSnow.Venus.Services;
+namespace Ocluse.LiquidSnow.Venus.Contracts;
 
 /// <summary>
 /// Provides methods for interacting with the Venus JavaScript module.

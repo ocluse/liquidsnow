@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Components.Rendering;
-using Ocluse.LiquidSnow.Extensions;
+﻿using Ocluse.LiquidSnow.Extensions;
 
 namespace Ocluse.LiquidSnow.Venus.Components;
 

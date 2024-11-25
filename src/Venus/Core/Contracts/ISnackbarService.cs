@@ -1,33 +1,22 @@
 ﻿namespace Ocluse.LiquidSnow.Venus.Contracts;
 
 /// <summary>
-/// A service for showing snackbar messages.
+/// A service for rendering snackbar items.
 /// </summary>
 public interface ISnackbarService
 {
     /// <summary>
-    /// Sets the host component that will show the snackbar messages.
+    /// Binds the host component that will render the snackbar items.
     /// </summary>
-    void SetHost(ISnackbarHost host);
+    void BindHost(ISnackbarHost host);
 
     /// <summary>
-    /// Shows an error message notification on the snackbar stack.
+    /// Unbinds the host component if it currently the one set to render snackbar items.
     /// </summary>
-
-    void AddError(string message, SnackbarDuration duration = SnackbarDuration.Medium);
-
-    /// <summary>
-    /// Shows a success message notification on the snackbar stack.
-    /// </summary>
-    void AddSuccess(string message, SnackbarDuration duration = SnackbarDuration.Medium);
+    void UnbindHost(ISnackbarHost host);
 
     /// <summary>
-    /// Shows an information message notification on the snackbar stack.
+    /// Renders the specified snackbar item to the host and waits until it is closed.
     /// </summary>
-    void AddInformation(string message, SnackbarDuration duration = SnackbarDuration.Medium);
-
-    /// <summary>
-    /// Shows a warning message notification on the snackbar stack.
-    /// </summary>
-    void AddWarning(string message, SnackbarDuration duration = SnackbarDuration.Medium);
+    Task ShowSnackbarItemAsync(SnackbarItemDescriptor descriptor, CancellationToken cancellationToken = default);
 }

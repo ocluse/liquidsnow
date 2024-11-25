@@ -2,7 +2,7 @@
 /// <summary>  
 /// The base class for components that render html elements.
 /// </summary>  
-public abstract class ElementBase : ComponentBase
+public abstract class ElementBase : VenusComponentBase
 {
     /// <summary>  
     /// Gets or sets the padding for the element.  

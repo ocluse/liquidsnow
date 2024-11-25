@@ -1,28 +1,29 @@
-﻿namespace Ocluse.LiquidSnow.Venus.Services;
+﻿
+namespace Ocluse.LiquidSnow.Venus.Services;
 
 internal class DialogService : IDialogService
 {
     private IDialogHost? _host;
 
-    private IDialogHost Host => _host ?? throw new InvalidOperationException("No Dialog Host has been set");
+    private IDialogHost Host => _host ?? throw new InvalidOperationException("No Dialog Host has been set. " +
+        "Try adding the <DialogHost> component to your Layout root." +
+        " If you're using a custom DialogHost, ensure it is properly bound by calling BindHost on OnInitialized");
 
     public void BindHost(IDialogHost host)
     {
         _host = host;
     }
 
-    public Task<DialogResult> ShowDialogAsync(Type dialogType, string? dialogHeader = null, bool allowDismiss = false, bool showClose = true, Dictionary<string, object?>? parameters = null)
+    public void UnbindHost(IDialogHost host)
     {
-        return Host.ShowDialog(dialogType, dialogHeader, allowDismiss, showClose, parameters);
+        if (_host == host)
+        {
+            _host = null;
+        }
     }
 
-    public void ShowLoading(string? loadingMessage)
+    public async Task<DialogResult> ShowDialogAsync(DialogDescriptor descriptor, CancellationToken cancellationToken = default)
     {
-        Host.ShowLoading(loadingMessage);
-    }
-
-    public void HideLoading()
-    {
-        Host.HideLoading();
+        return await Host.ShowDialogAsync(descriptor, cancellationToken);
     }
 }

@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Ocluse.LiquidSnow.Venus.Components;
+using Ocluse.LiquidSnow.Venus.Components.Internal;
 using System.Numerics;
 using System.Text;
 
@@ -11,31 +13,37 @@ public static class Extensions
 {
     #region Dialog
 
-    ///<inheritdoc cref="IDialogService.ShowDialogAsync(Type, string?, bool, bool, Dictionary{string, object?}?)"/>
-    public static async Task<DialogResult> ShowDialogAsync<T>(this IDialogService dialogService, string? dialogHeader, bool allowDismiss, bool showClose, Dictionary<string, object?>? parameters)
+    ///<inheritdoc cref="IDialogService.ShowDialogAsync(DialogDescriptor, CancellationToken)"/>
+    public static async Task<DialogResult> ShowDialogAsync<T>(this IDialogService dialogService, string? title, bool showClose, Dictionary<string, object?>? parameters)
     {
         Type type = typeof(T);
-        return await dialogService.ShowDialogAsync(type, dialogHeader, allowDismiss, showClose, parameters);
+        DialogDescriptor descriptor = new()
+        {
+            ContentParameters = parameters,
+            ChildContentType = type,
+            HeaderContentType = typeof(DialogHeader),
+            HeaderParameters = new Dictionary<string, object?>()
+            {
+                {nameof(DialogHeader.Options), new DialogHeaderOptions(title, showClose) }
+            },
+            FooterContentType = null,
+            FooterParameters = null,
+        };
+
+        return await dialogService.ShowDialogAsync(descriptor);
     }
 
-    ///<inheritdoc cref="IDialogService.ShowDialogAsync(Type, string?, bool, bool, Dictionary{string, object?}?)"/>
-    public static async Task<DialogResult> ShowDialogAsync<T>(this IDialogService dialogService, string dialogHeader)
+    ///<inheritdoc cref="IDialogService.ShowDialogAsync(DialogDescriptor, CancellationToken)"/>
+    public static async Task<DialogResult> ShowDialogAsync<T>(this IDialogService dialogService, string title)
     {
-        return await dialogService.ShowDialogAsync<T>(dialogHeader, false, true, null);
+        return await dialogService.ShowDialogAsync<T>(title, true, null);
     }
 
-    ///<inheritdoc cref="IDialogService.ShowDialogAsync(Type, string?, bool, bool, Dictionary{string, object?}?)"/>
-    public static async Task<DialogResult> ShowDialogAsync<T>(this IDialogService dialogService, string dialogHeader, Dictionary<string, object?> parameters)
+    ///<inheritdoc cref="IDialogService.ShowDialogAsync(DialogDescriptor, CancellationToken)"/>
+    public static async Task<DialogResult> ShowDialogAsync<T>(this IDialogService dialogService, string title, Dictionary<string, object?> parameters)
     {
-        return await dialogService.ShowDialogAsync<T>(dialogHeader, false, true, parameters);
+        return await dialogService.ShowDialogAsync<T>(title, true, parameters);
     }
-
-    ///<inheritdoc cref="IDialogService.ShowDialogAsync(Type, string?, bool, bool, Dictionary{string, object?}?)"/>
-    public static async Task<DialogResult> ShowDialogAsync<T>(this IDialogService dialogService, string dialogHeader, bool allowDismiss, bool showClose)
-    {
-        return await dialogService.ShowDialogAsync<T>(dialogHeader, allowDismiss, showClose, null);
-    }
-
     #endregion
 
     #region BuilderBase
@@ -167,6 +175,36 @@ public static class Extensions
             .AddSingleton<ISnackbarService, SnackbarService>()
             .AddSingleton<IVenusResolver, T>();
     }
+    #endregion
+
+    #region Resolver
+
+    /// <summary>
+    /// Returns the appropriate type of component to render for icons under the specified resolver.
+    /// </summary>
+    public static Type GetIconComponentType(this IVenusResolver resolver)
+    {
+        return resolver.IconStyle switch
+        {
+            IconStyle.Feather => typeof(FeatherIcon),
+            IconStyle.Fluent => typeof(FluentIcon),
+            _=> throw new NotImplementedException($"Unknown icon type: {resolver.IconStyle}")
+        };
+    }
+
+    /// <summary>
+    /// Returns the appropriate type of component to render for icon buttons under the specified resolver.
+    /// </summary>
+    public static Type GetIconButtonComponentType(this IVenusResolver resolver)
+    {
+        return resolver.IconStyle switch
+        {
+            IconStyle.Feather => typeof(FeatherIconButton),
+            IconStyle.Fluent => typeof(FluentIconButton),
+            _ => throw new NotImplementedException($"Unknown icon type: {resolver.IconStyle}")
+        };
+    }
+
     #endregion
 
     /// <summary>

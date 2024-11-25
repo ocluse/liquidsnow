@@ -1,50 +1,25 @@
-﻿using Ocluse.LiquidSnow.Venus.Components.Internal;
-
-namespace Ocluse.LiquidSnow.Venus.Components;
+﻿namespace Ocluse.LiquidSnow.Venus.Components;
 
 /// <summary>
 /// The base component for dialog components.
 /// </summary>
-public class DialogComponentBase : ComponentBase
+public abstract class DialogComponentBase : VenusComponentBase
 {
-    /// <summary>
-    /// [Cascaded] Gets or sets the component that is hosting the dialog.
-    /// </summary>
-    [CascadingParameter]
-    protected IDialogHost DialogHost { get; private set; } = null!;
-
     /// <summary>
     /// Gets or sets the dialog component that is being hosted and contains this component.
     /// </summary>
     [CascadingParameter]
-    protected Dialog Dialog { get; private set; } = null!;
+    public IDialog Dialog { get; private set; } = null!;
+}
 
+/// <summary>
+/// The base component for snackbar components.
+/// </summary>
+public abstract class SnackbarItemComponentBase : VenusComponentBase
+{
     /// <summary>
-    /// Closes the dialog.
+    /// Gets or sets the snackbar component that is containing this component.
     /// </summary>
-    protected void Close(bool success, object? data = null)
-    {
-        DialogHost.CloseDialog(success, data);
-    }
-
-    ///<inheritdoc/>
-    protected override void OnInitialized()
-    {
-        base.OnInitialized();
-        UpdateClass();
-    }
-
-    /// <summary>
-    /// Allows derived components to specify CSS styles to be added to the dialog.
-    /// </summary>
-    protected virtual void BuildClass(ClassBuilder builder) { }
-
-    /// <summary>
-    /// Called by derived classes to rebuild the dialog CSS classes.
-    /// </summary>
-    protected void UpdateClass()
-    {
-        ClassBuilder builder = new();
-        BuildClass(builder);
-    }
+    [CascadingParameter]
+    public ISnackbarItem Item { get; private set; } = null!;
 }

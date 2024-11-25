@@ -1,7 +1,7 @@
 ﻿namespace Ocluse.LiquidSnow.Venus.Contracts;
 
 /// <summary>
-/// A service that provides methods for showing dialogs and loading messages.
+/// Defines a service that is used to show dialogs.
 /// </summary>
 public interface IDialogService
 {
@@ -18,15 +18,6 @@ public interface IDialogService
     /// <summary>
     /// Shows the dialog of the provided type and returns the result once the dialog is closed.
     /// </summary>
-    Task<DialogResult> ShowDialogAsync(Type dialogType, string? dialogHeader, bool allowDismiss, bool showClose, Dictionary<string, object?>? parameters);
+    Task<DialogResult> ShowDialogAsync(DialogDescriptor descriptor, CancellationToken cancellationToken = default);
     
-    /// <summary>
-    /// Shows the loading indicator with the provided message.
-    /// </summary>
-    void ShowLoading(string? message);
-    
-    /// <summary>
-    /// Hides the loading indicator.
-    /// </summary>
-    void HideLoading();
 }

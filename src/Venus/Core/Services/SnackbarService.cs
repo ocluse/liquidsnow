@@ -1,41 +1,32 @@
-﻿namespace Ocluse.LiquidSnow.Venus.Services;
+﻿
+namespace Ocluse.LiquidSnow.Venus.Services;
 
 internal class SnackbarService : ISnackbarService
 {
     private ISnackbarHost? _host;
 
-    private ISnackbarHost Host => _host ?? throw new InvalidOperationException("No Snackbar Host has been set");
+    private ISnackbarHost Host => _host 
+        ?? throw new InvalidOperationException("No Snackbar Host has been set." +
+            "Ensure you include the <SnackbarHost> component in your root Layout" +
+            "If you're using a custom SnackbarHost, ensure it is bound to the service.");
 
-    public void AddError(string message, SnackbarDuration duration = SnackbarDuration.Medium)
-    {
-        SnackbarMessage snackbarMessage = new(message, MessageStatus.Error, duration);
-
-        Host.ShowMessage(snackbarMessage);
-    }
-
-    public void AddInformation(string message, SnackbarDuration duration = SnackbarDuration.Medium)
-    {
-        SnackbarMessage snackbarMessage = new(message, MessageStatus.Information, duration);
-
-        Host.ShowMessage(snackbarMessage);
-    }
-
-    public void AddSuccess(string message, SnackbarDuration duration = SnackbarDuration.Medium)
-    {
-        SnackbarMessage snackbarMessage = new(message, MessageStatus.Success, duration);
-
-        Host.ShowMessage(snackbarMessage);
-    }
-
-    public void AddWarning(string message, SnackbarDuration duration = SnackbarDuration.Medium)
-    {
-        SnackbarMessage snackbarMessage = new(message, MessageStatus.Warning, duration);
-
-        Host.ShowMessage(snackbarMessage);
-    }
-
-    public void SetHost(ISnackbarHost host)
+    public void BindHost(ISnackbarHost host)
     {
         _host = host;
     }
+
+    public void UnbindHost(ISnackbarHost host)
+    {
+        if(_host == host)
+        {
+            _host = null;
+        }
+    }
+
+    public async Task ShowSnackbarItemAsync(SnackbarItemDescriptor descriptor, CancellationToken cancellationToken = default)
+    {
+        await Host.ShowSnackbarAsync(descriptor, cancellationToken);
+    }
+
+    
 }

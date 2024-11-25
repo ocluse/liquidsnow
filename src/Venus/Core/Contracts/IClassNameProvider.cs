@@ -1,0 +1,86 @@
+﻿namespace Ocluse.LiquidSnow.Venus.Contracts;
+
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+
+public interface IClassNameProvider
+{
+    string Avatar { get; }
+    string BrandIcon { get; }
+    string Button { get; }
+    string Card { get; }
+    string Card_Content { get; }
+    string Card_Footer { get; }
+    string Card_Header { get; }
+    string CheckBox { get; }
+    string Checkbox_Checkmark { get; }
+    string ChipPicker { get; }
+    string ChipPicker_Item { get; }
+    string ChipPicker_ItemSelected { get; }
+    string CollectionView { get; }
+    string CollectionView_Footer { get; }
+    string CollectionView_Header { get; }
+    string CollectionView_Item { get; }
+    string CollectionView_ItemsContainer { get; }
+    string ComponentActive { get; }
+    string ComponentContent { get; }
+    string ComponentDisabled { get; }
+    string ComponentError { get; }
+    string ComponentFooter { get; }
+    string ComponentHasValue { get; }
+    string ComponentHeader { get; }
+    string ComponentPrefix { get; }
+    string ComponentReadOnly { get; }
+    string ComponentSuffix { get; }
+    string Dialog_Footer { get; }
+    string Dialog_Header { get; }
+    string Dialog_Header_CloseButton { get; }
+    string Dialog_Header_Title { get; }
+    string DialogHost { get; }
+    string Dropdown { get; }
+    string Dropdown_Item { get; }
+    string Dropdown_ItemSelected { get; }
+    string Dropdown_List { get; }
+    string DropdownClosed { get; }
+    string DropdownOpen { get; }
+    string Feather { get; }
+    string FeatherIcon { get; }
+    string FeatherIconButton { get; }
+    string Fluent { get; }
+    string FluentIcon { get; }
+    string FluentIconButton { get; }
+    string FormView { get; }
+    string Grid { get; }
+    string GridView { get; }
+    string Icon { get; }
+    string IconButton { get; }
+    string IconText { get; }
+    string InputDisabled { get; }
+    string InputError { get; }
+    string InputHasValue { get; }
+    string InputReadOnly { get; }
+    string ItemDetailContainer { get; }
+    string LinkButton { get; }
+    string ListView { get; }
+    string ListView_Container { get; }
+    string LoadingSpinner { get; }
+    string Paginator { get; }
+    string Paginator_Item { get; }
+    string Paginator_ItemActive { get; }
+    string Paginator_Next { get; }
+    string Paginator_Previous { get; }
+    string SnackbarHost { get; }
+    string SnackbarMessage { get; }
+    string SnackbarMessage_CloseButton { get; }
+    string SnackbarMessage_Content { get; }
+    string TableView { get; }
+    string TableView_Container { get; }
+    string TextBox { get; }
+    string TextBox_Content { get; }
+    string TextBox_Header { get; }
+    string TextBox_Input { get; }
+    string TextBox_Prefix { get; }
+    string TextBox_Suffix { get; }
+    string TextBox_ValidationLabel { get; }
+    string ValidationError { get; }
+    string ValidationSuccess { get; }
+}

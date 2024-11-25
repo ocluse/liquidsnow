@@ -17,18 +17,6 @@ public class ControlBase : ElementBase
     [Parameter]
     public int? BackgroundColor { get; set; }
 
-    /// <summary>
-    /// [Injected] The famed and fabulous Venus resolver.
-    /// </summary>
-    [Inject]
-    public IVenusResolver Resolver { get; private set; } = null!;
-
-    /// <summary>
-    /// [Injected] Gets or sets the CSS class name provider.
-    /// </summary>
-    [Inject]
-    public ClassNameProvider ClassNameProvider { get; private set; } = null!;
-
     ///<inheritdoc/>
     protected override void BuildStyle(StyleBuilder styleBuilder)
     {
