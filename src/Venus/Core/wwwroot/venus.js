@@ -1,38 +1,55 @@
 let watcherInitialized = false;
 
 let watchedDropdown = null;
+let watchedDropdownId = null;
 
-function closeDialog(dialog) {
+export function closeDialog(dialog) {
     dialog.closeDialog();
 }
 
-function showDialog(dialog) {
+export function showDialog(dialog) {
     dialog.showModal();
 }
 
-function initializeDropdownWatcher() {
+export function initializeDropdownWatcher() {
     if (watcherInitialized) {
         return;
     }
     watcherInitialized = true;
 
-    document.addEventListener('click', function (event) {
-        if (watchedDropdown && !watchedDropdown.contains(event.target)) {
-            watchedDropdown.invokeMethodAsync('CloseDropdown');
-            watchedDropdown = null;
-        }
-    });
+    document.addEventListener('click', handleDocumentClick);
 }
 
-function watchDropdown(dropdown) {
+function handleDocumentClick(event) {
+    const eventPath = event.composedPath();
+    //the id is stored in the data-dropdown-id attribute
+
+    if (watchedDropdownId == null || watchedDropdown == null) {
+        return;
+    }
+
+    const clicked = eventPath.some(element =>
+        element instanceof HTMLElement
+        && element.getAttribute('data-dropdown-id') == watchedDropdownId);
+
+    if (watchedDropdown != null && !clicked) {
+        console.log("unwatching");
+        watchedDropdown.invokeMethodAsync('CloseDropdown');
+        watchedDropdown = null;
+    }
+}
+
+export function watchDropdown(dropdown, dropdownId) {
     if (watchedDropdown != dropdown) {
         unwatchDropdown(watchedDropdown);
     }
     watchedDropdown = dropdown;
+    watchedDropdownId = dropdownId;
 }
 
-function unwatchDropdown(dropdown) {
+export function unwatchDropdown(dropdown) {
     if (watchedDropdown === dropdown) {
         watchedDropdown = null;
+        watchedDropdownId = null;
     }
 }

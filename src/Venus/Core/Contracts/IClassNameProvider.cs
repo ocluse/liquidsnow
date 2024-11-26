@@ -81,6 +81,9 @@ public interface IClassNameProvider
     string TextBox_Prefix { get; }
     string TextBox_Suffix { get; }
     string TextBox_ValidationLabel { get; }
+    string UploadFile { get; }
+    string UploadFile_Dragging { get; }
+    string UploadFile_DropZone { get; }
     string ValidationError { get; }
     string ValidationSuccess { get; }
 }

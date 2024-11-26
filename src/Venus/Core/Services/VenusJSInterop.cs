@@ -34,10 +34,10 @@ internal sealed class VenusJSInterop(IJSRuntime jsRuntime) : IAsyncDisposable, I
         await module.InvokeVoidAsync("initializeDropdownWatcher");
     }
 
-    public async ValueTask WatchDropdownAsync(DotNetObjectReference<IDropdown> dropdown)
+    public async ValueTask WatchDropdownAsync(DotNetObjectReference<IDropdown> dropdown, string dropdownId)
     {
         var module = await _moduleTask.Value;
-        await module.InvokeVoidAsync("watchDropdown", dropdown);
+        await module.InvokeVoidAsync("watchDropdown", dropdown, dropdownId);
     }
 
     public async ValueTask UnwatchDropdownAsync(DotNetObjectReference<IDropdown> dropdown)

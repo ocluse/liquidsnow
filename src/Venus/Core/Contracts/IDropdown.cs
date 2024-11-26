@@ -8,5 +8,5 @@ public interface IDropdown
     /// <summary>
     /// Closes the dropdown.
     /// </summary>
-    void CloseDropdown();
+    Task CloseDropdown();
 }

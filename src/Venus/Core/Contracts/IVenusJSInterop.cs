@@ -35,5 +35,5 @@ public interface IVenusJSInterop
     /// <summary>
     /// Starts watching the supplied dialog for close events.
     /// </summary>
-    ValueTask WatchDropdownAsync(DotNetObjectReference<IDropdown> dropdown);
+    ValueTask WatchDropdownAsync(DotNetObjectReference<IDropdown> dropdown, string dropdownId);
 }

@@ -7,14 +7,14 @@ namespace Ocluse.LiquidSnow.Venus.Components;
 /// </summary>
 public partial class UploadFile
 {
-    private bool _isDragging;
+    private bool _dragging;
 
     ///<inheritdoc/>
     protected override void BuildClass(ClassBuilder classBuilder)
     {
         base.BuildClass(classBuilder);
-        classBuilder.Add("upload-file");
-        classBuilder.AddIf(_isDragging, DragClass);
+        classBuilder.Add(ClassNameProvider.UploadFile);
+        classBuilder.AddIf(_dragging, ClassNameProvider.UploadFile_Dragging, DragClass);
     }
 
     /// <summary>
@@ -33,7 +33,7 @@ public partial class UploadFile
     /// Gets or sets a value that indicates whether the user can select multiple files.
     /// </summary>
     [Parameter]
-    public bool Multiple { get; set; } = true;
+    public SelectionMode Mode { get; set; } = SelectionMode.Multiple;
 
     /// <summary>
     /// Gets or sets a value that determines the types of files that the user can select.
@@ -51,23 +51,29 @@ public partial class UploadFile
     /// Gets or sets the CSS class applied when the user is dragging a file over the component.
     /// </summary>
     [Parameter]
-    public string DragClass { get; set; } = "active";
+    public string? DragClass { get; set; }
+
+    /// <summary>
+    /// Gets or sets the CSS applied to the drop zone.
+    /// </summary>
+    [Parameter]
+    public string? DropZoneClass { get; set; }
 
     private void OnDragEnter()
     {
-        _isDragging = true;
+        _dragging = true;
     }
 
     private void OnDragLeave()
     {
-        _isDragging = false;
+        _dragging = false;
     }
 
     private Dictionary<string, object> GetInputAttributes()
     {
         var attributes = new Dictionary<string, object>();
 
-        if (Multiple)
+        if (Mode == SelectionMode.Multiple)
         {
             attributes.Add("multiple", "multiple");
         }

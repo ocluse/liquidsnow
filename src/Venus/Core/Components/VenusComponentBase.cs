@@ -15,5 +15,5 @@ public class VenusComponentBase : ComponentBase
     /// [Injected] Gets or sets the CSS class name provider.
     /// </summary>
     [Inject]
-    public ClassNameProvider ClassNameProvider { get; private set; } = null!;
+    public IClassNameProvider ClassNameProvider { get; private set; } = null!;
 }

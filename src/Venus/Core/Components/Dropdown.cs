@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.JSInterop;
+using Ocluse.LiquidSnow.Cryptography;
 using Ocluse.LiquidSnow.Extensions;
+using Ocluse.LiquidSnow.Utils;
 
 namespace Ocluse.LiquidSnow.Venus.Components;
 
@@ -10,8 +12,9 @@ namespace Ocluse.LiquidSnow.Venus.Components;
 public class Dropdown<TValue> : FieldBase<TValue>, ICollectionView<TValue>, IDropdown, IAsyncDisposable
 {
     private bool _open;
+    private string _dropdownId = IdGenerator.GenerateId(IdKind.Standard, 6);
     private DotNetObjectReference<IDropdown> _dotNetObj = default!;
-
+    
     ///<inheritdoc/>
     [Parameter]
     public IEnumerable<TValue>? Items { get; set; }
@@ -164,6 +167,7 @@ public class Dropdown<TValue> : FieldBase<TValue>, ICollectionView<TValue>, IDro
                             builder.CloseElement();
                         }
                     }
+                    builder.CloseElement();
                 }
             }
             builder.CloseElement();
@@ -175,6 +179,7 @@ public class Dropdown<TValue> : FieldBase<TValue>, ICollectionView<TValue>, IDro
     {
         base.BuildAttributes(attributes);
         attributes.Add("onclick", EventCallback.Factory.Create(this, HandleDropdownClick));
+        attributes.Add("data-dropdown-id", _dropdownId);
     }
 
     private async Task HandleItemClickAsync(TValue item)
@@ -197,7 +202,7 @@ public class Dropdown<TValue> : FieldBase<TValue>, ICollectionView<TValue>, IDro
         }
         else
         {
-            await JSInterop.WatchDropdownAsync(_dotNetObj);
+            await JSInterop.WatchDropdownAsync(_dotNetObj, _dropdownId);
         }
 
         _open = !_open;
@@ -206,7 +211,8 @@ public class Dropdown<TValue> : FieldBase<TValue>, ICollectionView<TValue>, IDro
     }
 
     ///<inheritdoc/>
-    public async void CloseDropdown()
+    [JSInvokable]
+    public async Task CloseDropdown()
     {
         _open = false;
         await InvokeAsync(StateHasChanged);

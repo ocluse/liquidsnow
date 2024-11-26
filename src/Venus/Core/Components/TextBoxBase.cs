@@ -71,22 +71,22 @@ public abstract class TextBoxBase<TValue> : FieldBase<TValue>
             builder.AddAttribute(3, "type", InputType);
             builder.AddAttribute(4, "value", GetInputDisplayValue(Value));
             builder.AddAttribute(5, "class", ClassBuilder.Join(ClassNameProvider.TextBox_Input, InputClass));
-
+            builder.AddAttribute(6, "name", AppliedName);
             var valueUpdateCallback = EventCallback.Factory.CreateBinder(this, RuntimeHelpers.CreateInferredBindSetter(callback: HandleValueUpdated, value: Value), Value);
 
-            builder.AddAttribute(6, UpdateTrigger.ToHtmlAttributeValue(), valueUpdateCallback);
+            builder.AddAttribute(7, UpdateTrigger.ToHtmlAttributeValue(), valueUpdateCallback);
             builder.SetUpdatesAttributeName("value");
 
-            builder.AddAttribute(7, "onkeydown", EventCallback.Factory.Create<KeyboardEventArgs>(this, KeyDown));
+            builder.AddAttribute(8, "onkeydown", EventCallback.Factory.Create<KeyboardEventArgs>(this, KeyDown));
 
             if (Disabled)
             {
-                builder.AddAttribute(8, "disabled");
+                builder.AddAttribute(9, "disabled");
             }
 
             if (ReadOnly)
             {
-                builder.AddAttribute(9, "readonly");
+                builder.AddAttribute(10, "readonly");
             }
         }
         builder.CloseElement();

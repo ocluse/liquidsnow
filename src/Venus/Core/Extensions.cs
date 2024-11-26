@@ -173,6 +173,8 @@ public static class Extensions
     {
         return services.AddSingleton<IDialogService, DialogService>()
             .AddSingleton<ISnackbarService, SnackbarService>()
+            .AddScoped<IVenusJSInterop, VenusJSInterop>()
+            .AddSingleton<IClassNameProvider, ClassNameProvider>()
             .AddSingleton<IVenusResolver, T>();
     }
     #endregion
