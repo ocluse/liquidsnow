@@ -24,7 +24,7 @@ internal class SnackbarItem : ComponentBase, ISnackbarItem
         {
             builder.AddAttribute(2, nameof(CascadingValue<ISnackbarItem>.Value), this);
             builder.AddAttribute(3, nameof(CascadingValue<ISnackbarItem>.IsFixed), true);
-            builder.AddAttribute(4, nameof(CascadingValue<ISnackbarItem>.ChildContent), BuildSnackbarItem);
+            builder.AddAttribute(4, nameof(CascadingValue<ISnackbarItem>.ChildContent), (RenderFragment)BuildSnackbarItem);
         }
         builder.CloseComponent();
     }

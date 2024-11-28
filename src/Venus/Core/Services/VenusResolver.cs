@@ -31,7 +31,7 @@ public class VenusResolver : IVenusResolver
     public virtual IconStyle IconStyle => IconStyle.Feather;
 
     ///<inheritdoc/>
-    public virtual int IconStrokeWidth => FeatherIcon.STROKE_WIDTH;
+    public virtual double DefaultFeatherIconStrokeWidth => FeatherIcon.STROKE_WIDTH;
 
     ///<inheritdoc/>
     public virtual int DefaultMaxPaginatorItems => 10;
@@ -61,6 +61,12 @@ public class VenusResolver : IVenusResolver
     public virtual string DefaultAvatarFallbackSrc => "/images/anonymous.svg";
 
     ///<inheritdoc/>
+    public virtual CssUnit DefaultSpacingUnit => CssUnit.Rem;
+
+    ///<inheritdoc/>
+    public virtual FieldHeaderStyle DefaultFieldHeaderStyle => FieldHeaderStyle.Static;
+
+    ///<inheritdoc/>
     public virtual Type ResolveContainerStateToComponentType(int containerState)
     {
         return containerState switch
@@ -78,35 +84,16 @@ public class VenusResolver : IVenusResolver
     ///<inheritdoc/>
     public virtual string ResolveSnackbarStatusToIcon(int status)
     {
-        return IconStyle switch
+        ComponentIcon icon = status switch
         {
-            IconStyle.Fluent => GetFluentIconForStatus(status),
-            _ => GetFeatherIconForStatus(status)
-        };
-    }
-
-    private static string GetFeatherIconForStatus(int status)
-    {
-        return status switch
-        {
-            MessageStatus.Error => ComponentIcons.Feather.Error,
-            MessageStatus.Information => ComponentIcons.Feather.Information,
-            MessageStatus.Success => ComponentIcons.Feather.Success,
-            MessageStatus.Warning => ComponentIcons.Feather.Warning,
+            MessageStatus.Error => ComponentIcon.Error,
+            MessageStatus.Information => ComponentIcon.Information,
+            MessageStatus.Success => ComponentIcon.Success,
+            MessageStatus.Warning => ComponentIcon.Warning,
             _ => throw new NotImplementedException()
         };
-    }
 
-    private static string GetFluentIconForStatus(int status)
-    {
-        return status switch
-        {
-            MessageStatus.Error => ComponentIcons.Fluent.Error,
-            MessageStatus.Information => ComponentIcons.Fluent.Information,
-            MessageStatus.Success => ComponentIcons.Fluent.Success,
-            MessageStatus.Warning => ComponentIcons.Fluent.Warning,
-            _ => throw new NotImplementedException()
-        };
+        return ComponentIcons.Get(IconStyle, icon);
     }
 
     ///<inheritdoc/>
@@ -247,7 +234,7 @@ public class VenusResolver : IVenusResolver
     }
 
     ///<inheritdoc/>
-    public int ResolveTextStyleToIconSize(int textStyle)
+    public double ResolveTextStyleToIconSize(int textStyle)
     {
         return textStyle switch
         {

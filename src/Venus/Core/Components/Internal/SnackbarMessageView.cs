@@ -43,7 +43,7 @@ internal class SnackbarMessageView : SnackbarItemComponentBase
 
             builder.OpenElement(7, "div");
             {
-                builder.AddAttribute(8, ClassNameProvider.SnackbarMessage_Content);
+                builder.AddAttribute(8, "class", ClassNameProvider.SnackbarMessage_Content);
                 builder.OpenElement(9, "span");
                 {
                     builder.AddContent(10, Content);
@@ -63,8 +63,10 @@ internal class SnackbarMessageView : SnackbarItemComponentBase
                     builder.AddAttribute(6, "class", ClassNameProvider.SnackbarMessage_CloseButton);
                     builder.AddAttribute(7, nameof(ClickableBase.OnClick), EventCallback.Factory.Create(this, HandleCloseAsync));
                 }
+                builder.CloseComponent();
             }
         }
+        builder.CloseElement();
     }
 
     public async Task HandleCloseAsync()

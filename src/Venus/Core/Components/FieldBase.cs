@@ -20,6 +20,12 @@ public abstract class FieldBase<TValue> : InputBase<TValue>
     public string? PrefixClass { get; set; }
 
     /// <summary>
+    /// Gets or sets the style of the header.
+    /// </summary>
+    [Parameter]
+    public FieldHeaderStyle? HeaderStyle { get; set; }
+
+    /// <summary>
     /// Gets or sets the CSS class applied to the suffix content containing div.
     /// </summary>
     [Parameter]
@@ -54,66 +60,91 @@ public abstract class FieldBase<TValue> : InputBase<TValue>
     /// </summary>
     protected abstract bool HasAuxiliaryContent { get; }
 
+    private void BuildHeader(RenderTreeBuilder builder)
+    {
+        //Header
+        if (Header != null || HeaderContent != null)
+        {
+            string? headerClass = ClassBuilder.Join(ClassNameProvider.TextBox_Header, HeaderClass);
+
+            if (HeaderContent != null)
+            {
+                builder.OpenElement(3, "div");
+                {
+                    builder.AddAttribute(4, "class", headerClass);
+                    builder.AddContent(5, HeaderContent(AppliedName));
+                }
+                builder.CloseElement();
+            }
+            else
+            {
+                builder.OpenElement(6, "label");
+                {
+                    builder.AddAttribute(7, "class", headerClass);
+                    builder.AddAttribute(8, "for", AppliedName);
+                    builder.AddContent(9, Header);
+                }
+                builder.CloseElement();
+            }
+        }
+    }
+
     ///<inheritdoc/>
     protected override sealed void BuildRenderTree(RenderTreeBuilder builder)
     {
+        var headerStyle = HeaderStyle ?? Resolver.DefaultFieldHeaderStyle;
+
         builder.OpenElement(1, "div");
         {
             builder.AddMultipleAttributes(2, GetAttributes());
 
-            //Header
-            if (Header != null || HeaderContent != null)
+            //Static header:
+            if(headerStyle == FieldHeaderStyle.Static)
             {
-                string? headerClass = ClassBuilder.Join(ClassNameProvider.TextBox_Header, HeaderClass);
-
-                if (HeaderContent != null)
+                builder.OpenRegion(3);
                 {
-                    builder.OpenElement(3, "div");
-                    {
-                        builder.AddAttribute(4, "class", headerClass);
-                        builder.AddContent(5, HeaderContent(AppliedName));
-                    }
-                    builder.CloseElement();
+                    BuildHeader(builder);
                 }
-                else
-                {
-                    builder.OpenElement(6, "label");
-                    {
-                        builder.AddAttribute(7, "class", headerClass);
-                        builder.AddAttribute(8, "for", AppliedName);
-                        builder.AddContent(9, Header);
-                    }
-                    builder.CloseElement();
-                }
+                builder.CloseRegion();
             }
 
             //The input content
-            builder.OpenElement(10, "div");
+            builder.OpenElement(4, "div");
             {
-                builder.AddAttribute(11, "class", ClassBuilder.Join(ClassNameProvider.TextBox_Content, ContentClass));
+                builder.AddAttribute(5, "class", ClassBuilder.Join(ClassNameProvider.TextBox_Content, ContentClass));
 
                 if (PrefixContent != null)
                 {
-                    builder.OpenElement(12, "div");
+                    builder.OpenElement(6, "div");
                     {
-                        builder.AddAttribute(13, "class", ClassBuilder.Join(ClassNameProvider.TextBox_Prefix, PrefixClass));
-                        builder.AddContent(14, PrefixContent);
+                        builder.AddAttribute(7, "class", ClassBuilder.Join(ClassNameProvider.TextBox_Prefix, PrefixClass));
+                        builder.AddContent(8, PrefixContent);
                     }
                     builder.CloseElement();
                 }
 
-                builder.OpenRegion(15);
+                builder.OpenRegion(9);
                 {
                     BuildInput(builder);
                 }
                 builder.CloseRegion();
 
+                //Floating header
+                if(headerStyle == FieldHeaderStyle.Floating)
+                {
+                    builder.OpenRegion(10);
+                    {
+                        BuildHeader(builder);
+                    }
+                    builder.CloseElement();
+                }
+
                 if (SuffixContent != null)
                 {
-                    builder.OpenElement(16, "div");
+                    builder.OpenElement(11, "div");
                     {
-                        builder.AddAttribute(17, "class", ClassBuilder.Join(ClassNameProvider.TextBox_Suffix, SuffixClass));
-                        builder.AddContent(18, SuffixContent);
+                        builder.AddAttribute(12, "class", ClassBuilder.Join(ClassNameProvider.TextBox_Suffix, SuffixClass));
+                        builder.AddContent(13, SuffixContent);
                     }
                     builder.CloseElement();
                 }
@@ -123,28 +154,28 @@ public abstract class FieldBase<TValue> : InputBase<TValue>
             //Validation message
             if (ValidationContent != null)
             {
-                builder.OpenElement(19, "div");
+                builder.OpenElement(14, "div");
                 {
-                    builder.AddAttribute(20, "class", GetValidationClass());
-                    builder.AddContent(21, ValidationContent(Validation));
+                    builder.AddAttribute(15, "class", GetValidationClass());
+                    builder.AddContent(16, ValidationContent(Validation));
                 }
                 builder.CloseElement();
 
             }
             else if (Validation != null && !string.IsNullOrEmpty(Validation.Message))
             {
-                builder.OpenElement(22, "label");
+                builder.OpenElement(17, "label");
                 {
-                    builder.AddAttribute(23, "class", GetValidationClass());
-                    builder.AddAttribute(24, "role", "alert");
-                    builder.AddContent(25, Validation.Message);
+                    builder.AddAttribute(18, "class", GetValidationClass());
+                    builder.AddAttribute(19, "role", "alert");
+                    builder.AddContent(20, Validation.Message);
                 }
                 builder.CloseElement();
             }
 
             if (HasAuxiliaryContent)
             {
-                builder.OpenRegion(26);
+                builder.OpenRegion(21);
                 {
                     BuildAuxiliaryContent(builder);
                 }

@@ -13,6 +13,7 @@ public class Dropdown<TValue> : FieldBase<TValue>, ICollectionView<TValue>, IDro
     private bool _open;
     private string _dropdownId = IdGenerator.GenerateId(IdKind.Standard, 6);
     private DotNetObjectReference<IDropdown> _dotNetObj = default!;
+    private ElementReference _popoverElement;
     
     ///<inheritdoc/>
     [Parameter]
@@ -61,6 +62,10 @@ public class Dropdown<TValue> : FieldBase<TValue>, ICollectionView<TValue>, IDro
     [Parameter]
     public RenderFragment? PlaceholderContent { get; set; }
 
+    ///<inheritdoc/>
+    [Parameter]
+    public Func<TValue?, string>? ToStringFunc { get; set; }
+
     [Inject]
     private IVenusJSInterop JSInterop { get; set; } = default!;
 
@@ -68,15 +73,11 @@ public class Dropdown<TValue> : FieldBase<TValue>, ICollectionView<TValue>, IDro
     protected override bool HasAuxiliaryContent => true;
 
     ///<inheritdoc/>
-    public Func<TValue?, string>? ToStringFunc { get; set; }
-
-
-    ///<inheritdoc/>
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        _dotNetObj = DotNetObjectReference.Create((IDropdown)this);
-        await JSInterop.InitializeDropdownWatcher();
+        //_dotNetObj = DotNetObjectReference.Create((IDropdown)this);
+        //await JSInterop.InitializeDropdownWatcher();
     }
 
     ///<inheritdoc/>
@@ -89,42 +90,55 @@ public class Dropdown<TValue> : FieldBase<TValue>, ICollectionView<TValue>, IDro
     }
 
     ///<inheritdoc/>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        await JSInterop.ShowPopoverAsync(_popoverElement);
+    }
+
+    ///<inheritdoc/>
     protected override void BuildInput(RenderTreeBuilder builder)
     {
-        if (Value != null)
+        builder.OpenElement(1, "div");
         {
-            if (AdvancedItemTemplate != null)
+            builder.AddAttribute(2, "class", ClassBuilder.Join(ClassNameProvider.Field_Input, InputClass));
+            
+            if (Value != null)
             {
-                builder.AddContent(1, AdvancedItemTemplate((Value, null)));
-            }
-            else if (ItemTemplate != null)
-            {
-                builder.AddContent(2, ItemTemplate(Value));
+                if (AdvancedItemTemplate != null)
+                {
+                    builder.AddContent(3, AdvancedItemTemplate((Value, null)));
+                }
+                else if (ItemTemplate != null)
+                {
+                    builder.AddContent(4, ItemTemplate(Value));
+                }
+                else
+                {
+                    builder.OpenElement(5, "span");
+                    {
+                        builder.AddContent(6, Value.GetDisplayValue(ToStringFunc));
+                    }
+                    builder.CloseElement();
+                }
             }
             else
             {
-                builder.OpenElement(3, "span");
+                if (PlaceholderContent != null)
                 {
-                    builder.AddContent(4, Value.GetDisplayValue(ToStringFunc));
+                    builder.AddContent(7, PlaceholderContent);
                 }
-                builder.CloseElement();
+                else if (Placeholder.IsNotEmpty())
+                {
+                    builder.OpenElement(8, "span");
+                    {
+                        builder.AddContent(9, Placeholder);
+                    }
+                    builder.CloseElement();
+                }
             }
         }
-        else
-        {
-            if (PlaceholderContent != null)
-            {
-                builder.AddContent(5, PlaceholderContent);
-            }
-            else if (Placeholder.IsNotEmpty())
-            {
-                builder.OpenElement(6, "span");
-                {
-                    builder.AddContent(7, Placeholder);
-                }
-                builder.CloseElement();
-            }
-        }
+        builder.CloseElement();
     }
 
     ///<inheritdoc/>
@@ -132,8 +146,9 @@ public class Dropdown<TValue> : FieldBase<TValue>, ICollectionView<TValue>, IDro
     {
         builder.OpenElement(1, "div");
         {
-            builder.AddAttribute(2, "class", ClassBuilder.Join(ClassNameProvider.Dropdown_List, ListClass));
-
+            builder.AddAttribute(2, "class", ClassBuilder.Join(ClassNameProvider.Dropdown_Popover, ListClass));
+            builder.AddAttribute(3, "popover");
+            builder.AddElementReferenceCapture(4, (value) => _popoverElement = value);
             if (Items != null && Items.Any())
             {
                 foreach (TValue item in Items)
@@ -143,9 +158,9 @@ public class Dropdown<TValue> : FieldBase<TValue>, ICollectionView<TValue>, IDro
                         builder.SetKey(item);
 
                         bool selected = EqualityComparer<TValue>.Default.Equals(item, Value);
-                        builder.AddAttribute(4, "class", ClassBuilder.Join(selected
+                        builder.AddAttribute(4, "class", ClassBuilder.Join(ClassNameProvider.Dropdown_Item, selected
                             ? ClassNameProvider.Dropdown_ItemSelected
-                            : ClassNameProvider.Dropdown_Item,
+                            : null,
                             ItemClass));
                         builder.AddAttribute(5, "onclick", EventCallback.Factory.Create(this, async () => await HandleItemClickAsync(item)));
 

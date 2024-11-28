@@ -1,4 +1,5 @@
-﻿using System.Reactive.Linq;
+﻿using Ocluse.LiquidSnow.Extensions;
+using System.Reactive.Linq;
 
 namespace Ocluse.LiquidSnow.Venus.Components;
 
@@ -230,10 +231,12 @@ public abstract class InputBase<TValue> : ControlBase, IValidatable, IFormContro
 
         BuildInputClass(builder);
 
+        bool hasValue = Value is string stringVal ? stringVal.IsNotEmpty() : Value != null;
+
         builder.AddIf(Validation?.IsValid == false, ClassNameProvider.InputError, ErrorClass)
             .AddIf(Disabled, ClassNameProvider.InputDisabled, DisabledClass)
             .AddIf(ReadOnly, ClassNameProvider.InputReadOnly, ReadOnlyClass)
-            .AddIf(Value != null, ClassNameProvider.InputHasValue, HasValueClass);
+            .AddIf(hasValue, ClassNameProvider.InputHasValue, HasValueClass);
     }
 
     /// <summary>

@@ -65,7 +65,7 @@ public abstract class DataViewBase : ControlBase, IDataView
         {
             builder.AddAttribute(2, nameof(CascadingValue<IDataView>.Value), this);
             builder.AddAttribute(3, nameof(CascadingValue<IDataView>.IsFixed), true);
-            builder.AddAttribute(4, nameof(CascadingValue<IDataView>.ChildContent), BuildControl);
+            builder.AddAttribute(4, nameof(CascadingValue<IDataView>.ChildContent), (RenderFragment)BuildControl);
         }
         builder.CloseComponent();
     }

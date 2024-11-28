@@ -77,7 +77,7 @@ public class FeatherIcon : ControlBase, ISvgIcon
         attributes.Add("viewBox", "0 0 24 24");
         attributes.Add("fill", "none");
         attributes.Add("stroke", "currentColor");
-        attributes.Add("stroke-width", StrokeWidth ?? Resolver.IconStrokeWidth);
+        attributes.Add("stroke-width", StrokeWidth ?? Resolver.DefaultFeatherIconStrokeWidth);
         attributes.Add("stroke-linecap", (StrokeLineCap ?? Resolver.FeatherIconStrokeCap).ToHtmlAttributeValue());
         attributes.Add("stroke-linejoin", (StrokeLineJoin ?? Resolver.FeatherIconStrokeLineJoin).ToHtmlAttributeValue());
     }

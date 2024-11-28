@@ -31,6 +31,7 @@ public interface IClassNameProvider
     string ComponentPrefix { get; }
     string ComponentReadOnly { get; }
     string ComponentSuffix { get; }
+    string Dialog { get; }
     string Dialog_Footer { get; }
     string Dialog_Header { get; }
     string Dialog_Header_CloseButton { get; }
@@ -39,13 +40,11 @@ public interface IClassNameProvider
     string Dropdown { get; }
     string Dropdown_Item { get; }
     string Dropdown_ItemSelected { get; }
-    string Dropdown_List { get; }
+    string Dropdown_Popover { get; }
     string DropdownClosed { get; }
     string DropdownOpen { get; }
-    string Feather { get; }
     string FeatherIcon { get; }
     string FeatherIconButton { get; }
-    string Fluent { get; }
     string FluentIcon { get; }
     string FluentIconButton { get; }
     string FormView { get; }
@@ -77,7 +76,7 @@ public interface IClassNameProvider
     string TextBox { get; }
     string TextBox_Content { get; }
     string TextBox_Header { get; }
-    string TextBox_Input { get; }
+    string Field_Input { get; }
     string TextBox_Prefix { get; }
     string TextBox_Suffix { get; }
     string TextBox_ValidationLabel { get; }

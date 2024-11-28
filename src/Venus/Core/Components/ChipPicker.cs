@@ -78,9 +78,9 @@ public class ChipPicker<T> : InputBase<T>, ICollectionView<T>
                         builder.SetKey(item);
 
                         bool selected = SelectionMode == SelectionMode.Multiple ? SelectedValues.Contains(item) : EqualityComparer<T>.Default.Equals(item, Value);
-                        builder.AddAttribute(4, "class", ClassBuilder.Join( selected 
+                        builder.AddAttribute(4, "class", ClassBuilder.Join(ClassNameProvider.ChipPicker_Item, selected 
                             ? ClassNameProvider.ChipPicker_ItemSelected 
-                            : ClassNameProvider.ChipPicker_Item, 
+                            : null, 
                             ItemClass));
                         builder.AddAttribute(5, "onclick", EventCallback.Factory.Create(this, async () => await HandleItemClickAsync(item)));
 

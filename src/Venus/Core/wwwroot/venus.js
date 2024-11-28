@@ -4,7 +4,7 @@ let watchedDropdown = null;
 let watchedDropdownId = null;
 
 export function closeDialog(dialog) {
-    dialog.closeDialog();
+    dialog.close();
 }
 
 export function showDialog(dialog) {

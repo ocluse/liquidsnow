@@ -93,3 +93,9 @@ public enum StrokeLineCap
     Round,
     Square
 }
+
+public enum FieldHeaderStyle
+{
+    Static,
+    Floating
+}

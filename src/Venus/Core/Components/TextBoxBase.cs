@@ -70,7 +70,7 @@ public abstract class TextBoxBase<TValue> : FieldBase<TValue>
             builder.AddAttribute(2, "placeholder", Placeholder ?? " ");
             builder.AddAttribute(3, "type", InputType);
             builder.AddAttribute(4, "value", GetInputDisplayValue(Value));
-            builder.AddAttribute(5, "class", ClassBuilder.Join(ClassNameProvider.TextBox_Input, InputClass));
+            builder.AddAttribute(5, "class", ClassBuilder.Join(ClassNameProvider.Field_Input, InputClass));
             builder.AddAttribute(6, "name", AppliedName);
             var valueUpdateCallback = EventCallback.Factory.CreateBinder(this, RuntimeHelpers.CreateInferredBindSetter(callback: HandleValueUpdated, value: Value), Value);
 

@@ -20,7 +20,7 @@ public class FeatherIconButton : ClickableBase, ISvgIcon
 
     ///<inheritdoc cref="FeatherIcon.StrokeWidth"/>
     [Parameter]
-    public int? StrokeWidth { get; set; }
+    public double? StrokeWidth { get; set; }
 
     ///<inheritdoc cref="FeatherIcon.StrokeLineCap"/>
     [Parameter]
@@ -45,7 +45,7 @@ public class FeatherIconButton : ClickableBase, ISvgIcon
             builder.AddAttribute(2, nameof(FeatherIcon.Icon), Icon);
             builder.AddAttribute(3, nameof(FeatherIcon.Size), Size ?? Resolver.DefaultButtonIconSize);
             builder.AddAttribute(4, nameof(FeatherIcon.Unit), Unit);
-            builder.AddAttribute(5, nameof(FeatherIcon.StrokeWidth), StrokeWidth ?? Resolver.IconStrokeWidth);
+            builder.AddAttribute(5, nameof(FeatherIcon.StrokeWidth), StrokeWidth ?? Resolver.DefaultFeatherIconStrokeWidth);
             builder.AddAttribute(6, nameof(FeatherIcon.StrokeLineCap), StrokeLineCap);
             builder.AddAttribute(7, nameof(FeatherIcon.StrokeLineJoin), StrokeLineJoin);
         }

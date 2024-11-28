@@ -46,6 +46,79 @@ public static class Extensions
     }
     #endregion
 
+    #region Snackbar
+
+    /// <summary>
+    /// Shows a standard snackbar message with the supplied values and waits until it is closed.
+    /// </summary>
+    public static async Task ShowMessageAsync(this ISnackbarService service,
+        string message,
+        int status,
+        SnackbarDuration duration,
+        bool showClose,
+        CancellationToken cancellationToken = default)
+    {
+        SnackbarItemDescriptor descriptor = new()
+        {
+            ContentType = typeof(SnackbarMessageView),
+            Duration = duration,
+            Parameters = new Dictionary<string, object?>
+            {
+                { nameof(SnackbarMessageView.Content), message },
+                {nameof(SnackbarMessageView.Status), status },
+                {nameof(SnackbarMessageView.ShowClose), showClose }
+            }
+        };
+
+        await service.ShowSnackbarItemAsync(descriptor, cancellationToken);
+    }
+
+    /// <summary>
+    /// Adds the specified message to the snackbar with the supplied status code.
+    /// </summary>
+    public static void AddMessage(this ISnackbarService service,
+        string message,
+        int status,
+        SnackbarDuration duration,
+        bool showClose)
+    {
+        _ = service.ShowMessageAsync(message, status, duration, showClose);
+    }
+
+    /// <summary>
+    /// Adds an information message to the snackbar.
+    /// </summary>
+    public static void AddInformation(this ISnackbarService service, string message, SnackbarDuration duration = SnackbarDuration.Medium, bool showClose = true)
+    {
+        service.AddMessage(message, MessageStatus.Information, duration, showClose);
+    }
+
+    /// <summary>
+    /// Adds a success message to the snackbar.
+    /// </summary>
+    public static void AddSuccess(this ISnackbarService service, string message, SnackbarDuration duration = SnackbarDuration.Medium, bool showClose = true)
+    {
+        service.AddMessage(message, MessageStatus.Success, duration, showClose);
+    }
+
+    /// <summary>
+    /// Adds a warning message to the snackbar.
+    /// </summary>
+    public static void AddWarning(this ISnackbarService service, string message, SnackbarDuration duration = SnackbarDuration.Medium, bool showClose = true)
+    {
+        service.AddMessage(message, MessageStatus.Warning, duration, showClose);
+    }
+
+    /// <summary>
+    /// Adds an error message to the snackbar.
+    /// </summary>
+    public static void AddError(this ISnackbarService service, string message, SnackbarDuration duration = SnackbarDuration.Medium, bool showClose = true)
+    {
+        service.AddMessage(message, MessageStatus.Error, duration, showClose);
+    }
+
+    #endregion
+
     #region BuilderBase
     /// <summary>
     /// Adds a item to the builder.
@@ -190,7 +263,7 @@ public static class Extensions
         {
             IconStyle.Feather => typeof(FeatherIcon),
             IconStyle.Fluent => typeof(FluentIcon),
-            _=> throw new NotImplementedException($"Unknown icon type: {resolver.IconStyle}")
+            _ => throw new NotImplementedException($"Unknown icon type: {resolver.IconStyle}")
         };
     }
 
@@ -299,17 +372,17 @@ public static class Extensions
         return Task.FromResult(ValidationResult.ValidResult);
     }
 
-    private static string ToLengthExpression(this string value)
-    {
-        if (double.TryParse(value, out double parsedValue))
-        {
-            return $"{parsedValue / 2}em";
-        }
-        else
-        {
-            return value;
-        }
-    }
+    //private static string ToLengthExpression(this string value)
+    //{
+    //    if (double.TryParse(value, out double parsedValue))
+    //    {
+    //        return $"{parsedValue / 2}em";
+    //    }
+    //    else
+    //    {
+    //        return value;
+    //    }
+    //}
 
     internal static string GetIconSize(this ISvgIcon icon, IVenusResolver resolver)
     {
@@ -329,15 +402,16 @@ public static class Extensions
         return value.ToString();
     }
 
-    internal static string ParseThicknessValues(this string value)
+    internal static string ParseSpacingValues(this string value, CssUnit unit)
     {
         var values = value
             .Split(' ', StringSplitOptions.RemoveEmptyEntries)
-            .Select(ToLengthExpression);
+            .Select(double.Parse)
+            .Select(x => x.ToCssUnitValue(unit));
 
         int count = values.Count();
 
-        if (count == 1 && count == 2 && count == 4)
+        if (count == 1 || count == 2 || count == 4)
         {
             return string.Join(' ', values);
         }

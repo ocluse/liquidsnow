@@ -10,6 +10,12 @@ public abstract class ElementBase : VenusComponentBase
     [Parameter]
     public string? Padding { get; set; }
 
+    /// <summary>
+    /// Gets or sets the unit for the spacing values.
+    /// </summary>
+    [Parameter]
+    public CssUnit? SpacingUnit { get; set; }
+
     /// <summary>  
     /// Gets or sets the margin for the element.  
     /// </summary>  
@@ -64,12 +70,12 @@ public abstract class ElementBase : VenusComponentBase
 
         if (!string.IsNullOrEmpty(Margin))
         {
-            styleBuilder.Add($"margin: {Margin.ParseThicknessValues()};");
+            styleBuilder.Add($"margin: {Margin.ParseSpacingValues(SpacingUnit ?? Resolver.DefaultSpacingUnit)};");
         }
 
         if (!string.IsNullOrEmpty(Padding))
         {
-            styleBuilder.Add($"padding: {Padding.ParseThicknessValues()};");
+            styleBuilder.Add($"padding: {Padding.ParseSpacingValues(SpacingUnit ?? Resolver.DefaultSpacingUnit)};");
         }
 
         BuildStyle(styleBuilder);

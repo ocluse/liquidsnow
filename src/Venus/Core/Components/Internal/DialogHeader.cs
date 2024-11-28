@@ -31,13 +31,8 @@ internal class DialogHeader : DialogComponentBase
 
             if (Options.ShowClose)
             {
-                Type componentType = Resolver.IconStyle == IconStyle.Feather 
-                    ? typeof(FeatherIconButton) 
-                    : typeof(FluentIconButton);
-
-                string icon = Resolver.IconStyle == IconStyle.Feather
-                    ? Resolver.ResolveSnackbarStatusToIcon(MessageStatus.Error)
-                    : Resolver.ResolveSnackbarStatusToIcon(MessageStatus.Error);
+                Type componentType = Resolver.GetIconButtonComponentType();
+                string icon = ComponentIcons.Get(Resolver.IconStyle, ComponentIcon.Close);
 
                 builder.OpenComponent(6, componentType);
                 {
@@ -45,6 +40,7 @@ internal class DialogHeader : DialogComponentBase
                     builder.AddAttribute(8, "class", ClassNameProvider.Dialog_Header_CloseButton);
                     builder.AddAttribute(9, nameof(ClickableBase.OnClick), EventCallback.Factory.Create(this, HandleClickClose));
                 }
+                builder.CloseComponent();
             }
         }
         builder.CloseElement();

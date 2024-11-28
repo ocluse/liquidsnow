@@ -2,7 +2,7 @@
 
 namespace Ocluse.LiquidSnow.Venus.Components.Internal;
 
-internal class Dialog : ComponentBase, IDialog
+internal class Dialog : VenusComponentBase, IDialog
 {
     private ElementReference _dialogElement;
     private string? _customClasses;
@@ -26,7 +26,7 @@ internal class Dialog : ComponentBase, IDialog
         {
             builder.AddAttribute(2, nameof(CascadingValue<IDialog>.Value), this);
             builder.AddAttribute(3, nameof(CascadingValue<IDialog>.IsFixed), true);
-            builder.AddAttribute(4, nameof(CascadingValue<IDialog>.ChildContent), BuildDialog);
+            builder.AddAttribute(4, nameof(CascadingValue<IDialog>.ChildContent), (RenderFragment)BuildDialog);
         }
         builder.CloseComponent();
     }
@@ -40,9 +40,9 @@ internal class Dialog : ComponentBase, IDialog
     {
         builder.OpenElement(1, "dialog");
         {
-            builder.AddElementReferenceCapture(2, (value) => _dialogElement = value);
-            
-            builder.AddAttribute(3, "class", $"dialog {_customClasses}");
+            builder.AddAttribute(2, "class", ClassBuilder.Join(ClassNameProvider.Dialog, _customClasses));
+
+            builder.AddElementReferenceCapture(3, (value) => _dialogElement = value);
 
             if (Descriptor.HeaderContentType is not null)
             {

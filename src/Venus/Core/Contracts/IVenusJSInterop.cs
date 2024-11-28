@@ -19,6 +19,11 @@ public interface IVenusJSInterop
     ValueTask ShowDialogAsync(ElementReference dialog);
 
     /// <summary>
+    /// Shows the supplied popover.
+    /// </summary>
+    ValueTask ShowPopoverAsync(ElementReference element);
+
+    /// <summary>
     /// Initializes the dropdown watcher that notifies dropdowns when they should be closed.
     /// </summary>
     /// <remarks>

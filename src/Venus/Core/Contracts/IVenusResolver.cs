@@ -73,9 +73,14 @@ public interface IVenusResolver
     CssUnit DefaultGapUnit { get; }
 
     /// <summary>
+    /// Gets the default CSS unit used for spacing values (paddings and margins).
+    /// </summary>
+    CssUnit DefaultSpacingUnit { get; }
+
+    /// <summary>
     /// The stroke width applied to icon's that accept a stroke-width value.
     /// </summary>
-    int IconStrokeWidth { get; }
+    double DefaultFeatherIconStrokeWidth { get; }
 
     /// <summary>
     /// Gets the default stroke line cap for Feather icons.
@@ -91,6 +96,11 @@ public interface IVenusResolver
     /// Gets the icon style used by various components.
     /// </summary>
     IconStyle IconStyle { get; }
+
+    /// <summary>
+    /// Gets the default field header style used by <see cref="FieldBase{TValue}"/> components.
+    /// </summary>
+    FieldHeaderStyle DefaultFieldHeaderStyle { get; }
 
     /// <summary>
     /// Returns the component type that should be rendered for the given container state.
@@ -145,5 +155,5 @@ public interface IVenusResolver
     /// <summary>
     /// Returns the appropriate icon size for the given text style.
     /// </summary>
-    int ResolveTextStyleToIconSize(int textStyle);
+    double ResolveTextStyleToIconSize(int textStyle);
 }
