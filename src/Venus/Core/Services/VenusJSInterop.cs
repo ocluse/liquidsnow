@@ -45,4 +45,10 @@ internal sealed class VenusJSInterop(IJSRuntime jsRuntime) : IAsyncDisposable, I
         var module = await _moduleTask.Value;
         await module.InvokeVoidAsync("unwatchDropdown", dropdown);
     }
+
+    public async ValueTask ShowPopoverAsync(ElementReference element)
+    {
+        var module = await _moduleTask.Value;
+        await module.InvokeVoidAsync("showPopover", element);
+    }
 }
