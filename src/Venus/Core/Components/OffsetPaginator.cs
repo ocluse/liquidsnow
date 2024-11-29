@@ -52,6 +52,24 @@ public class OffsetPaginator : PaginatorBase
     private int TotalPages => (int)Math.Ceiling(TotalItemCount / (double)(PageSize ?? Resolver.DefaultPageSize));
 
     ///<inheritdoc/>
+    public override async Task SetParametersAsync(ParameterView parameters)
+    {
+        bool reloadDataView = false;
+
+        if (parameters.TryGetValue<int>(nameof(Page), out var page))
+        {
+            reloadDataView = Page != page;
+        }
+
+        await base.SetParametersAsync(parameters);
+
+        if (reloadDataView)
+        {
+            await ReloadDataViewAsync();
+        }
+    }
+
+    ///<inheritdoc/>
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
         builder.OpenElement(1, "nav");
@@ -156,16 +174,9 @@ public class OffsetPaginator : PaginatorBase
 
     private async Task OnClickItem(int page)
     {
-        if(page != Page)
+        if (page != Page)
         {
-            var previousPage = Page;
-
             await PageChanged.InvokeAsync(page);
-
-            if (previousPage != Page)
-            {
-                await ReloadDataViewAsync();
-            }
         }
     }
 

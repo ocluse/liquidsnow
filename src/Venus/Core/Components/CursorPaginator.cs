@@ -36,6 +36,29 @@ public class CursorPaginator<TCursor> : PaginatorBase
     [Parameter]
     public Func<TCursor?, string>? LinkGenerator { get; set; }
 
+    ///<inheritdoc/>
+    public override async Task SetParametersAsync(ParameterView parameters)
+    {
+        bool reloadDataView = false;
+
+        if(parameters.TryGetValue<TCursor>(nameof(Cursor), out var cursor))
+        {
+            if (!EqualityComparer<TCursor>.Default.Equals(cursor, Cursor))
+            {
+                Cursor = cursor;
+
+                reloadDataView = true;
+            }
+        }
+
+        await base.SetParametersAsync(parameters);
+
+        if (reloadDataView)
+        {
+            await ReloadDataViewAsync();
+        }
+    }
+
     private void BuildPaginatorButton(RenderTreeBuilder builder, bool isNext)
     {
         Dictionary<string, object> attributes = GetPaginatorButtonAttributes(isNext);
@@ -84,19 +107,9 @@ public class CursorPaginator<TCursor> : PaginatorBase
 
     private async Task HandleItemClick(TCursor? cursor)
     {
-        if (cursor != null)
+        if (!EqualityComparer<TCursor>.Default.Equals(cursor, Cursor))
         {
-            if (cursor.Equals(Cursor))
-            {
-                var previousCursor = Cursor;
-
-                await CursorChanged.InvokeAsync(cursor);
-
-                if (cursor.Equals(previousCursor))
-                {
-                    await ReloadDataViewAsync();
-                }
-            }
+            await CursorChanged.InvokeAsync(cursor);
         }
     }
 

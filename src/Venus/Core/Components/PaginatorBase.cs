@@ -32,7 +32,6 @@ public abstract class PaginatorBase : ControlBase
     [Parameter]
     public string? ActiveItemClass { get; set; }
 
-
     /// <summary>
     /// Gets or sets the CSS class to be added to the pagination next button.
     /// </summary>
