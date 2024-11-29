@@ -1,16 +1,15 @@
 ﻿using Microsoft.AspNetCore.Components.Rendering;
-using Ocluse.LiquidSnow.Extensions;
 using Ocluse.LiquidSnow.Venus.Contracts.Rendering;
 
-namespace Ocluse.LiquidSnow.Venus.Components;
+namespace Ocluse.LiquidSnow.Venus.Components.Static;
 
 /// <summary>
-/// The base class for elements that are rendered as 'fields', including inputs and dropdowns.
+/// The base class for static components that are rendered as 'fields', including inputs and dropdowns.
 /// </summary>
-public abstract class FieldBase<TValue> : InputBase<TValue>, IFieldComponent
+public abstract class StaticFieldBase<TValue> : StaticInputBase<TValue>, IFieldComponent
 {
     /// <summary>
-    /// Gets or sets the placeholder to display when the input is empty.
+    /// Gets or sets a placeholder for the component
     /// </summary>
     [Parameter]
     public string? Placeholder { get; set; }
@@ -36,23 +35,29 @@ public abstract class FieldBase<TValue> : InputBase<TValue>, IFieldComponent
     public string? HeaderClass { get; set; }
 
     /// <summary>
+    /// Gets or sets the CSS class applied to the input.
+    /// </summary>
+    [Parameter]
+    public string? InputClass { get; set; }
+
+    /// <summary>
     /// Gets or sets the CSS class applied to the validation label of the input.
     /// </summary>
     [Parameter]
     public string? ValidationLabelClass { get; set; }
 
-    /// <summary>
-    /// Gets or sets the CSS class applied to the inner input element. 
-    /// </summary>
-    [Parameter]
-    public string? InputClass { get; set; }
-
     ///<inheritdoc/>
     [Parameter]
     public FieldHeaderStyle? HeaderStyle { get; set; }
 
+    /// <summary>
+    /// Gets or sets the notification strategy for when the value of the input changes.
+    /// </summary>
+    [Parameter]
+    public UpdateTrigger UpdateTrigger { get; set; }
+
     ///<inheritdoc/>
-    protected override sealed void BuildRenderTree(RenderTreeBuilder builder)
+    protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
         RenderingUtility.BuildField(builder, this);
     }

@@ -77,11 +77,12 @@ public class ClassNameProvider : IClassNameProvider
     public virtual string Field_Input => "field-input";
     public virtual string TextBox_Prefix => ComponentPrefix;
     public virtual string TextBox_Suffix => ComponentSuffix;
-    public virtual string TextBox_ValidationLabel => "validation-label";
+    public virtual string Field_ValidationLabel => "validation-label";
     public virtual string UploadFile => "upload-file";
     public virtual string UploadFile_Dragging => ComponentActive;
     public virtual string UploadFile_DropZone => "drop-zone";
     public virtual string ValidationError => "validation-error";
     public virtual string ValidationSuccess => "validation-success";
     public virtual string Dialog => "dialog";
+    public virtual string SubmitButton => Button;
 }

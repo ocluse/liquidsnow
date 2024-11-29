@@ -69,6 +69,7 @@ public interface IClassNameProvider
     string SnackbarMessage { get; }
     string SnackbarMessage_CloseButton { get; }
     string SnackbarMessage_Content { get; }
+    string SubmitButton { get; }
     string TableView { get; }
     string TableView_Container { get; }
     string TextArea { get; }
@@ -78,7 +79,7 @@ public interface IClassNameProvider
     string Field_Input { get; }
     string TextBox_Prefix { get; }
     string TextBox_Suffix { get; }
-    string TextBox_ValidationLabel { get; }
+    string Field_ValidationLabel { get; }
     string UploadFile { get; }
     string UploadFile_Dragging { get; }
     string UploadFile_DropZone { get; }

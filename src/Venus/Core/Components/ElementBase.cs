@@ -1,10 +1,11 @@
 ﻿using Ocluse.LiquidSnow.Extensions;
+using Ocluse.LiquidSnow.Venus.Contracts.Rendering;
 
 namespace Ocluse.LiquidSnow.Venus.Components;
 /// <summary>  
 /// The base class for components that render html elements.
 /// </summary>  
-public abstract class ElementBase : VenusComponentBase
+public abstract class ElementBase : VenusComponentBase, IElementComponent
 {
     /// <summary>  
     /// Gets or sets the padding for the element.  
@@ -101,10 +102,8 @@ public abstract class ElementBase : VenusComponentBase
         return classBuilder.Build();
     }
 
-    /// <summary>
-    /// Returns the attributes to be applied to the component, including the style, class and any other specified by an inheriting component.
-    /// </summary>
-    protected Dictionary<string, object> GetAttributes()
+    ///<inheritdoc/>
+    public Dictionary<string, object> GetAttributes()
     {
         Dictionary<string, object> attributes = [];
 

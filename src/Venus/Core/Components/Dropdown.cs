@@ -1,14 +1,14 @@
 ﻿using Microsoft.AspNetCore.Components.Rendering;
-using Microsoft.JSInterop;
 using Ocluse.LiquidSnow.Extensions;
 using Ocluse.LiquidSnow.Utils;
+using Ocluse.LiquidSnow.Venus.Contracts.Rendering;
 
 namespace Ocluse.LiquidSnow.Venus.Components;
 
 /// <summary>
 /// An input that renders a dropdown.
 /// </summary>
-public class Dropdown<TValue> : FieldBase<TValue>, ICollectionView<TValue>
+public class Dropdown<TValue> : FieldBase<TValue>, ICollectionView<TValue>, IAuxiliaryContentFieldComponent
 {
     private readonly string _anchorName = "--" + IdGenerator.GenerateId(IdKind.Standard, 6).ToLowerInvariant();
     
@@ -69,9 +69,6 @@ public class Dropdown<TValue> : FieldBase<TValue>, ICollectionView<TValue>
     private IVenusJSInterop JSInterop { get; set; } = default!;
 
     ///<inheritdoc/>
-    protected override bool HasAuxiliaryContent => true;
-
-    ///<inheritdoc/>
     protected override void BuildInputClass(ClassBuilder classBuilder)
     {
         base.BuildInputClass(classBuilder);
@@ -124,7 +121,7 @@ public class Dropdown<TValue> : FieldBase<TValue>, ICollectionView<TValue>
     }
 
     ///<inheritdoc/>
-    protected override void BuildAuxiliaryContent(RenderTreeBuilder builder)
+    public void BuildAuxiliaryContent(RenderTreeBuilder builder)
     {
         builder.OpenElement(1, "div");
         {

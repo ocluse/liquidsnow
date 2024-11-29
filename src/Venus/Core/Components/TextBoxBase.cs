@@ -27,38 +27,15 @@ public abstract class TextBoxBase<TValue> : FieldBase<TValue>
     [Parameter]
     public EventCallback OnReturn { get; set; }
 
-    ///<inheritdoc/>
-    protected override bool HasAuxiliaryContent => false;
-
     /// <summary>
     /// Gets the type of value that the input accepts.
     /// </summary>
     protected virtual string InputType => "text";
 
-    private async Task HandleValueUpdated(TValue? value)
-    {
-        ChangeEventArgs e = new()
-        {
-            Value = value
-        };
-
-        await HandleInputChange(e);
-    }
-
-    private async Task KeyDown(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter" || e.Code == "NumpadEnter")
-        {
-            await OnReturn.InvokeAsync();
-        }
-        await OnKeyDown.InvokeAsync(e);
-    }
-
-    ///<inheritdoc/>
-    protected override void BuildInputClass(ClassBuilder classBuilder)
-    {
-        classBuilder.Add(ClassNameProvider.TextBox);
-    }
+    /// <summary>
+    /// Implemented by inheriting classes to convert the provided value to the input type.
+    /// </summary>
+    protected abstract TValue? GetValue(object? value);
 
     /// <summary>
     /// Build the actual input element.
@@ -92,10 +69,31 @@ public abstract class TextBoxBase<TValue> : FieldBase<TValue>
         builder.CloseElement();
     }
 
-    /// <summary>
-    /// Implemented by inheriting classes to convert the provided value to the input type.
-    /// </summary>
-    protected abstract TValue? GetValue(object? value);
+    private async Task HandleValueUpdated(TValue? value)
+    {
+        ChangeEventArgs e = new()
+        {
+            Value = value
+        };
+
+        await HandleInputChange(e);
+    }
+
+    private async Task KeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" || e.Code == "NumpadEnter")
+        {
+            await OnReturn.InvokeAsync();
+        }
+        await OnKeyDown.InvokeAsync(e);
+    }
+
+    ///<inheritdoc/>
+    protected override void BuildInputClass(ClassBuilder builder)
+    {
+        base.BuildInputClass(builder);
+        builder.Add(ClassNameProvider.TextBox);
+    }
 
     /// <summary>
     /// Bound to input element to handle value changes.

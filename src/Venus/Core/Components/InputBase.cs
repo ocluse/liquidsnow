@@ -1,5 +1,6 @@
 ﻿using Ocluse.LiquidSnow.Extensions;
 using Ocluse.LiquidSnow.Utils;
+using Ocluse.LiquidSnow.Venus.Contracts.Rendering;
 using System.Reactive.Linq;
 
 namespace Ocluse.LiquidSnow.Venus.Components;
@@ -8,28 +9,22 @@ namespace Ocluse.LiquidSnow.Venus.Components;
 /// The base class for controls that accept user input.
 /// </summary>
 /// <typeparam name="TValue">The type of the value accepted by the input</typeparam>
-public abstract class InputBase<TValue> : ControlBase, IValidatable, IFormControl, IDisposable
+public abstract class InputBase<TValue> : ControlBase, IInputComponent, IValidatable, IFormControl, IDisposable
 {
     private bool _valueHasChanged;
     private bool _disposedValue;
     private IDisposable? _debounceSubscription;
     private readonly string _defaultName = IdGenerator.GenerateId(IdKind.Standard, 8);
 
-    /// <summary>
-    /// Gets or sets the content to display before the input.
-    /// </summary>
+    /// <inheritdoc/>
     [Parameter]
     public RenderFragment? PrefixContent { get; set; }
 
-    /// <summary>
-    /// Gets or sets the content to display after the input.
-    /// </summary>
+    /// <inheritdoc/>
     [Parameter]
     public RenderFragment? SuffixContent { get; set; }
 
-    /// <summary>
-    /// Gets or sets the content to display in the validation area of the input.
-    /// </summary>
+    /// <inheritdoc/>
     [Parameter]
     public RenderFragment<ValidationResult?>? ValidationContent { get; set; }
 
@@ -45,9 +40,7 @@ public abstract class InputBase<TValue> : ControlBase, IValidatable, IFormContro
     [Parameter]
     public EventCallback<TValue?> ValueChanged { get; set; }
 
-    /// <summary>
-    /// Gets or sets the header of the input.
-    /// </summary>
+    /// <inheritdoc/>
     [Parameter]
     public string? Header { get; set; }
 
@@ -61,9 +54,7 @@ public abstract class InputBase<TValue> : ControlBase, IValidatable, IFormContro
     [Parameter]
     public string? Name { get; set; }
 
-    /// <summary>
-    /// Gets or sets the validation result of the input.
-    /// </summary>
+    /// <inheritdoc/>
     [Parameter]
     public ValidationResult? Validation { get; set; }
 
@@ -83,9 +74,7 @@ public abstract class InputBase<TValue> : ControlBase, IValidatable, IFormContro
     [Parameter]
     public bool Disabled { get; set; }
 
-    /// <summary>
-    /// Gets or sets the class to apply when the input is disabled.
-    /// </summary>
+    /// <inheritdoc/>
     [Parameter]
     public string? DisabledClass { get; set; }
 
@@ -95,9 +84,7 @@ public abstract class InputBase<TValue> : ControlBase, IValidatable, IFormContro
     [Parameter]
     public bool ReadOnly { get; set; }
 
-    /// <summary>
-    /// Gets or sets the class to apply when the input is readonly.
-    /// </summary>
+    /// <inheritdoc/>
     [Parameter]
     public string? ReadOnlyClass { get; set; }
 
@@ -134,10 +121,8 @@ public abstract class InputBase<TValue> : ControlBase, IValidatable, IFormContro
     [CascadingParameter]
     private IForm? Form { get; set; }
 
-    /// <summary>
-    /// Gets the final name that is added as an attribute.
-    /// </summary>
-    protected string AppliedName => string.IsNullOrEmpty(Name) ? string.IsNullOrEmpty(Header) ? _defaultName : Header : Name;
+    /// <inheritdoc/>
+    public string AppliedName => string.IsNullOrEmpty(Name) ? string.IsNullOrEmpty(Header) ? _defaultName : Header : Name;
 
     /// <inheritdoc/>
     protected override void OnInitialized()
@@ -237,17 +222,20 @@ public abstract class InputBase<TValue> : ControlBase, IValidatable, IFormContro
     /// <summary>
     /// Allows inheriting classes to add relevant CSS classes to the builder.
     /// </summary>
-    protected virtual void BuildInputClass(ClassBuilder classBuilder) { }
+    protected virtual void BuildInputClass(ClassBuilder builder) { }
 
-    /// <summary>
-    /// Returns the CSS class to apply to the validation label depending on the validation state.
-    /// </summary>
-    protected virtual string GetValidationClass()
+    /// <inheritdoc cref="IInputComponent.GetValidationClass"/>
+    protected virtual string? GetValidationClass()
     {
         return new ClassBuilder()
             .AddIf(Validation?.IsValid == true, ClassNameProvider.ValidationSuccess)
             .AddIf(Validation?.IsValid == false, ClassNameProvider.ValidationError)
             .Build();
+    }
+
+    string? IInputComponent.GetValidationClass()
+    {
+        return GetValidationClass();
     }
 
     /// <inheritdoc cref="Dispose()"/>
@@ -268,4 +256,7 @@ public abstract class InputBase<TValue> : ControlBase, IValidatable, IFormContro
         Dispose(true);
         GC.SuppressFinalize(this);
     }
+
+    /// <inheritdoc/>
+    public ValidationResult? GetValidationResult() => Validation;
 }
