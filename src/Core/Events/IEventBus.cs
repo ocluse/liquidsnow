@@ -1,16 +1,20 @@
-﻿namespace Ocluse.LiquidSnow.Events
+﻿namespace Ocluse.LiquidSnow.Events;
+
+/// <summary>
+/// Defines methods for publishing events to registered listeners.
+/// </summary>
+public interface IEventBus
 {
     /// <summary>
-    /// Provides utility methods for publishing events to various listeners/handlers
+    /// Publishes an event to all registered listeners capable of handling it and waits until they all finish execution.
     /// </summary>
-    public interface IEventBus
-    {
-        /// <summary>
-        /// Invokes any listeners of the specified type of event
-        /// </summary>
-        /// <param name="ev">The event to publish</param>
-        /// <param name="strategy">The strategy to use when publishing the event. If none is specified, the default is used</param>
-        /// <param name="cancellationToken">A token to request cancellation of the operation</param>
-        Task Publish(IEvent ev, PublishStrategy? strategy = null, CancellationToken cancellationToken = default);
-    }
+    Task PublishAsync<TEvent>(TEvent e, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Publishes an event to all registered listeners capable of handling it, returning immediately after the event is dispatched.
+    /// </summary>
+    /// <remarks>
+    /// This method creates a new service scope to safely execute the event handlers, in case the current scope is prematurely disposed.
+    /// </remarks>
+    void Publish<TEvent>(TEvent e, CancellationToken cancellationToken = default);
 }

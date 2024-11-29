@@ -1,28 +1,27 @@
-﻿namespace Ocluse.LiquidSnow.Cryptography.Symmetrics
+﻿namespace Ocluse.LiquidSnow.Cryptography.Symmetrics;
+
+/// <summary>
+/// The symmetric cryptographic algorithm used by <see cref="ISymmetric"/>
+/// </summary>
+public enum EncryptionAlgorithm
 {
     /// <summary>
-    /// The symmetric cryptographic algorithm used by <see cref="ISymmetric"/>
+    /// The Advanced Encryption Standard algorithm
     /// </summary>
-    public enum EncryptionAlgorithm
-    {
-        /// <summary>
-        /// The Advanced Encryption Standard algorithm
-        /// </summary>
-        AES,
+    AES,
 
-        /// <summary>
-        /// The DES algorithm
-        /// </summary>
-        DES,
+    /// <summary>
+    /// The DES algorithm
+    /// </summary>
+    DES,
 
-        /// <summary>
-        /// The RC2 algorithm
-        /// </summary>
-        RC2,
+    /// <summary>
+    /// The RC2 algorithm
+    /// </summary>
+    RC2,
 
-        /// <summary>
-        /// The TripleDES algorithm
-        /// </summary>
-        TripleDES
-    }
+    /// <summary>
+    /// The TripleDES algorithm
+    /// </summary>
+    TripleDES
 }

@@ -1,27 +1,26 @@
 ﻿using System.Reactive;
 
-namespace Ocluse.LiquidSnow.Orchestrations
+namespace Ocluse.LiquidSnow.Orchestrations;
+
+/// <summary>
+/// Defines a step that is executed in an orchestration.
+/// </summary>
+public interface IOrchestrationStep<in T, TResult>
+    where T : IOrchestration<TResult>
 {
     /// <summary>
-    /// A step that is executed in an orchestration.
+    /// Gets a value defining where the step is ordered in orchestration.
     /// </summary>
-    public interface IOrchestrationStep<in T, TResult>
-        where T : IOrchestration<TResult>
-    {
-        /// <summary>
-        /// The order in which the step is executed.
-        /// </summary>
-        int Order { get; }
+    int Order { get; }
 
-        /// <summary>
-        /// Execute the step.
-        /// </summary>
-        Task<IOrchestrationStepResult> Execute(IOrchestrationData<T> data, CancellationToken cancellationToken = default);
-    }
+    /// <summary>
+    /// Executes the step and returns the result.
+    /// </summary>
+    Task<IOrchestrationStepResult> ExecuteAsync(IOrchestrationData<T> data, CancellationToken cancellationToken = default);
+}
 
-    ///<inheritdoc cref="IOrchestrationStep{T, TResult}"/>
-    public interface IOrchestrationStep<in T> : IOrchestrationStep<T, Unit>
-        where T : IOrchestration
-    {
-    }
+///<inheritdoc cref="IOrchestrationStep{T, TResult}"/>
+public interface IOrchestrationStep<in T> : IOrchestrationStep<T, Unit>
+    where T : IOrchestration
+{
 }

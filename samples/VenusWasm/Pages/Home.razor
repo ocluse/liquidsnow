@@ -1,0 +1,20 @@
+﻿@page "/"
+
+
+<PageTitle>Home</PageTitle>
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+<TextBox Header="Name" @bind-Value="_name" />
+<Dropdown Items="_fruits" Header="Select your favorite fruit" @bind-Value="_fruit" />
+<p>Your name is @_name</p>
+
+@code {
+    private string? _name;
+
+    private string? _fruit;
+
+    private static string[] _fruits = { "Mango", "Apple", "Salami" };
+}

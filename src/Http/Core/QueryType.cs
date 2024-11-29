@@ -1,28 +1,27 @@
-﻿namespace Ocluse.LiquidSnow.Http
+﻿namespace Ocluse.LiquidSnow.Http;
+
+/// <summary>
+/// The type of query to perform.
+/// </summary>
+public enum QueryType
 {
     /// <summary>
-    /// The type of query to perform.
+    /// The query will be paged using a cursor.
     /// </summary>
-    public enum QueryType
-    {
-        /// <summary>
-        /// The query will be paged using a cursor.
-        /// </summary>
-        Cursor,
+    Cursor,
 
-        /// <summary>
-        /// The query will be filtered using the specified ids.
-        /// </summary>
-        Ids,
+    /// <summary>
+    /// The query will be filtered using the specified ids.
+    /// </summary>
+    Ids,
 
-        /// <summary>
-        /// The query will be paged using a page offset.
-        /// </summary>
-        Offset,
+    /// <summary>
+    /// The query will be paged using a page offset.
+    /// </summary>
+    Offset,
 
-        /// <summary>
-        /// The query will be filtered using a custom method.
-        /// </summary>
-        Custom
-    }
+    /// <summary>
+    /// The query will be filtered using a custom method.
+    /// </summary>
+    Custom
 }

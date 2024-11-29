@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+	<ImplicitUsings>enable</ImplicitUsings>
+	<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Nullable>enable</Nullable>
+	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	<GenerateDocumentationFile>true</GenerateDocumentationFile>
+	<Version>0.6.0</Version>
+	<Authors>Ocluse</Authors>
+	<PackageOutputPath>..\..\..\build</PackageOutputPath>
+	<Description>Blazor components and utility methods for creating UI using Ocluse's Venus design patterns.</Description>
+	<PackageIcon>logo.png</PackageIcon>
+	<RepositoryUrl>https://github.com/ocluse/liquidsnow</RepositoryUrl>
+	<Copyright>© Ocluse</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\logo.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+	
+<ItemGroup>
+	<InternalsVisibleTo Include="Ocluse.LiquidSnow.Venus.Blazor" />
+	<InternalsVisibleTo Include="Ocluse.LiquidSnow.Venus.Razor" />
+</ItemGroup>
+
+	<ItemGroup>
+		<SupportedPlatform Include="browser" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.11" />
+	</ItemGroup>
+	
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\Ocluse.LiquidSnow.Core.csproj" />
+  </ItemGroup>
+
+</Project>

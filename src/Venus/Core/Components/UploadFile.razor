@@ -1,0 +1,19 @@
+@using Microsoft.AspNetCore.Components.Forms;
+
+@inherits ControlBase
+
+<div @attributes="GetAttributes()" @ondragenter="OnDragEnter" @ondragleave="OnDragLeave">
+    @if (ChildContent != null)
+    {
+        @ChildContent
+    }
+    <div class="@ClassBuilder.Join(ClassNameProvider.UploadFile_DropZone, DropZoneClass)">
+        <InputFile OnChange="OnFilesChanged" AdditionalAttributes="GetInputAttributes()" />
+
+        @if (MessageContent != null)
+        {
+            @MessageContent
+        }
+    </div>
+</div>
+

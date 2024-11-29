@@ -1,44 +1,43 @@
-﻿namespace Ocluse.LiquidSnow.Venus.Blazor
+﻿namespace Ocluse.LiquidSnow.Venus.Blazor;
+
+
+public enum Keyboard
 {
+    Text,
+    Email,
+    Tel,
+    Search,
+    Number,
+    Password,
+    Date,
+    DatetimeLocal,
+    Week,
+    Month,
+    Color,
+}
 
-    public enum Keyboard
-    {
-        Text,
-        Email,
-        Tel,
-        Search,
-        Number,
-        Password,
-        Date,
-        DatetimeLocal,
-        Week,
-        Month,
-        Color,
-    }
+public enum Ordering
+{
+    Ascending,
+    Descending
+}
 
-    public enum Ordering
-    {
-        Ascending,
-        Descending
-    }
+public enum SnackbarDuration
+{
+    Short,
+    Medium,
+    Long,
+    Infinite
+}
 
-    public enum SnackbarDuration
-    {
-        Short,
-        Medium,
-        Long,
-        Infinite
-    }
+public enum UpdateTrigger
+{
+    OnChange,
+    OnInput
+}
 
-    public enum UpdateTrigger
-    {
-        OnChange,
-        OnInput
-    }
-
-    public enum IconStyle
-    {
-        Feather,
-        Fluent,        
-    }
+public enum IconStyle
+{
+    Feather,
+    Fluent,        
 }

@@ -7,7 +7,7 @@
 	<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	<GenerateDocumentationFile>true</GenerateDocumentationFile>
-	<Version>0.5.2</Version>
+	<Version>0.6.0</Version>
 	<Authors>Ocluse</Authors>
 	<PackageOutputPath>..\..\..\build</PackageOutputPath>
 	<Description>Provides utility method for performing crypotgraphic operations on files, including the creation of encrypted containers that hold multiple files.</Description>
@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.IO.Packaging" Version="8.0.0" />
+    <PackageReference Include="System.IO.Packaging" Version="8.0.1" />
   </ItemGroup>
 
   <ItemGroup>

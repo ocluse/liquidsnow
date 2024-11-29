@@ -1,64 +1,47 @@
 ﻿using System.Reactive;
 
-namespace Ocluse.LiquidSnow.Orchestrations
+namespace Ocluse.LiquidSnow.Orchestrations;
+
+
+///<inheritdoc cref="IOrchestrationStepResult"/>
+public readonly struct OrchestrationStepResult(int? jumpToStep) : IOrchestrationStepResult
 {
+    ///<inheritdoc cref="IOrchestrationStepResult.GoToOrder"/>
+    public int? GoToOrder { get; } = jumpToStep;
 
-    ///<inheritdoc cref="IOrchestrationStepResult"/>
-    public readonly struct OrchestrationStepResult : IOrchestrationStepResult
+    /// <summary>
+    /// Returns a result indicating the orchestration should continue to the next step.
+    /// </summary>
+    public static IOrchestrationStepResult Next()
     {
-        ///<inheritdoc cref="IOrchestrationStepResult.IsSuccess"/>
-        public bool IsSuccess { get; }
+        return new OrchestrationStepResult(null);
+    }
 
-        ///<inheritdoc cref="IOrchestrationStepResult.Data"/>
-        public object? Data { get; }
+    /// <summary>
+    /// Returns a result indicating the orchestration should jump to the specified step.
+    /// </summary>
+    public static IOrchestrationStepResult GoTo(int goToOrder)
+    {
+        return new OrchestrationStepResult(goToOrder);
+    }
 
-        ///<inheritdoc cref="IOrchestrationStepResult.JumpToOrder"/>
-        public int? JumpToOrder { get; }
+    /// <summary>
+    /// Returns a result that will cause the orchestration to finalize and return the specified data.
+    /// </summary>
+    public static IFinalOrchestrationResult<T> Break<T>(T data, bool isSuccess = true)
+    {
+        return new FinalOrchestrationResult<T>(data, isSuccess);
+    }
 
-        /// <summary>
-        /// Creates a new instance of <see cref="OrchestrationStepResult"/>.
-        /// </summary>
-        public OrchestrationStepResult(bool isSuccess, object? data, int? jumpToStep)
-        {
-            IsSuccess = isSuccess;
-            Data = data;
-            JumpToOrder = jumpToStep;
-        }
-
-        /// <summary>
-        /// Returns a result indicating that the step was successfully executed.
-        /// </summary>
-        public static IOrchestrationStepResult Success(object? data = null, int? jumpToStep = null)
-        {
-            return new OrchestrationStepResult(true, data, jumpToStep);
-        }
-
-        /// <summary>
-        /// Returns a result indicating that the step failed.
-        /// </summary>
-        public static IOrchestrationStepResult Failed(object? data = null, int? jumpToStep = null)
-        {
-            return new OrchestrationStepResult(false, data, jumpToStep);
-        }
-
-        /// <summary>
-        /// Skips the entire orchestration.
-        /// </summary>
-        public static ISkipOrchestrationResult Skip(object? data = null, bool isSuccess = true)
-        {
-            return new SkipOrchestrationResult(data, isSuccess);
-        }
-
-        /// <summary>
-        /// Skips the entire orchestration and returns <see cref="Unit"/> as the result.
-        /// </summary>
-        /// <remarks>
-        /// This is a convenience method for when the orchestration is not returning any data, 
-        /// and it is typically used with the non-generic <see cref="IOrchestration"/> interface.
-        /// </remarks>
-        public static ISkipOrchestrationResult SkipAsUnit(bool isSuccess = true)
-        {
-            return new SkipOrchestrationResult(default, isSuccess);
-        }
+    /// <summary>
+    /// Returns a result that will cause the orchestration to finalize.
+    /// </summary>
+    /// <remarks>
+    /// This is a convenience method for when the orchestration is not returning any data, 
+    /// and it is typically used with the non-generic <see cref="IOrchestration"/> interface.
+    /// </remarks>
+    public static IFinalOrchestrationResult<Unit> Break(bool isSuccess = true)
+    {
+        return new FinalOrchestrationResult<Unit>(default, isSuccess);
     }
 }

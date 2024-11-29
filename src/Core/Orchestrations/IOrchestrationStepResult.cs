@@ -1,33 +1,26 @@
-﻿namespace Ocluse.LiquidSnow.Orchestrations
+﻿namespace Ocluse.LiquidSnow.Orchestrations;
+
+/// <summary>
+/// Represents the result of an orchestration step.
+/// </summary>
+public interface IOrchestrationStepResult
 {
     /// <summary>
-    /// The result of an orchestration step.
+    /// Gets a value, that if not null will cause the orchestration to jump to the step with the specified order.
     /// </summary>
-    public interface IOrchestrationStepResult
-    {
-        /// <summary>
-        /// A value indicating whether the step was successful.
-        /// </summary>
-        bool IsSuccess { get; }
+    int? GoToOrder { get; }
+}
 
-        /// <summary>
-        /// The data that is returned by the step.
-        /// </summary>
-        object? Data { get; }
-
-        /// <summary>
-        /// The order of the next step to execute. If not set, the next sequential step is executed.
-        /// </summary>
-        int? JumpToOrder { get; }
-    }
-
+/// <summary>
+/// A result indicating that the orchestration should be halted.
+/// </summary>
+/// <remarks>
+/// The data returned by this result will be the final result of the orchestration.
+/// </remarks>
+public interface IFinalOrchestrationResult<out T> : IOrchestrationStepResult
+{
     /// <summary>
-    /// A result indicating that the rest of the orchestration should be skipped.
+    /// Gets the data that is returned by the step.
     /// </summary>
-    /// <remarks>
-    /// The data returned by this result will be the final result of the orchestration.
-    /// </remarks>
-    public interface ISkipOrchestrationResult : IOrchestrationStepResult
-    {
-    }
+    T Data { get; }
 }
