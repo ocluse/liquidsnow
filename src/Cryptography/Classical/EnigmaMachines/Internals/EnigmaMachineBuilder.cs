@@ -1,4 +1,6 @@
-﻿namespace Ocluse.LiquidSnow.Cryptography.Classical.EnigmaMachines.Internals;
+﻿using Ocluse.LiquidSnow.Utils;
+
+namespace Ocluse.LiquidSnow.Cryptography.Classical.EnigmaMachines.Internals;
 
 
 internal class EnigmaMachineBuilder : IEnigmaMachineBuilder
@@ -31,7 +33,7 @@ internal class EnigmaMachineBuilder : IEnigmaMachineBuilder
                 char c;
                 do
                 {
-                    int rnd = CryptoUtility.Random(0, _alphabet.Count);
+                    int rnd = IdGenerator.Random(0, _alphabet.Count);
                     c = _alphabet[rnd];
                 } while (notches.Contains(c));
 
