@@ -20,9 +20,12 @@ public class CheckBox : InputBase<bool>
     [Parameter]
     public string? InputClass { get; set; }
 
-    private async Task OnInputChange(ChangeEventArgs e)
+    private async Task HandleInputChange(ChangeEventArgs e)
     {
-        var newValue = bool.Parse(e.Value?.ToString() ?? "false");
+        if (!bool.TryParse(e.Value?.ToString(), out bool newValue))
+        {
+            newValue = false;
+        }
         await NotifyValueChange(newValue);
     }
 
@@ -37,7 +40,6 @@ public class CheckBox : InputBase<bool>
     protected override void BuildAttributes(IDictionary<string, object> attributes)
     {
         base.BuildAttributes(attributes);
-        attributes.Add("for", AppliedName);
     }
 
     ///<inheritdoc/>
@@ -59,7 +61,7 @@ public class CheckBox : InputBase<bool>
             builder.OpenElement(5, "input");
             {
                 builder.AddAttribute(6, "type", "checkbox");
-                builder.AddAttribute(7, "onchange", OnInputChange);
+                builder.AddAttribute(7, "onchange", EventCallback.Factory.Create(this, HandleInputChange));
                 builder.AddAttribute(8, "checked", Value);
                 builder.AddAttribute(9, "name", AppliedName);
 

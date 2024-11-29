@@ -1,4 +1,6 @@
-﻿namespace Ocluse.LiquidSnow.Venus.Components;
+﻿using Ocluse.LiquidSnow.Extensions;
+
+namespace Ocluse.LiquidSnow.Venus.Components;
 /// <summary>  
 /// The base class for components that render html elements.
 /// </summary>  
@@ -104,11 +106,20 @@ public abstract class ElementBase : VenusComponentBase
     /// </summary>
     protected Dictionary<string, object> GetAttributes()
     {
-        Dictionary<string, object> attributes = new()
-       {
-           { "class", GetClass() },
-           {"style", GetStyle() },
-       };
+        Dictionary<string, object> attributes = [];
+
+        string? style = GetStyle();
+        string? className = GetClass();
+
+        if (style.IsNotWhiteSpace())
+        {
+            attributes.Add("style", style);
+        }
+
+        if (className.IsNotWhiteSpace())
+        {
+            attributes.Add("class", className);
+        }
 
         if (!string.IsNullOrEmpty(Title))
         {

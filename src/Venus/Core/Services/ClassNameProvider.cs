@@ -40,8 +40,6 @@ public class ClassNameProvider : IClassNameProvider
     public virtual string Dropdown_Item => "item";
     public virtual string Dropdown_ItemSelected => ComponentActive;
     public virtual string Dropdown_Popover => "popover";
-    public virtual string DropdownClosed => "closed";
-    public virtual string DropdownOpen => "open";
     public virtual string FeatherIcon => Icon;
     public virtual string FeatherIconButton => IconButton;
     public virtual string FluentIcon => Icon;
@@ -72,6 +70,7 @@ public class ClassNameProvider : IClassNameProvider
     public virtual string SnackbarMessage_Content => ComponentContent;
     public virtual string TableView => "table-view";
     public virtual string TableView_Container => "table";
+    public virtual string TextArea => "textarea";
     public virtual string TextBox => "textbox";
     public virtual string TextBox_Content => ComponentContent;
     public virtual string TextBox_Header => ComponentHeader;

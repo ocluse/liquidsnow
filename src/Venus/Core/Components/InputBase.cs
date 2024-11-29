@@ -1,4 +1,5 @@
 ﻿using Ocluse.LiquidSnow.Extensions;
+using Ocluse.LiquidSnow.Utils;
 using System.Reactive.Linq;
 
 namespace Ocluse.LiquidSnow.Venus.Components;
@@ -12,7 +13,7 @@ public abstract class InputBase<TValue> : ControlBase, IValidatable, IFormContro
     private bool _valueHasChanged;
     private bool _disposedValue;
     private IDisposable? _debounceSubscription;
-    private readonly string _defaultName = Guid.NewGuid().ToString();
+    private readonly string _defaultName = IdGenerator.GenerateId(IdKind.Standard, 8);
 
     /// <summary>
     /// Gets or sets the content to display before the input.
@@ -43,12 +44,6 @@ public abstract class InputBase<TValue> : ControlBase, IValidatable, IFormContro
     /// </summary>
     [Parameter]
     public EventCallback<TValue?> ValueChanged { get; set; }
-
-    /// <summary>
-    /// Gets or sets the placeholder to display when the input is empty.
-    /// </summary>
-    [Parameter]
-    public string? Placeholder { get; set; }
 
     /// <summary>
     /// Gets or sets the header of the input.

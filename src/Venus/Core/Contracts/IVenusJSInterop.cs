@@ -24,21 +24,7 @@ public interface IVenusJSInterop
     ValueTask ShowPopoverAsync(ElementReference element);
 
     /// <summary>
-    /// Initializes the dropdown watcher that notifies dropdowns when they should be closed.
+    /// Hides the supplied popover.
     /// </summary>
-    /// <remarks>
-    /// This method must be called at least once for dropdowns to work correctly.
-    /// A standard <see cref="Dropdown{T}"/> already calls the method.
-    /// </remarks>
-    ValueTask InitializeDropdownWatcher();
-
-    /// <summary>
-    /// Stops watching the supplied dialog for close events.
-    /// </summary>
-    ValueTask UnwatchDropdownAsync(DotNetObjectReference<IDropdown> dropdown);
-
-    /// <summary>
-    /// Starts watching the supplied dialog for close events.
-    /// </summary>
-    ValueTask WatchDropdownAsync(DotNetObjectReference<IDropdown> dropdown, string dropdownId);
+    ValueTask HidePopoverAsync(ElementReference element);
 }

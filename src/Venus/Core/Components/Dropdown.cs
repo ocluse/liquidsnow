@@ -8,11 +8,10 @@ namespace Ocluse.LiquidSnow.Venus.Components;
 /// <summary>
 /// An input that renders a dropdown.
 /// </summary>
-public class Dropdown<TValue> : FieldBase<TValue>, ICollectionView<TValue>, IDropdown, IAsyncDisposable
+public class Dropdown<TValue> : FieldBase<TValue>, ICollectionView<TValue>
 {
-    //private bool _open;
-    private string _anchorName = "--" + IdGenerator.GenerateId(IdKind.Standard, 6).ToLowerInvariant();
-    //private DotNetObjectReference<IDropdown> _dotNetObj = default!;
+    private readonly string _anchorName = "--" + IdGenerator.GenerateId(IdKind.Standard, 6).ToLowerInvariant();
+    
     private ElementReference _popoverElement;
 
     ///<inheritdoc/>
@@ -51,10 +50,10 @@ public class Dropdown<TValue> : FieldBase<TValue>, ICollectionView<TValue>, IDro
     public string? ItemClass { get; set; }
 
     /// <summary>
-    /// Gets or sets the CSS class to apply to the dropdown list.
+    /// Gets or sets the CSS class to apply to the dropdown's popover.
     /// </summary>
     [Parameter]
-    public string? ListClass { get; set; }
+    public string? PopoverClass { get; set; }
 
     /// <summary>
     /// Gets or sets the content that is used as the input's placeholder.
@@ -73,28 +72,11 @@ public class Dropdown<TValue> : FieldBase<TValue>, ICollectionView<TValue>, IDro
     protected override bool HasAuxiliaryContent => true;
 
     ///<inheritdoc/>
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-        //_dotNetObj = DotNetObjectReference.Create((IDropdown)this);
-        //await JSInterop.InitializeDropdownWatcher();
-    }
-
-    ///<inheritdoc/>
     protected override void BuildInputClass(ClassBuilder classBuilder)
     {
         base.BuildInputClass(classBuilder);
         classBuilder.Add(ClassNameProvider.Dropdown);
-            //.AddIf(_open, ClassNameProvider.DropdownOpen, OpenClass)
-            //.AddIf(!_open, ClassNameProvider.DropdownClosed, ClosedClass);
     }
-
-    /////<inheritdoc/>
-    //protected override async Task OnAfterRenderAsync(bool firstRender)
-    //{
-    //    await base.OnAfterRenderAsync(firstRender);
-    //    await JSInterop.ShowPopoverAsync(_popoverElement);
-    //}
 
     ///<inheritdoc/>
     protected override void BuildInput(RenderTreeBuilder builder)
@@ -102,22 +84,22 @@ public class Dropdown<TValue> : FieldBase<TValue>, ICollectionView<TValue>, IDro
         builder.OpenElement(1, "div");
         {
             builder.AddAttribute(2, "class", ClassBuilder.Join(ClassNameProvider.Field_Input, InputClass));
-
+            builder.AddAttribute(3, "onclick", EventCallback.Factory.Create(this, HandleDropdownClick));
             if (Value != null)
             {
                 if (AdvancedItemTemplate != null)
                 {
-                    builder.AddContent(3, AdvancedItemTemplate((Value, null)));
+                    builder.AddContent(4, AdvancedItemTemplate((Value, null)));
                 }
                 else if (ItemTemplate != null)
                 {
-                    builder.AddContent(4, ItemTemplate(Value));
+                    builder.AddContent(5, ItemTemplate(Value));
                 }
                 else
                 {
-                    builder.OpenElement(5, "span");
+                    builder.OpenElement(6, "span");
                     {
-                        builder.AddContent(6, Value.GetDisplayValue(ToStringFunc));
+                        builder.AddContent(7, Value.GetDisplayValue(ToStringFunc));
                     }
                     builder.CloseElement();
                 }
@@ -126,13 +108,13 @@ public class Dropdown<TValue> : FieldBase<TValue>, ICollectionView<TValue>, IDro
             {
                 if (PlaceholderContent != null)
                 {
-                    builder.AddContent(7, PlaceholderContent);
+                    builder.AddContent(8, PlaceholderContent);
                 }
                 else if (Placeholder.IsNotEmpty())
                 {
-                    builder.OpenElement(8, "span");
+                    builder.OpenElement(9, "span");
                     {
-                        builder.AddContent(9, Placeholder);
+                        builder.AddContent(10, Placeholder);
                     }
                     builder.CloseElement();
                 }
@@ -146,7 +128,7 @@ public class Dropdown<TValue> : FieldBase<TValue>, ICollectionView<TValue>, IDro
     {
         builder.OpenElement(1, "div");
         {
-            builder.AddAttribute(2, "class", ClassBuilder.Join(ClassNameProvider.Dropdown_Popover, ListClass));
+            builder.AddAttribute(2, "class", ClassBuilder.Join(ClassNameProvider.Dropdown_Popover, PopoverClass));
             builder.AddAttribute(3, "style", $"position-anchor: {_anchorName};");
             builder.AddAttribute(4, "popover");
             builder.AddElementReferenceCapture(5, (value) => _popoverElement = value);
@@ -193,7 +175,6 @@ public class Dropdown<TValue> : FieldBase<TValue>, ICollectionView<TValue>, IDro
     protected override void BuildAttributes(IDictionary<string, object> attributes)
     {
         base.BuildAttributes(attributes);
-        attributes.Add("onclick", EventCallback.Factory.Create(this, HandleDropdownClick));
         attributes.Add("data-anchor-name", _anchorName);
     }
 
@@ -202,6 +183,11 @@ public class Dropdown<TValue> : FieldBase<TValue>, ICollectionView<TValue>, IDro
     {
         base.BuildStyle(styleBuilder);
         styleBuilder.Add("anchor-name", _anchorName);
+    }
+
+    private async Task HandleDropdownClick()
+    {
+        await JSInterop.ShowPopoverAsync(_popoverElement);
     }
 
     private async Task HandleItemClickAsync(TValue item)
@@ -214,49 +200,7 @@ public class Dropdown<TValue> : FieldBase<TValue>, ICollectionView<TValue>, IDro
         {
             await NotifyValueChange(item);
         }
-    }
 
-    private async Task HandleDropdownClick()
-    {
-        //if (_open)
-        //{
-        //    //await JSInterop.UnwatchDropdownAsync(_dotNetObj);
-        //}
-        //else
-        //{
-        //    await JSInterop.ShowPopoverAsync(_popoverElement);
-        //    //await JSInterop.WatchDropdownAsync(_dotNetObj, _dropdownId);
-        //}
-
-        await JSInterop.ShowPopoverAsync(_popoverElement);
-
-        //_open = !_open;
-
-        await InvokeAsync(StateHasChanged);
-    }
-
-    ///<inheritdoc/>
-    [JSInvokable]
-    public async Task CloseDropdown()
-    {
-        //_open = false;
-        await InvokeAsync(StateHasChanged);
-    }
-
-    ///<inheritdoc cref="DisposeAsync"/>
-    protected virtual ValueTask DisposeAsyncCore()
-    {
-        return ValueTask.CompletedTask;
-        //await JSInterop.UnwatchDropdownAsync(_dotNetObj);
-    }
-
-    ///<inheritdoc/>
-    public async ValueTask DisposeAsync()
-    {
-        await DisposeAsyncCore();
-
-        Dispose(false);
-
-        GC.SuppressFinalize(this);
+        await JSInterop.HidePopoverAsync(_popoverElement);
     }
 }

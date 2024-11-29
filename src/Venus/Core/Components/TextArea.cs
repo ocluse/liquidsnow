@@ -12,9 +12,11 @@ public class TextArea : TextBoxBase<string>
     {
         builder.OpenElement(1, "textarea");
         {
-            builder.AddAttribute(2, "onchange", EventCallback.Factory.CreateBinder(this, HandleValueUpdated, Value ?? string.Empty));
-            builder.AddAttribute(3, "placeholder", Placeholder ?? " ");
-            builder.AddContent(4, Value);
+            builder.AddAttribute(2, "placeholder", Placeholder ?? " ");
+            builder.AddAttribute(3, "class", ClassBuilder.Join(ClassNameProvider.Field_Input, InputClass));
+            builder.AddAttribute(4, "name", AppliedName);
+            builder.AddAttribute(5, "onchange", EventCallback.Factory.CreateBinder(this, HandleValueUpdated, Value ?? string.Empty));
+            builder.AddContent(6, Value);
         }
         builder.CloseElement();
     }
@@ -23,6 +25,13 @@ public class TextArea : TextBoxBase<string>
     protected override string GetValue(object? value)
     {
         return value?.ToString() ?? string.Empty;
+    }
+
+    ///<inheritdoc/>
+    protected override void BuildInputClass(ClassBuilder classBuilder)
+    {
+        //Don't call base to prevent the 'textbox' class from being added.
+        classBuilder.Add(ClassNameProvider.TextArea);
     }
 
     private async Task HandleValueUpdated(string? value)

@@ -41,8 +41,6 @@ public interface IClassNameProvider
     string Dropdown_Item { get; }
     string Dropdown_ItemSelected { get; }
     string Dropdown_Popover { get; }
-    string DropdownClosed { get; }
-    string DropdownOpen { get; }
     string FeatherIcon { get; }
     string FeatherIconButton { get; }
     string FluentIcon { get; }
@@ -73,6 +71,7 @@ public interface IClassNameProvider
     string SnackbarMessage_Content { get; }
     string TableView { get; }
     string TableView_Container { get; }
+    string TextArea { get; }
     string TextBox { get; }
     string TextBox_Content { get; }
     string TextBox_Header { get; }

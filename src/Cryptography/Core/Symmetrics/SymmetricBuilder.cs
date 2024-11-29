@@ -1,4 +1,5 @@
 ﻿using Ocluse.LiquidSnow.Extensions;
+using Ocluse.LiquidSnow.Utils;
 using System.Security.Cryptography;
 
 namespace Ocluse.LiquidSnow.Cryptography.Symmetrics;
@@ -46,11 +47,11 @@ public static class SymmetricBuilder
     /// Creates a <see cref="ISymmetric"/> instance using the AES algorithm with a randomly generated salt. The salt must be stored for future use.
     /// </summary>
     /// <remarks>
-    /// The Salt is generated using <see cref="CryptoUtility.GenerateId(IdKind, int)"/> with the <see cref="IdKind.Guid"/> kind and the hashing algorithm used is <see cref="HashAlgorithmName.SHA256"/>.
+    /// The Salt is generated using <see cref="IdGenerator.GenerateId(IdKind, int)"/> with the <see cref="IdKind.Guid"/> kind and the hashing algorithm used is <see cref="HashAlgorithmName.SHA256"/>.
     /// </remarks>
     public static ISymmetric CreateAes(out byte[] salt)
     {
-        salt = CryptoUtility.GenerateId(IdKind.Guid).GetBytes();
+        salt = IdGenerator.GenerateId(IdKind.Guid).GetBytes();
         return Create(EncryptionAlgorithm.AES, salt, HashAlgorithmName.SHA256);
     }
     #endregion

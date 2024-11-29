@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components.Rendering;
+using Ocluse.LiquidSnow.Extensions;
 
 namespace Ocluse.LiquidSnow.Venus.Components;
 
@@ -7,6 +8,12 @@ namespace Ocluse.LiquidSnow.Venus.Components;
 /// </summary>
 public abstract class FieldBase<TValue> : InputBase<TValue>
 {
+    /// <summary>
+    /// Gets or sets the placeholder to display when the input is empty.
+    /// </summary>
+    [Parameter]
+    public string? Placeholder { get; set; }
+
     /// <summary>
     /// Gets or sets the CSS class applied to the input's content area.
     /// </summary>
@@ -200,5 +207,130 @@ public abstract class FieldBase<TValue> : InputBase<TValue>
     {
         string baseClass = base.GetValidationClass();
         return ClassBuilder.Join(baseClass, ClassNameProvider.TextBox_ValidationLabel, ValidationLabelClass) ?? baseClass;
+    }
+
+    internal static void BuildHeaderCore(RenderTreeBuilder builder, IFieldComponent field)
+    {
+        //Header
+        if (field.Header != null || field.HeaderContent != null)
+        {
+            string? headerClass = ClassBuilder.Join(field.ClassNameProvider.TextBox_Header, field.HeaderClass);
+
+            if (field.HeaderContent != null)
+            {
+                builder.OpenElement(3, "div");
+                {
+                    builder.AddAttribute(4, "class", headerClass);
+                    builder.AddContent(5, field.HeaderContent(field.AppliedName));
+                }
+                builder.CloseElement();
+            }
+            else
+            {
+                builder.OpenElement(6, "label");
+                {
+                    builder.AddAttribute(7, "class", headerClass);
+                    builder.AddAttribute(8, "for", field.AppliedName);
+                    builder.AddContent(9, field.Header);
+                }
+                builder.CloseElement();
+            }
+        }
+    }
+
+    ///<inheritdoc/>
+    internal static void BuildFieldCore(RenderTreeBuilder builder, IFieldComponent field)
+    {
+        var headerStyle = field.HeaderStyle ?? field.Resolver.DefaultFieldHeaderStyle;
+
+        builder.OpenElement(1, "div");
+        {
+            builder.AddMultipleAttributes(2, field.GetAttributes());
+
+            //Static header:
+            if (headerStyle == FieldHeaderStyle.Static)
+            {
+                builder.OpenRegion(3);
+                {
+                    BuildHeaderCore(builder, field);
+                }
+                builder.CloseRegion();
+            }
+
+            //The input content
+            builder.OpenElement(4, "div");
+            {
+                builder.AddAttribute(5, "class", ClassBuilder.Join(field.ClassNameProvider.TextBox_Content, field.ContentClass));
+
+                if (field.PrefixContent != null)
+                {
+                    builder.OpenElement(6, "div");
+                    {
+                        builder.AddAttribute(7, "class", ClassBuilder.Join(field.ClassNameProvider.TextBox_Prefix, field.PrefixClass));
+                        builder.AddContent(8, field.PrefixContent);
+                    }
+                    builder.CloseElement();
+                }
+
+                builder.OpenRegion(9);
+                {
+                    field.BuildInput(builder);
+                }
+                builder.CloseRegion();
+
+                //Floating header
+                if (headerStyle == FieldHeaderStyle.Floating)
+                {
+                    builder.OpenRegion(10);
+                    {
+                        BuildHeaderCore(builder, field);
+                    }
+                    builder.CloseElement();
+                }
+
+                if (field.SuffixContent != null)
+                {
+                    builder.OpenElement(11, "div");
+                    {
+                        builder.AddAttribute(12, "class", ClassBuilder.Join(field.ClassNameProvider.TextBox_Suffix, field.SuffixClass));
+                        builder.AddContent(13, field.SuffixContent);
+                    }
+                    builder.CloseElement();
+                }
+            }
+            builder.CloseElement();
+
+            //Validation message
+            if (field.ValidationContent != null)
+            {
+                builder.OpenElement(14, "div");
+                {
+                    builder.AddAttribute(15, "class", field.GetValidationClass());
+                    builder.AddContent(16, field.ValidationContent(field.Validation));
+                }
+                builder.CloseElement();
+
+            }
+            else if (field.Validation != null && field.Validation.Message.IsNotEmpty())
+            {
+                builder.OpenElement(17, "label");
+                {
+                    builder.AddAttribute(18, "class", field.GetValidationClass());
+                    builder.AddAttribute(19, "role", "alert");
+                    builder.AddContent(20, field.Validation.Message);
+                }
+                builder.CloseElement();
+            }
+
+            if(field is IAuxiliaryContentFieldComponent auxiliaryContentField)
+            {
+                builder.OpenRegion(21);
+                {
+                    auxiliaryContentField.BuildAuxiliaryContent(builder);
+                }
+                builder.CloseRegion();
+            }
+        }
+        builder.CloseElement();
     }
 }
