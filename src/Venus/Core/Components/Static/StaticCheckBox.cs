@@ -15,6 +15,12 @@ namespace Ocluse.LiquidSnow.Venus.Components.Static;
 public class StaticCheckBox : StaticInputBase<bool>
 {
     /// <summary>
+    /// Gets or sets the ID of the checkbox.
+    /// </summary>
+    [Parameter]
+    public string? Id { get; set; }
+
+    /// <summary>
     /// Gets or sets the content displayed next to the checkbox.
     /// </summary>
     [Parameter]
@@ -37,7 +43,10 @@ public class StaticCheckBox : StaticInputBase<bool>
     protected override void BuildAttributes(IDictionary<string, object> attributes)
     {
         base.BuildAttributes(attributes);
-        attributes.Add("for", NameAttributeValue);
+        if (Id.IsNotEmpty())
+        {
+            attributes.Add("for", Id);
+        }
     }
 
     ///<inheritdoc/>

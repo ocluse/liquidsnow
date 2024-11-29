@@ -9,6 +9,12 @@ namespace Ocluse.LiquidSnow.Venus.Components;
 public class CheckBox : InputBase<bool>
 {
     /// <summary>
+    /// Gets or sets the ID of the checkbox.
+    /// </summary>
+    [Parameter]
+    public string? Id { get; set; }
+
+    /// <summary>
     /// Gets or sets the content displayed next to the checkbox.
     /// </summary>
     [Parameter]
@@ -40,6 +46,10 @@ public class CheckBox : InputBase<bool>
     protected override void BuildAttributes(IDictionary<string, object> attributes)
     {
         base.BuildAttributes(attributes);
+        if (Id.IsNotEmpty())
+        {
+            attributes.Add("for", Id);
+        }
     }
 
     ///<inheritdoc/>
@@ -60,31 +70,35 @@ public class CheckBox : InputBase<bool>
 
             builder.OpenElement(5, "input");
             {
-                builder.AddAttribute(6, "type", "checkbox");
-                builder.AddAttribute(7, "onchange", EventCallback.Factory.Create(this, HandleInputChange));
-                builder.AddAttribute(8, "checked", Value);
-                builder.AddAttribute(9, "name", AppliedName);
+                if (Id.IsNotEmpty())
+                {
+                    builder.AddAttribute(6, "class", InputClass);
+                }
+                builder.AddAttribute(7, "type", "checkbox");
+                builder.AddAttribute(8, "onchange", EventCallback.Factory.Create(this, HandleInputChange));
+                builder.AddAttribute(9, "checked", Value);
+                builder.AddAttribute(10, "name", AppliedName);
 
                 if (InputClass.IsNotWhiteSpace())
                 {
-                    builder.AddAttribute(10, "class", InputClass);
+                    builder.AddAttribute(11, "class", InputClass);
                 }
 
                 if (Disabled)
                 {
-                    builder.AddAttribute(11, "disabled");
+                    builder.AddAttribute(12, "disabled");
                 }
 
                 if (ReadOnly)
                 {
-                    builder.AddAttribute(12, "readonly");
+                    builder.AddAttribute(13, "readonly");
                 }
             }
             builder.CloseElement();
 
-            builder.OpenElement(13, "span");
+            builder.OpenElement(14, "span");
             {
-                builder.AddAttribute(14, "class", ClassNameProvider.Checkbox_Checkmark);
+                builder.AddAttribute(15, "class", ClassNameProvider.Checkbox_Checkmark);
             }
             builder.CloseElement();
 

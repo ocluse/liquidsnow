@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components.Rendering;
+using Ocluse.LiquidSnow.Extensions;
 
 namespace Ocluse.LiquidSnow.Venus.Components.Static;
 
@@ -17,22 +18,26 @@ public abstract class StaticTextBoxBase<TValue> : StaticFieldBase<TValue>
     {
         builder.OpenElement(1, "input");
         {
-            builder.AddAttribute(2, "placeholder", Placeholder ?? " ");
-            builder.AddAttribute(3, "type", InputType);
-            builder.AddAttribute(4, "name", AppliedName);
-            builder.AddAttribute(5, "class", ClassBuilder.Join(ClassNameProvider.Field_Input, InputClass));
-            builder.AddAttribute(6, "value", BindConverter.FormatValue(CurrentValue));
-            builder.AddAttribute(7, "onchange", EventCallback.Factory.CreateBinder(this, value => CurrentValue = value, CurrentValue!));
+            if (Id.IsNotEmpty())
+            {
+                builder.AddAttribute(2, "id", Id);
+            }
+            builder.AddAttribute(3, "placeholder", Placeholder ?? " ");
+            builder.AddAttribute(4, "type", InputType);
+            builder.AddAttribute(5, "name", AppliedName);
+            builder.AddAttribute(6, "class", ClassBuilder.Join(ClassNameProvider.Field_Input, InputClass));
+            builder.AddAttribute(7, "value", BindConverter.FormatValue(CurrentValue));
+            builder.AddAttribute(8, "onchange", EventCallback.Factory.CreateBinder(this, value => CurrentValue = value, CurrentValue!));
             builder.SetUpdatesAttributeName("value");
 
             if (Disabled)
             {
-                builder.AddAttribute(8, "disabled");
+                builder.AddAttribute(9, "disabled");
             }
 
             if (ReadOnly)
             {
-                builder.AddAttribute(9, "readonly");
+                builder.AddAttribute(10, "readonly");
             }
         }
         builder.CloseElement();

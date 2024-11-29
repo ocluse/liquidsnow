@@ -9,6 +9,10 @@ namespace Ocluse.LiquidSnow.Venus.Components;
 /// </summary>
 public abstract class FieldBase<TValue> : InputBase<TValue>, IFieldComponent
 {
+    ///<inheritdoc/>
+    [Parameter]
+    public string? Id { get; set; }
+    
     /// <summary>
     /// Gets or sets the placeholder to display when the input is empty.
     /// </summary>

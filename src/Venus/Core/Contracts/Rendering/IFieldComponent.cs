@@ -8,34 +8,38 @@ namespace Ocluse.LiquidSnow.Venus.Contracts.Rendering;
 public interface IFieldComponent : IInputComponent
 {
     /// <summary>
-    /// Gets or sets the style of the header.
+    /// The ID of the input.
     /// </summary>
-    FieldHeaderStyle? HeaderStyle { get; set; }
+    string? Id { get; }
+    /// <summary>
+    /// The style of the header.
+    /// </summary>
+    FieldHeaderStyle? HeaderStyle { get; }
 
     /// <summary>
-    /// Gets or sets the class applied to the header of the input.
+    /// The class applied to the header of the input.
     /// </summary>
-    string? HeaderClass { get; set; }
+    string? HeaderClass { get; }
 
     /// <summary>
-    /// Gets or sets the content to display in the header of the input.
+    /// The content to display in the header of the input.
     /// </summary>
-    RenderFragment<string>? HeaderContent { get; set; }
+    RenderFragment<string>? HeaderContent { get; }
 
     /// <summary>
-    /// Gets or sets the CSS class applied to the input's content area.
+    /// The CSS class applied to the input's content area.
     /// </summary>
-    string? ContentClass { get; set; }
+    string? ContentClass { get; }
 
     /// <summary>
-    /// Gets or sets the CSS class applied to the prefix content containing div.
+    /// The CSS class applied to the prefix content containing div.
     /// </summary>
-    string? PrefixClass { get; set; }
+    string? PrefixClass { get; }
 
     /// <summary>
-    /// Gets or sets the CSS class applied to the suffix content containing div.
+    /// The CSS class applied to the suffix content containing div.
     /// </summary>
-    string? SuffixClass { get; set; }
+    string? SuffixClass { get; }
 
     /// <summary>
     /// Renders the actual input element to the supplied <see cref="RenderTreeBuilder"/>

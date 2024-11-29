@@ -9,6 +9,12 @@ namespace Ocluse.LiquidSnow.Venus.Components.Static;
 public abstract class StaticFieldBase<TValue> : StaticInputBase<TValue>, IFieldComponent
 {
     /// <summary>
+    /// Gets or sets the ID for the element
+    /// </summary>
+    [Parameter]
+    public string? Id { get; set; }
+
+    /// <summary>
     /// Gets or sets a placeholder for the component
     /// </summary>
     [Parameter]

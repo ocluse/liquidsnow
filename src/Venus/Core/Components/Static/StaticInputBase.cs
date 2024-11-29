@@ -16,12 +16,6 @@ public abstract class StaticInputBase<TValue> : Microsoft.AspNetCore.Components.
     public string? Header { get; set; }
 
     /// <summary>
-    /// Gets or sets the ID for the element
-    /// </summary>
-    [Parameter]
-    public string? Id { get; set; }
-
-    /// <summary>
     /// Gets or sets a value determining whether the control is disabled.
     /// </summary>
     [Parameter]
@@ -38,11 +32,6 @@ public abstract class StaticInputBase<TValue> : Microsoft.AspNetCore.Components.
     /// </summary>
     [Parameter]
     public string? Class { get; set; }
-
-    /// <summary>
-    /// Gets or sets the ID applied to the component's input.
-    /// </summary>
-    protected string EffectiveId => Id ?? NameAttributeValue;
 
     /// <summary>
     /// Gets or sets a value that determines whether a readonly attribute is applied to the input.

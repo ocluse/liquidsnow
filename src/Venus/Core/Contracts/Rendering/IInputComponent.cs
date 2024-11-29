@@ -6,43 +6,34 @@
 public interface IInputComponent : IElementComponent
 {
     /// <summary>
-    /// Gets or sets the class to apply when the input is disabled.
+    /// The class to apply when the input is disabled.
     /// </summary>
     string? DisabledClass { get; }
 
     /// <summary>
-    /// Gets or sets the class to apply when the input is readonly.
+    /// The class to apply when the input is readonly.
     /// </summary>
     string? ReadOnlyClass { get; }
 
     /// <summary>
-    /// Gets or sets the content to display before the input.
+    /// The content to display before the input.
     /// </summary>
-    RenderFragment? PrefixContent { get; set; }
+    RenderFragment? PrefixContent { get; }
 
     /// <summary>
-    /// Gets or sets the content to display after the input.
+    /// The content to display after the input.
     /// </summary>
-    RenderFragment? SuffixContent { get; set; }
+    RenderFragment? SuffixContent { get; }
 
     /// <summary>
-    /// Gets or sets the content to display in the validation area of the input.
+    /// The content to display in the validation area of the input.
     /// </summary>
-    RenderFragment<ValidationResult?>? ValidationContent { get; set; }
+    RenderFragment<ValidationResult?>? ValidationContent { get; }
 
     /// <summary>
-    /// Gets or sets the header of the input.
+    /// The header of the input.
     /// </summary>
-    string? Header { get; set; }
-
-    ///// <summary>
-    ///// Gets or sets the 'name' attribute of the input.
-    ///// </summary>
-    ///// <remarks>
-    ///// If not provided the <see cref="Header"/> value will be used as the name, 
-    ///// otherwise it falls back to a randomly generated string.
-    ///// </remarks>
-    //string? Name { get; set; }
+    string? Header { get; }
 
     /// <summary>
     /// Gets the final name that is duly applied to the 'name' attribute of the component.

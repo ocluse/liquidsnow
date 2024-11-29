@@ -38,7 +38,12 @@ public static class RenderingUtility
                 builder.OpenElement(6, "label");
                 {
                     builder.AddAttribute(7, "class", headerClass);
-                    builder.AddAttribute(8, "for", field.AppliedName);
+
+                    if(field.Id != null)
+                    {
+                        builder.AddAttribute(8, "for", field.AppliedName);
+                    }
+
                     builder.AddContent(9, field.Header);
                 }
                 builder.CloseElement();

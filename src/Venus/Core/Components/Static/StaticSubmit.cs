@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components.Rendering;
+using Ocluse.LiquidSnow.Extensions;
 
 namespace Ocluse.LiquidSnow.Venus.Components.Static;
 
@@ -13,6 +14,12 @@ public class StaticSubmit : ControlBase
     [Parameter]
     public string? Text { get; set; }
 
+    /// <summary>
+    /// Gets or sets the ID of the element.
+    /// </summary>
+    [Parameter]
+    public string? Id { get; set; }
+
     ///<inheritdoc/>
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
@@ -20,7 +27,13 @@ public class StaticSubmit : ControlBase
         {
             builder.AddAttribute(2, "type", "submit");
             builder.AddAttribute(3, "value", Text);
-            builder.AddMultipleAttributes(4, GetAttributes());
+
+            if (Id.IsNotEmpty())
+            {
+                builder.AddAttribute(4, "id", Id);
+            }
+
+            builder.AddMultipleAttributes(5, GetAttributes());
         }
         builder.CloseElement();
     }
