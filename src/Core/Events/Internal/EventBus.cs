@@ -1,95 +1,66 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Ocluse.LiquidSnow.Extensions;
 using System.Reflection;
 
-namespace Ocluse.LiquidSnow.Events.Internal
+namespace Ocluse.LiquidSnow.Events.Internal;
+
+internal sealed class EventBus(IServiceProvider serviceProvider) : IEventBus
 {
-    internal class EventBus(EventBusOptions options, IServiceProvider serviceProvider) : IEventBus
+    private static async Task ExecuteHandler(object? handler, MethodInfo handleMethodInfo, object[] handleMethodArgs)
     {
-        private readonly PublishStrategy _strategy = options.PublishStrategy;
-        private readonly IServiceProvider _serviceProvider = serviceProvider;
-        private readonly ServiceLifetime _lifeTime = options.BusLifetime;
-
-        private static async Task ExecuteHandler(object? handler, MethodInfo handleMethodInfo, object[] handleMethodArgs)
+        if (handler == null)
         {
-            if (handler == null)
-            {
-                return;
-            }
-
-            await (Task)handleMethodInfo.Invoke(handler, handleMethodArgs)!;
+            return;
         }
 
-        private static async Task PublishCore(IServiceProvider serviceProvider, IEvent ev, PublishStrategy strategy, CancellationToken cancellationToken)
+        await (Task)handleMethodInfo.Invoke(handler, handleMethodArgs)!;
+    }
+
+    private static async Task PublishAsync<TEvent>(IServiceProvider serviceProvider, TEvent e, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(e, nameof(e));
+
+        EventDescriptorCache descriptorCache = serviceProvider.GetRequiredService<EventDescriptorCache>();
+
+        EventDescriptor descriptor = descriptorCache.GetDescriptor(typeof(TEvent));
+
+        object[] handleMethodArgs = [e, cancellationToken];
+
+        IEnumerable<object?> handlers = serviceProvider
+            .GetServices(descriptor.HandlerType);
+
+        List<Exception> exceptions = [];
+
+        foreach (object? handler in handlers)
         {
-            Type eventType = ev.GetType();
+            cancellationToken.ThrowIfCancellationRequested();
 
-            Type eventHandlerType = typeof(IEventHandler<>).MakeGenericType(eventType);
-
-            Type[] paramTypes = [eventType, typeof(CancellationToken)];
-
-            MethodInfo handleMethodInfo = eventHandlerType.GetMethod("Handle", paramTypes) ?? throw new InvalidOperationException("Handle method not found on event handler");
-
-            object[] handleMethodArgs = [ev, cancellationToken];
-
-            IEnumerable<object?> handlers = serviceProvider
-                .GetServices(eventHandlerType);
-
-            if (strategy == PublishStrategy.Sequential)
+            try
             {
-                List<Exception> exceptions = [];
-
-                foreach (object? handler in handlers)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    try
-                    {
-                        await ExecuteHandler(handler, handleMethodInfo, handleMethodArgs);
-                    }
-                    catch (Exception ex)
-                    {
-                        exceptions.Add(ex);
-                    }
-                }
-
-                if (exceptions.Count > 1)
-                {
-                    throw new AggregateException(exceptions);
-                }
+                await ExecuteHandler(handler, descriptor.HandleMethodInfo, handleMethodArgs);
             }
-            else if (strategy == PublishStrategy.FireAndForget)
+            catch (Exception ex)
             {
-                foreach (object? handler in handlers)
-                {
-                    _ = ExecuteHandler(handler, handleMethodInfo, handleMethodArgs);
-                }
-            }
-            else if (strategy == PublishStrategy.Parallel)
-            {
-                await Task.WhenAll(handlers.Select(
-                    handler => ExecuteHandler(handler, handleMethodInfo, handleMethodArgs)));
-            }
-            else if (strategy == PublishStrategy.FireAndForgetAfterFirst)
-            {
-                await Task.WhenAny(handlers.Select(
-                    handler => ExecuteHandler(handler, handleMethodInfo, handleMethodArgs)))
-                    .WithAggregatedExceptions();
+                exceptions.Add(ex);
             }
         }
 
-        public async Task Publish(IEvent ev, PublishStrategy? strategy = null, CancellationToken cancellationToken = default)
+        if (exceptions.Count > 1)
         {
-            IServiceProvider serviceProvider = _serviceProvider;
-
-            if(_lifeTime is ServiceLifetime.Singleton)
-            {
-                //create a scope
-                using IServiceScope scope = serviceProvider.CreateScope();
-                serviceProvider = scope.ServiceProvider;
-            }
-
-            await PublishCore(serviceProvider, ev, strategy ?? _strategy, cancellationToken);
+            throw new AggregateException(exceptions);
         }
+    }
+
+    public void Publish<TEvent>(TEvent e, CancellationToken cancellationToken = default)
+    {
+        _ = Task.Run(async () =>
+        {
+            using IServiceScope scope = serviceProvider.CreateScope();
+            await PublishAsync(scope.ServiceProvider, e, cancellationToken);
+        }, cancellationToken);
+    }
+
+    public async Task PublishAsync<TEvent>(TEvent e, CancellationToken cancellationToken = default)
+    {
+        await PublishAsync(serviceProvider, e, cancellationToken);
     }
 }

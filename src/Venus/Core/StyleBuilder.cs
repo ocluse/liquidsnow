@@ -1,35 +1,45 @@
-﻿using System.Text;
+﻿using Ocluse.LiquidSnow.Extensions;
+using System.Text;
 
-namespace Ocluse.LiquidSnow.Venus
+namespace Ocluse.LiquidSnow.Venus;
+
+/// <summary>
+/// Utility class for building a string of CSS styles.
+/// </summary>
+public class StyleBuilder : CssBuilderBase
 {
-    /// <summary>
-    /// Utility class for building a string of CSS styles.
-    /// </summary>
-    public class StyleBuilder : BuilderBase
+    ///<inheritdoc cref="CssBuilderBase.Add(string?)"/>
+    public StyleBuilder Add(string name, string? value)
     {
-        /// <summary>
-        /// Returns a well formatted css style string represented by all the styles in the builder.
-        /// </summary>
-        public override string Build()
+        if (value.IsNotWhiteSpace())
         {
-            if (Items.Count == 0)
-            {
-                return string.Empty;
-            }
-
-            StringBuilder sb = new();
-
-            foreach (var item in Items)
-            {
-                sb.Append(item);
-
-                if (!item.EndsWith(';'))
-                {
-                    sb.Append(';');
-                }
-            }
-
-            return sb.ToString();
+            Add($"{name}: {value}");
         }
+        return this;
+    }
+
+    /// <summary>
+    /// Returns a well formatted css style string represented by all the styles in the builder.
+    /// </summary>
+    public override string Build()
+    {
+        if (Items.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        StringBuilder sb = new();
+
+        foreach (var item in Items)
+        {
+            sb.Append(item);
+
+            if (!item.EndsWith(';'))
+            {
+                sb.Append(';');
+            }
+        }
+
+        return sb.ToString();
     }
 }

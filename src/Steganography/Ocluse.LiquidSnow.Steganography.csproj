@@ -7,7 +7,7 @@
 	<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	<GenerateDocumentationFile>true</GenerateDocumentationFile>
-	<Version>0.5.2</Version>
+	<Version>0.6.0-preview1.0</Version>
 	<Authors>Ocluse</Authors>
 	<PackageOutputPath>..\..\build</PackageOutputPath>
 	<Description>Utilities for performing steganographic operations on bitmap and WAV files.</Description>
@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="SkiaSharp" Version="2.88.8" />
+    <PackageReference Include="SkiaSharp" Version="2.88.9" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,8 +1,7 @@
-﻿namespace Ocluse.LiquidSnow.Venus.Blazor
+﻿namespace Ocluse.LiquidSnow.Venus.Blazor;
+
+public class DialogResult
 {
-    public class DialogResult
-    {
-        public bool? Success { get; set; }
-        public object? Data { get; set; }
-    }
+    public bool? Success { get; set; }
+    public object? Data { get; set; }
 }

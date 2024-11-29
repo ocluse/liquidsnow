@@ -1,8 +1,7 @@
-﻿namespace Ocluse.LiquidSnow.Steganography.Media.Internals
+﻿namespace Ocluse.LiquidSnow.Steganography.Media.Internals;
+
+internal class Sample
 {
-    internal class Sample
-    {
-        public List<Channel> Channels { get; set; }
-         = [];
-    }
+    public List<Channel> Channels { get; set; }
+     = [];
 }

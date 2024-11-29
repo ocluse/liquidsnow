@@ -1,46 +1,49 @@
 ﻿using System.Collections.Concurrent;
 
-namespace Ocluse.LiquidSnow.Jobs.Internal
+namespace Ocluse.LiquidSnow.Jobs.Internal;
+
+internal class QueueingScheduler : CoreScheduler
 {
-    internal class QueueingScheduler : CoreScheduler
+    internal record QueuedItem(JobSubscription Subscription)
     {
-        internal record QueuedItem(IJob Job, long Tick, CancellationToken CancellationToken)
-        {
-            public TaskCompletionSource CompletionSource { get; } = new();
-        }
+        public TaskCompletionSource CompletionSource { get; } = new();
+    }
 
-        private readonly BlockingCollection<QueuedItem> _queue = [];
-        private readonly IJobExecutor _executor;
+    private readonly BlockingCollection<QueuedItem> _queue = [];
+    private readonly IJobSubscriptionHandler _handler;
 
-        public QueueingScheduler(IJobExecutor executor)
-        {
-            _executor = executor;
-            Task.Factory.StartNew(HandleQueue, TaskCreationOptions.LongRunning);
-        }
+    public QueueingScheduler(IJobSubscriptionHandler handler)
+    {
+        _handler = handler;
+        Task.Factory.StartNew(HandleQueue, TaskCreationOptions.LongRunning);
+    }
 
-        private async Task HandleQueue()
+    private async Task HandleQueue()
+    {
+        while (true)
         {
-            while (true)
+            var item = _queue.Take();
+
+            if (item.Subscription.CancellationToken.IsCancellationRequested)
             {
-                var item = _queue.Take();
-
-                if (item.CancellationToken.IsCancellationRequested)
-                {
-                    continue;
-                }
-                else
-                {
-                    await _executor.Execute(item.Job, item.Tick, item.CancellationToken);
-                    item.CompletionSource.SetResult();
-                }
+                continue;
+            }
+            else
+            {
+                await _handler.HandleAsync(item.Subscription);
+                item.CompletionSource.SetResult();
             }
         }
+    }
 
-        public override async Task Execute(IJob job, long tick, CancellationToken cancellationToken)
+    public override async Task HandleAsync(JobSubscription jobSubscription)
+    {
+        QueuedItem item = new(jobSubscription);
+
+        _queue.Add(item, jobSubscription.CancellationToken);
+
+        if (!jobSubscription.CancellationToken.IsCancellationRequested)
         {
-            QueuedItem item = new(job, tick, cancellationToken);
-            _queue.Add(item, cancellationToken: default);
-            if(!cancellationToken.IsCancellationRequested)
             await item.CompletionSource.Task;
         }
     }

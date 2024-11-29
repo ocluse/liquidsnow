@@ -1,40 +1,48 @@
-﻿namespace Ocluse.LiquidSnow.Jobs.Internal
+﻿using System.Collections.Concurrent;
+
+namespace Ocluse.LiquidSnow.Jobs.Internal;
+
+internal abstract class CoreScheduler : IJobSubscriptionHandler
 {
-    internal abstract class CoreScheduler : IJobExecutor
+    private readonly ConcurrentDictionary<object, JobSubscription> _subscriptions = [];
+
+    public abstract Task HandleAsync(JobSubscription jobSubscription);
+
+    public IDisposable Subscribe<T>(T job) where T : IJob
     {
-        private readonly Dictionary<object, JobSubscription> _subscriptions = [];
-
-        public abstract Task Execute(IJob job, long tick, CancellationToken cancellationToken);
-
-        public IDisposable Subscribe(IJob job)
+        Cancel(job.Id);
+        
+        JobSubscription subscription = new(job, this, typeof(T)); 
+        
+        if(_subscriptions.TryAdd(job.Id, subscription))
         {
-            //Cancel any jobs with the same ID
-            Cancel(job.Id);
-            JobSubscription subscription = new(job, this);
-            _subscriptions.Add(job.Id, subscription);
-
             subscription.Disposed += OnSubscriptionDisposed;
 
             subscription.Activate();
+
             return subscription;
         }
-
-        private void OnSubscriptionDisposed(object? sender, JobSubscription e)
+        else
         {
-            _subscriptions.Remove(e.Job.Id);
+            throw new InvalidOperationException("Failed to add job: Job with the same ID was added in a different thread!");
         }
+    }
 
-        public bool Cancel(object id)
+    private void OnSubscriptionDisposed(object? sender, JobSubscription e)
+    {
+        _subscriptions.TryRemove(e.Job.Id, out _);
+    }
+
+    public bool Cancel(object id)
+    {
+        if (_subscriptions.TryGetValue(id, out var subscription))
         {
-            if (_subscriptions.TryGetValue(id, out var subscription))
-            {
-                subscription.Dispose();
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            subscription.Dispose();
+            return true;
+        }
+        else
+        {
+            return false;
         }
     }
 }
