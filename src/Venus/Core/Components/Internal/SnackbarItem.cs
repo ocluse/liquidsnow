@@ -11,9 +11,9 @@ internal class SnackbarItem : ComponentBase, ISnackbarItem
     [Parameter]
     public required SnackbarItemDescriptor Descriptor { get; set; }
 
-    public Task CloseAsync()
+    public async Task CloseAsync()
     {
-        throw new NotImplementedException();
+        await Handle.CloseAsync();
     }
 
     protected override void BuildRenderTree(RenderTreeBuilder builder)
