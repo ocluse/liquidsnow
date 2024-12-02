@@ -40,6 +40,7 @@ public class ClassNameProvider : IClassNameProvider
     public virtual string Dropdown_Item => "item";
     public virtual string Dropdown_ItemSelected => ComponentActive;
     public virtual string Dropdown_Popover => "popover";
+    public virtual string Dropdown_Placeholder => "placeholder";
     public virtual string FeatherIcon => Icon;
     public virtual string FeatherIconButton => IconButton;
     public virtual string FluentIcon => Icon;

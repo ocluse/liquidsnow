@@ -111,7 +111,8 @@ public class Dropdown<TValue> : FieldBase<TValue>, ICollectionView<TValue>, IAux
                 {
                     builder.OpenElement(9, "span");
                     {
-                        builder.AddContent(10, Placeholder);
+                        builder.AddAttribute(10, "class", ClassNameProvider.Dropdown_Placeholder);
+                        builder.AddContent(11, Placeholder);
                     }
                     builder.CloseElement();
                 }
