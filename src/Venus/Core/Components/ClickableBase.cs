@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components.Rendering;
+using Microsoft.AspNetCore.Components.Web;
 using Ocluse.LiquidSnow.Extensions;
 
 namespace Ocluse.LiquidSnow.Venus.Components;
@@ -34,6 +35,12 @@ public abstract class ClickableBase : FormControlBase
     /// </summary>
     [Parameter]
     public string? DisabledClass { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value that determines whether click events should not be propagated.
+    /// </summary>
+    [Parameter]
+    public bool StopPropagation { get; set; }
 
     /// <summary>
     /// Adds CSS classes that will be applied to the component to the supplied <see cref="ClassBuilder"/>.
@@ -91,7 +98,8 @@ public abstract class ClickableBase : FormControlBase
         builder.OpenElement(1, elementName);
         {
             builder.AddMultipleAttributes(2, GetAttributes());
-            builder.OpenRegion(3);
+            builder.AddEventStopPropagationAttribute(3, "onclick", StopPropagation);
+            builder.OpenRegion(4);
             {
                 BuildContent(builder);
             }

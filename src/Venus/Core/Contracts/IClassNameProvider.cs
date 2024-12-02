@@ -41,6 +41,7 @@ public interface IClassNameProvider
     string Dropdown_Item { get; }
     string Dropdown_ItemSelected { get; }
     string Dropdown_Popover { get; }
+    string Dropdown_Placeholder { get; }
     string FeatherIcon { get; }
     string FeatherIconButton { get; }
     string FluentIcon { get; }
