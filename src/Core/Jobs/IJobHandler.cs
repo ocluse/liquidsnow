@@ -8,5 +8,5 @@ public interface IJobHandler<in T> where T : IJob
     /// <summary>
     /// Executes the provided job.
     /// </summary>
-    Task Handle(T job, long tick, CancellationToken cancellationToken);
+    Task HandleAsync(T job, long tick, CancellationToken cancellationToken);
 }
