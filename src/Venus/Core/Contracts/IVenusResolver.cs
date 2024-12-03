@@ -103,9 +103,14 @@ public interface IVenusResolver
     FieldHeaderStyle DefaultFieldHeaderStyle { get; }
 
     /// <summary>
-    /// Gets or sets a value determining whether the validation label on <see cref="FieldBase{TValue}"/> should only be rendered when there's a validation message.
+    /// Gets a value determining whether the validation label on <see cref="FieldBase{TValue}"/> should only be rendered when there's a validation message.
     /// </summary>
     bool AlwaysRenderFieldValidationLabel { get; }
+
+    /// <summary>
+    /// Gets the default value for the <see cref="Dropdown{TValue}.ClearOnSimilar"/> property.
+    /// </summary>
+    bool DefaultDropdownClearOnSimilar { get; }
 
     /// <summary>
     /// Returns the component type that should be rendered for the given container state.

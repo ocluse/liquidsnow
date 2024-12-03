@@ -11,7 +11,7 @@ namespace Ocluse.LiquidSnow.Venus.Components;
 public class Dropdown<TValue> : FieldBase<TValue>, ICollectionView<TValue>, IAuxiliaryContentFieldComponent
 {
     private readonly string _anchorName = "--" + IdGenerator.GenerateId(IdKind.Standard, 6).ToLowerInvariant();
-    
+
     private ElementReference _popoverElement;
 
     ///<inheritdoc/>
@@ -30,6 +30,12 @@ public class Dropdown<TValue> : FieldBase<TValue>, ICollectionView<TValue>, IAux
     /// </remarks>
     [Parameter]
     public RenderFragment<(TValue Value, bool? Selected)>? AdvancedItemTemplate { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the dropdown should clear the value when the user selects an item that is similar to the current value.
+    /// </summary>
+    [Parameter]
+    public bool? ClearOnSimilar { get; set; }
 
     /// <summary>
     /// Gets or sets the CSS class applied to the dropdown when it is open.
@@ -190,7 +196,7 @@ public class Dropdown<TValue> : FieldBase<TValue>, ICollectionView<TValue>, IAux
 
     private async Task HandleItemClickAsync(TValue item)
     {
-        if (EqualityComparer<TValue>.Default.Equals(item, Value))
+        if (EqualityComparer<TValue>.Default.Equals(item, Value) && (ClearOnSimilar == true || Resolver.DefaultDropdownClearOnSimilar))
         {
             await NotifyValueChange(default);
         }

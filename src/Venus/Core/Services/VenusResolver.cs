@@ -70,6 +70,9 @@ public class VenusResolver : IVenusResolver
     public virtual bool AlwaysRenderFieldValidationLabel => false;
 
     ///<inheritdoc/>
+    public bool DefaultDropdownClearOnSimilar => true;
+
+    ///<inheritdoc/>
     public virtual Type ResolveContainerStateToComponentType(int containerState)
     {
         return containerState switch
