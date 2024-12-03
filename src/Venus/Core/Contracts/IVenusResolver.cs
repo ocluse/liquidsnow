@@ -103,6 +103,11 @@ public interface IVenusResolver
     FieldHeaderStyle DefaultFieldHeaderStyle { get; }
 
     /// <summary>
+    /// Gets or sets a value determining whether the validation label on <see cref="FieldBase{TValue}"/> should only be rendered when there's a validation message.
+    /// </summary>
+    bool AlwaysRenderFieldValidationLabel { get; }
+
+    /// <summary>
     /// Returns the component type that should be rendered for the given container state.
     /// </summary>
     Type ResolveContainerStateToComponentType(int containerState);

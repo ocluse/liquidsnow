@@ -67,6 +67,9 @@ public class VenusResolver : IVenusResolver
     public virtual FieldHeaderStyle DefaultFieldHeaderStyle => FieldHeaderStyle.Static;
 
     ///<inheritdoc/>
+    public virtual bool AlwaysRenderFieldValidationLabel => false;
+
+    ///<inheritdoc/>
     public virtual Type ResolveContainerStateToComponentType(int containerState)
     {
         return containerState switch

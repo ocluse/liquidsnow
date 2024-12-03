@@ -39,7 +39,7 @@ public static class RenderingUtility
                 {
                     builder.AddAttribute(7, "class", headerClass);
 
-                    if(field.Id != null)
+                    if (field.Id != null)
                     {
                         builder.AddAttribute(8, "for", field.AppliedName);
                     }
@@ -128,13 +128,16 @@ public static class RenderingUtility
                 builder.CloseElement();
 
             }
-            else if (validation != null && validation.Message.IsNotEmpty())
+            else if ((validation != null && validation.Message.IsNotEmpty()) || field.Resolver.AlwaysRenderFieldValidationLabel)
             {
                 builder.OpenElement(17, "label");
                 {
                     builder.AddAttribute(18, "class", field.GetValidationClass());
                     builder.AddAttribute(19, "role", "alert");
-                    builder.AddContent(20, validation.Message);
+                    if (validation != null)
+                    {
+                        builder.AddContent(20, validation.Message);
+                    }
                 }
                 builder.CloseElement();
             }
