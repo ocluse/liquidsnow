@@ -8,7 +8,7 @@ internal sealed class JobDescriptorCache
 {
     private readonly ConcurrentDictionary<string, JobDescriptor> _descriptors = [];
 
-    private const string HandleMethodName = nameof(IJobHandler<IJob>.Handle);
+    private const string HandleMethodName = nameof(IJobHandler<IJob>.HandleAsync);
 
     public JobDescriptor GetDescriptor(Type jobType)
     {
