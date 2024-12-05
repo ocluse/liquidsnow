@@ -29,6 +29,12 @@ public abstract class InputBase<TValue> : ControlBase, IInputComponent, IValidat
     public RenderFragment<ValidationResult?>? ValidationContent { get; set; }
 
     /// <summary>
+    /// Gets or sets the CSS class applied to the validation label of the input.
+    /// </summary>
+    [Parameter]
+    public string? ValidationLabelClass { get; set; }
+
+    /// <summary>
     /// Gets or sets the currently selected value of the input.
     /// </summary>
     [Parameter]

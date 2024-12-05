@@ -29,6 +29,21 @@ public partial class CommonValidators
     public virtual string FormatInvalidMessage => "This field is not in a valid format";
 
     /// <summary>
+    /// The message to display when a value is larger than expected.
+    /// </summary>
+    public virtual string ValueLargerThanExpectedMessage => "This field is larger than expected";
+
+    /// <summary>
+    /// The message to display when a value is smaller than expected.
+    /// </summary>
+    public virtual string ValueSmallerThanExpectedMessage => "This field is smaller than expected";
+
+    /// <summary>
+    /// The message to display when a value is not equal to the expected value.
+    /// </summary>
+    public virtual string ValueNotEqualMessage => "This field is not equal to the expected value";
+
+    /// <summary>
     /// Validates that the provided value is not null.
     /// </summary>
     public Task<ValidationResult> NotNull<T>(T? item)
@@ -175,6 +190,67 @@ public partial class CommonValidators
 
         return Task.FromResult(result);
     }
+
+    /// <summary>
+    /// Validates that the provided value is less than the <paramref name="test"/> value.
+    /// </summary>
+    public Task<ValidationResult> LessThan<T>(T value, T test) where T : IComparable<T>
+    {
+        if (value.CompareTo(test) < 0)
+        {
+            return Task.FromResult(ValidationResult.ValidResult);
+        }
+        return Task.FromResult(ValidationResult.NotValid(ValueLargerThanExpectedMessage));
+    }
+
+    /// <summary>
+    /// Validates that the provided value is less than or equal to the <paramref name="test"/> value.
+    /// </summary>
+    public Task<ValidationResult> LessThanOrEqual<T>(T value, T test) where T : IComparable<T>
+    {
+        if (value.CompareTo(test) <= 0)
+        {
+            return Task.FromResult(ValidationResult.ValidResult);
+        }
+        return Task.FromResult(ValidationResult.NotValid(ValueLargerThanExpectedMessage));
+    }
+
+    /// <summary>
+    /// Validates that the provided value is greater than the <paramref name="test"/> value.
+    /// </summary>
+    public Task<ValidationResult> GreaterThan<T>(T value, T test) where T : IComparable<T>
+    {
+        if (value.CompareTo(test) > 0)
+        {
+            return Task.FromResult(ValidationResult.ValidResult);
+        }
+        return Task.FromResult(ValidationResult.NotValid(ValueSmallerThanExpectedMessage));
+    }
+
+    /// <summary>
+    /// Validates that the provided value is greater than or equal to the <paramref name="test"/> value.
+    /// </summary>
+    public Task<ValidationResult> GreaterThanOrEqual<T>(T value, T test) where T : IComparable<T>
+    {
+        if (value.CompareTo(test) >= 0)
+        {
+            return Task.FromResult(ValidationResult.ValidResult);
+        }
+        return Task.FromResult(ValidationResult.NotValid(ValueSmallerThanExpectedMessage));
+    }
+
+    /// <summary>
+    /// Validates that the provided value is equal to the <paramref name="expected"/> value.
+    /// </summary>
+    public Task<ValidationResult> Equal<T>(T value, T expected)
+    {
+        if(EqualityComparer<T>.Default.Equals(value, expected))
+        {
+            return Task.FromResult(ValidationResult.ValidResult);
+        }
+        return Task.FromResult(ValidationResult.NotValid(ValueNotEqualMessage));
+    }
+
 
     #region Regular Expressions
 

@@ -18,13 +18,25 @@ public class CheckBox : InputBase<bool>
     /// Gets or sets the content displayed next to the checkbox.
     /// </summary>
     [Parameter]
-    public RenderFragment? ChildContent { get; set; }
+    public RenderFragment<bool>? ChildContent { get; set; }
 
     /// <summary>
     /// Gets or sets the CSS class applied to the core html input element.
     /// </summary>
     [Parameter]
     public string? InputClass { get; set; }
+
+    /// <summary>
+    /// Gets or sets the CSS class to be applied to the content of the checkbox.
+    /// </summary>
+    [Parameter]
+    public string? ContentClass { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether the validation label should always be rendered even without a validation message.
+    /// </summary>
+    [Parameter]
+    public bool? AlwaysRenderValidationLabel { get; set; }
 
     private async Task HandleInputChange(ChangeEventArgs e)
     {
@@ -43,65 +55,108 @@ public class CheckBox : InputBase<bool>
     }
 
     ///<inheritdoc/>
-    protected override void BuildAttributes(IDictionary<string, object> attributes)
+    protected override string? GetValidationClass()
     {
-        base.BuildAttributes(attributes);
-        if (Id.IsNotEmpty())
-        {
-            attributes.Add("for", Id);
-        }
+        string? baseClass = base.GetValidationClass();
+        return ClassBuilder.Join(baseClass, ClassNameProvider.CheckBox_ValidationLabel, ValidationLabelClass) ?? baseClass;
     }
 
     ///<inheritdoc/>
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
-        builder.OpenElement(1, "label");
+        builder.OpenElement(1, "div");
         {
             builder.AddMultipleAttributes(2, GetAttributes());
 
-            if (Header.IsNotWhiteSpace())
+            builder.OpenElement(3, "label");
             {
-                builder.AddContent(3, Header);
-            }
-            else
-            {
-                builder.AddContent(4, ChildContent);
-            }
-
-            builder.OpenElement(5, "input");
-            {
+                builder.AddAttribute(4, "class", ClassBuilder.Join(ClassNameProvider.CheckBox_Content, ContentClass));
+                
                 if (Id.IsNotEmpty())
                 {
-                    builder.AddAttribute(6, "class", InputClass);
-                }
-                builder.AddAttribute(7, "type", "checkbox");
-                builder.AddAttribute(8, "onchange", EventCallback.Factory.Create(this, HandleInputChange));
-                builder.AddAttribute(9, "checked", Value);
-                builder.AddAttribute(10, "name", AppliedName);
-
-                if (InputClass.IsNotWhiteSpace())
-                {
-                    builder.AddAttribute(11, "class", InputClass);
+                    builder.AddAttribute(5, "for", Id);
                 }
 
-                if (Disabled)
+                if (ChildContent != null)
                 {
-                    builder.AddAttribute(12, "disabled");
+                    builder.AddContent(6, ChildContent(Value));
+                }
+                else
+                {
+                    builder.OpenElement(7, "span");
+                    {
+                        builder.AddContent(8, Header);
+                    }
+                    builder.CloseElement();
                 }
 
-                if (ReadOnly)
+                builder.OpenElement(9, "input");
                 {
-                    builder.AddAttribute(13, "readonly");
+                    if (Id.IsNotEmpty())
+                    {
+                        builder.AddAttribute(10, "class", InputClass);
+                    }
+                    builder.AddAttribute(11, "type", "checkbox");
+                    builder.AddAttribute(12, "onchange", EventCallback.Factory.Create(this, HandleInputChange));
+                    builder.AddAttribute(13, "checked", Value);
+                    builder.AddAttribute(14, "name", AppliedName);
+
+                    if (InputClass.IsNotWhiteSpace())
+                    {
+                        builder.AddAttribute(15, "class", InputClass);
+                    }
+
+                    if (Disabled)
+                    {
+                        builder.AddAttribute(16, "disabled");
+                    }
+
+                    if (ReadOnly)
+                    {
+                        builder.AddAttribute(17, "readonly");
+                    }
                 }
+                builder.CloseElement();
+
+                builder.OpenElement(18, "span");
+                {
+                    builder.AddAttribute(19, "class", ClassNameProvider.CheckBox_Checkmark);
+                }
+                builder.CloseElement();
+
+                
             }
             builder.CloseElement();
 
-            builder.OpenElement(14, "span");
+            bool alwaysRenderValidation = AlwaysRenderValidationLabel ?? Resolver.AlwaysRenderCheckBoxValidationLabel;
+
+            if (Validation != null || alwaysRenderValidation)
             {
-                builder.AddAttribute(15, "class", ClassNameProvider.Checkbox_Checkmark);
-            }
-            builder.CloseElement();
+                //Validation message
+                if (ValidationContent != null)
+                {
+                    builder.OpenElement(20, "div");
+                    {
+                        builder.AddAttribute(21, "class", GetValidationClass());
+                        builder.AddContent(22, ValidationContent(Validation));
+                    }
+                    builder.CloseElement();
 
+                }
+                else
+                {
+                    builder.OpenElement(23, "label");
+                    {
+                        builder.AddAttribute(24, "class", GetValidationClass());
+                        builder.AddAttribute(25, "role", "alert");
+                        if (Validation?.Message.IsNotEmpty() == true)
+                        {
+                            builder.AddContent(26, Validation.Message);
+                        }
+                    }
+                    builder.CloseElement();
+                }
+            }
         }
         builder.CloseElement();
     }

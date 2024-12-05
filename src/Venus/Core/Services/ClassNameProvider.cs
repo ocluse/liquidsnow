@@ -12,7 +12,7 @@ public class ClassNameProvider : IClassNameProvider
     public virtual string Card_Footer => ComponentFooter;
     public virtual string Card_Header => ComponentHeader;
     public virtual string CheckBox => "checkbox";
-    public virtual string Checkbox_Checkmark => "checkmark";
+    public virtual string CheckBox_Checkmark => "checkmark";
     public virtual string ChipPicker => "chip-picker";
     public virtual string ChipPicker_Item => "item";
     public virtual string ChipPicker_ItemSelected => ComponentActive;
@@ -86,4 +86,6 @@ public class ClassNameProvider : IClassNameProvider
     public virtual string ValidationSuccess => "validation-success";
     public virtual string Dialog => "dialog";
     public virtual string SubmitButton => Button;
+    public virtual string CheckBox_ValidationLabel => "validation-label";
+    public virtual string CheckBox_Content => ComponentContent;
 }

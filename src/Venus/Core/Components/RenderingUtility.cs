@@ -39,7 +39,7 @@ public static class RenderingUtility
                 {
                     builder.AddAttribute(7, "class", headerClass);
 
-                    if(field.Id != null)
+                    if (field.Id != null)
                     {
                         builder.AddAttribute(8, "for", field.AppliedName);
                     }
@@ -117,28 +117,36 @@ public static class RenderingUtility
 
             var validation = field.GetValidationResult();
 
-            //Validation message
-            if (field.ValidationContent != null)
-            {
-                builder.OpenElement(14, "div");
-                {
-                    builder.AddAttribute(15, "class", field.GetValidationClass());
-                    builder.AddContent(16, field.ValidationContent(validation));
-                }
-                builder.CloseElement();
+            bool alwaysRenderValidation = field.AlwaysRenderValidationLabel ?? field.Resolver.AlwaysRenderFieldValidationLabel;
 
-            }
-            else if (validation != null && validation.Message.IsNotEmpty())
+            if (validation != null || alwaysRenderValidation)
             {
-                builder.OpenElement(17, "label");
+                //Validation message
+                if (field.ValidationContent != null)
                 {
-                    builder.AddAttribute(18, "class", field.GetValidationClass());
-                    builder.AddAttribute(19, "role", "alert");
-                    builder.AddContent(20, validation.Message);
-                }
-                builder.CloseElement();
-            }
+                    builder.OpenElement(14, "div");
+                    {
+                        builder.AddAttribute(15, "class", field.GetValidationClass());
+                        builder.AddContent(16, field.ValidationContent(validation));
+                    }
+                    builder.CloseElement();
 
+                }
+                else
+                {
+                    builder.OpenElement(17, "label");
+                    {
+                        builder.AddAttribute(18, "class", field.GetValidationClass());
+                        builder.AddAttribute(19, "role", "alert");
+                        if (validation?.Message.IsNotEmpty() == true)
+                        {
+                            builder.AddContent(20, validation.Message);
+                        }
+                    }
+                    builder.CloseElement();
+                }
+            }
+            
             if (field is IAuxiliaryContentFieldComponent auxiliaryContentField)
             {
                 builder.OpenRegion(21);
