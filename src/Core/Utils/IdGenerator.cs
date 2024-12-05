@@ -159,10 +159,14 @@ public class IdGenerator
     /// <returns>A randomly generated numeric string</returns>
     public static string RandomNumeric(int length)
     {
-        int min = Convert.ToInt32(Math.Pow(10, length - 1));
-        int max = Convert.ToInt32(Math.Pow(10, length) - 1);
+        StringBuilder builder = new();
 
-        return Random(min, max).ToString(CultureInfo.InvariantCulture);
+        for(int i = 0; i < length; i++)
+        {
+            builder.Append(_random.Next(0, 10));
+        }
+
+        return builder.ToString();
     }
 
     #endregion
