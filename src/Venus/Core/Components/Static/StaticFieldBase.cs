@@ -46,12 +46,6 @@ public abstract class StaticFieldBase<TValue> : StaticInputBase<TValue>, IFieldC
     [Parameter]
     public string? InputClass { get; set; }
 
-    /// <summary>
-    /// Gets or sets the CSS class applied to the validation label of the input.
-    /// </summary>
-    [Parameter]
-    public string? ValidationLabelClass { get; set; }
-
     ///<inheritdoc/>
     [Parameter]
     public FieldHeaderStyle? HeaderStyle { get; set; }
@@ -61,6 +55,9 @@ public abstract class StaticFieldBase<TValue> : StaticInputBase<TValue>, IFieldC
     /// </summary>
     [Parameter]
     public UpdateTrigger UpdateTrigger { get; set; }
+
+    ///<inheritdoc/>
+    public bool? AlwaysRenderValidationLabel { get; set; }
 
     ///<inheritdoc/>
     protected override void BuildRenderTree(RenderTreeBuilder builder)

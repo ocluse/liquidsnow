@@ -93,6 +93,12 @@ public abstract class StaticInputBase<TValue> : Microsoft.AspNetCore.Components.
     public string? Title { get; set; }
 
     /// <summary>
+    /// Gets or sets the CSS class applied to the validation label of the input.
+    /// </summary>
+    [Parameter]
+    public string? ValidationLabelClass { get; set; }
+
+    /// <summary>
     /// Allows inheriting components to add custom styles to the element in the supplied <see cref="StyleBuilder"/>.
     /// </summary>
     protected virtual void BuildStyle(StyleBuilder builder) { }

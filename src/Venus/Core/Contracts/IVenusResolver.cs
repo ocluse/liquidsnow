@@ -108,6 +108,11 @@ public interface IVenusResolver
     bool AlwaysRenderFieldValidationLabel { get; }
 
     /// <summary>
+    /// Gets a value determining whether the validation label on <see cref="CheckBox"/> should always be rendered.
+    /// </summary>
+    bool AlwaysRenderCheckBoxValidationLabel { get; }
+
+    /// <summary>
     /// Gets the default value for the <see cref="Dropdown{TValue}.ClearOnSimilar"/> property.
     /// </summary>
     bool DefaultDropdownClearOnSimilar { get; }

@@ -24,13 +24,25 @@ public class StaticCheckBox : StaticInputBase<bool>
     /// Gets or sets the content displayed next to the checkbox.
     /// </summary>
     [Parameter]
-    public RenderFragment? ChildContent { get; set; }
+    public RenderFragment<bool>? ChildContent { get; set; }
 
     /// <summary>
     /// Gets or sets the CSS class applied to the core html input element.
     /// </summary>
     [Parameter]
     public string? InputClass { get; set; }
+
+    /// <summary>
+    /// Gets or sets the CSS class to be applied to the content of the checkbox.
+    /// </summary>
+    [Parameter]
+    public string? ContentClass { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether the validation label should always be rendered even without a validation message.
+    /// </summary>
+    [Parameter]
+    public bool? AlwaysRenderValidationLabel { get; set; }
 
     ///<inheritdoc/>
     protected override void BuildInputClass(ClassBuilder classBuilder)
@@ -39,70 +51,115 @@ public class StaticCheckBox : StaticInputBase<bool>
         classBuilder.Add(ClassNameProvider.CheckBox);
     }
 
+
     ///<inheritdoc/>
-    protected override void BuildAttributes(IDictionary<string, object> attributes)
+    protected override string? GetValidationClass()
     {
-        base.BuildAttributes(attributes);
-        if (Id.IsNotEmpty())
-        {
-            attributes.Add("for", Id);
-        }
+        string? baseClass = base.GetValidationClass();
+        return ClassBuilder.Join(baseClass, ClassNameProvider.CheckBox_ValidationLabel, ValidationLabelClass) ?? baseClass;
     }
 
     ///<inheritdoc/>
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
-        builder.OpenElement(1, "label");
+        builder.OpenElement(1, "div");
         {
             builder.AddMultipleAttributes(2, GetAttributes());
-
-            if (Header.IsNotWhiteSpace())
+            
+            builder.OpenElement(3, "label");
             {
-                builder.AddContent(3, Header);
-            }
-            else
-            {
-                builder.AddContent(4, ChildContent);
-            }
-
-            builder.OpenElement(5, "input");
-            {
-                if (InputClass.IsNotWhiteSpace())
-                {
-                    builder.AddAttribute(6, "class", InputClass);
-                }
-
-                builder.AddAttribute(7, "type", "checkbox");
-                builder.AddAttribute(8, "name", NameAttributeValue);
+                builder.AddAttribute(4, "class", ClassBuilder.Join(ClassNameProvider.CheckBox_Content, ContentClass));
 
                 if (Id.IsNotEmpty())
                 {
-                    builder.AddAttribute(9, "id", Id);
+                    builder.AddAttribute(5, "for", Id);
                 }
 
-                builder.AddAttribute(10, "value", bool.TrueString);
-                builder.AddAttribute(11, "checked", BindConverter.FormatValue(CurrentValue));
-                builder.AddAttribute(12, "onchange", EventCallback.Factory.CreateBinder(this, value=>CurrentValue = value, CurrentValue));
-                builder.SetUpdatesAttributeName("checked");
-
-                if (Disabled)
+                if (ChildContent != null)
                 {
-                    builder.AddAttribute(13, "disabled");
+                    builder.AddContent(6, ChildContent(Value));
+                }
+                else
+                {
+                    builder.OpenElement(7, "span");
+                    {
+                        builder.AddContent(8, Header);
+                    }
+                    builder.CloseElement();
                 }
 
-                if (ReadOnly)
+                builder.OpenElement(9, "input");
                 {
-                    builder.AddAttribute(14, "readonly");
+                    if (InputClass.IsNotWhiteSpace())
+                    {
+                        builder.AddAttribute(10, "class", InputClass);
+                    }
+
+                    builder.AddAttribute(11, "type", "checkbox");
+                    builder.AddAttribute(12, "name", NameAttributeValue);
+
+                    if (Id.IsNotEmpty())
+                    {
+                        builder.AddAttribute(13, "id", Id);
+                    }
+
+                    builder.AddAttribute(14, "value", bool.TrueString);
+                    builder.AddAttribute(15, "checked", BindConverter.FormatValue(CurrentValue));
+                    builder.AddAttribute(16, "onchange", EventCallback.Factory.CreateBinder(this, value => CurrentValue = value, CurrentValue));
+                    builder.SetUpdatesAttributeName("checked");
+
+                    if (Disabled)
+                    {
+                        builder.AddAttribute(17, "disabled");
+                    }
+
+                    if (ReadOnly)
+                    {
+                        builder.AddAttribute(18, "readonly");
+                    }
                 }
+                builder.CloseElement();
+
+                builder.OpenElement(19, "span");
+                {
+                    builder.AddAttribute(20, "class", ClassNameProvider.CheckBox_Checkmark);
+                }
+                builder.CloseElement();
+
             }
             builder.CloseElement();
 
-            builder.OpenElement(15, "span");
+            bool alwaysRenderValidation = AlwaysRenderValidationLabel ?? Resolver.AlwaysRenderCheckBoxValidationLabel;
+
+            ValidationResult? validation = GetValidationResult();
+
+            if (validation != null || alwaysRenderValidation)
             {
-                builder.AddAttribute(16, "class", ClassNameProvider.Checkbox_Checkmark);
-            }
-            builder.CloseElement();
+                //Validation message
+                if (ValidationContent != null)
+                {
+                    builder.OpenElement(21, "div");
+                    {
+                        builder.AddAttribute(22, "class", GetValidationClass());
+                        builder.AddContent(23, ValidationContent(validation));
+                    }
+                    builder.CloseElement();
 
+                }
+                else
+                {
+                    builder.OpenElement(24, "label");
+                    {
+                        builder.AddAttribute(25, "class", GetValidationClass());
+                        builder.AddAttribute(26, "role", "alert");
+                        if (validation?.Message.IsNotEmpty() == true)
+                        {
+                            builder.AddContent(27, validation.Message);
+                        }
+                    }
+                    builder.CloseElement();
+                }
+            }
         }
         builder.CloseElement();
     }

@@ -40,12 +40,6 @@ public abstract class FieldBase<TValue> : InputBase<TValue>, IFieldComponent
     public string? HeaderClass { get; set; }
 
     /// <summary>
-    /// Gets or sets the CSS class applied to the validation label of the input.
-    /// </summary>
-    [Parameter]
-    public string? ValidationLabelClass { get; set; }
-
-    /// <summary>
     /// Gets or sets the CSS class applied to the inner input element. 
     /// </summary>
     [Parameter]
@@ -54,6 +48,9 @@ public abstract class FieldBase<TValue> : InputBase<TValue>, IFieldComponent
     ///<inheritdoc/>
     [Parameter]
     public FieldHeaderStyle? HeaderStyle { get; set; }
+
+    ///<inheritdoc/>
+    public bool? AlwaysRenderValidationLabel { get; set; }
 
     ///<inheritdoc/>
     protected override sealed void BuildRenderTree(RenderTreeBuilder builder)

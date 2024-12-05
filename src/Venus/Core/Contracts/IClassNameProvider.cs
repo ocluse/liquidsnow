@@ -12,7 +12,9 @@ public interface IClassNameProvider
     string Card_Footer { get; }
     string Card_Header { get; }
     string CheckBox { get; }
-    string Checkbox_Checkmark { get; }
+    string CheckBox_Checkmark { get; }
+    string CheckBox_ValidationLabel { get; }
+    string CheckBox_Content { get; }
     string ChipPicker { get; }
     string ChipPicker_Item { get; }
     string ChipPicker_ItemSelected { get; }

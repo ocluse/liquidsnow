@@ -42,6 +42,11 @@ public interface IFieldComponent : IInputComponent
     string? SuffixClass { get; }
 
     /// <summary>
+    /// Specifies whether the validation label should always be rendered even without a validation message.
+    /// </summary>
+    bool? AlwaysRenderValidationLabel { get; }
+
+    /// <summary>
     /// Renders the actual input element to the supplied <see cref="RenderTreeBuilder"/>
     /// </summary>
     void BuildInput(RenderTreeBuilder builder);
