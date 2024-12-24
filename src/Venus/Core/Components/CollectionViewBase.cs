@@ -121,6 +121,16 @@ public abstract class CollectionViewBase<T> : DataViewBase, ICollectionView<T>, 
     [Parameter]
     public Func<T, string>? ItemLinkGenerator { get; set; }
 
+    /// <summary>
+    /// Gets or sets a function that determines whether an enclosing element will be rendered around the item template. Defaults to true.
+    /// </summary>
+    /// <remarks>
+    /// Only has an effect when an <see cref="ItemTemplate"/> has been set.
+    /// Does not impact whether the an enclosing 'anchor' tag is rendered if the <see cref="ItemLinkGenerator"/> is set.
+    /// </remarks>
+    [Parameter]
+    public bool RenderEnclosingElement { get; set; } = true;
+
     ///<inheritdoc/>
     public override async Task SetParametersAsync(ParameterView parameters)
     {
@@ -262,25 +272,33 @@ public abstract class CollectionViewBase<T> : DataViewBase, ICollectionView<T>, 
                 builder.AddAttribute(2, "href", ItemLinkGenerator(item));
             }
             {
-                builder.OpenElement(3, ItemElement);
+                if (!RenderEnclosingElement && ItemTemplate != null)
                 {
-                    builder.SetKey(item);
-                    builder.AddAttribute(4, "class", itemClass);
-                    builder.AddAttribute(5, "onclick", EventCallback.Factory.Create(this, async () => { await ItemClicked.InvokeAsync(item); }));
-                    if (ItemTemplate == null)
-                    {
-                        builder.OpenElement(6, "span");
-                        {
-                            builder.AddContent(7, item.GetDisplayValue(ToStringFunc));
-                        }
-                        builder.CloseElement();
-                    }
-                    else
-                    {
-                        builder.AddContent(8, ItemTemplate, item);
-                    }
+                    builder.AddContent(3, ItemTemplate, item);
                 }
-                builder.CloseElement();
+                else
+                {
+                    builder.OpenElement(4, ItemElement);
+                    {
+                        builder.SetKey(item);
+                        builder.AddAttribute(5, "class", itemClass);
+                        builder.AddAttribute(6, "onclick", EventCallback.Factory.Create(this, async () => { await ItemClicked.InvokeAsync(item); }));
+                        if (ItemTemplate == null)
+                        {
+                            builder.OpenElement(7, "span");
+                            {
+                                builder.AddContent(8, item.GetDisplayValue(ToStringFunc));
+                            }
+                            builder.CloseElement();
+                        }
+                        else
+                        {
+                            builder.AddContent(9, ItemTemplate, item);
+                        }
+                    }
+                    builder.CloseElement();
+                }
+
             }
             if (ItemLinkGenerator != null)
             {
