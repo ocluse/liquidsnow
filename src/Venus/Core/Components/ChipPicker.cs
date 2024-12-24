@@ -101,6 +101,7 @@ public class ChipPicker<T> : InputBase<T>, ICollectionView<T>
                             builder.CloseElement();
                         }
                     }
+                    builder.CloseElement();
                 }
             }
             else if (EmptyTemplate != null)

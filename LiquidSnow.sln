@@ -51,6 +51,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Samples", "_Samples", "{5D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VenusWasm", "samples\VenusWasm\VenusWasm.csproj", "{9D9A166F-EFC8-4E0C-AF1B-6A2C98BD9DE9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ocluse.LiquidSnow.Venus.Icons.Myna", "src\Venus\Icons\Myna\Ocluse.LiquidSnow.Venus.Icons.Myna.csproj", "{31675630-BA33-4577-B2A5-AEA14A46B127}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -113,6 +115,10 @@ Global
 		{9D9A166F-EFC8-4E0C-AF1B-6A2C98BD9DE9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9D9A166F-EFC8-4E0C-AF1B-6A2C98BD9DE9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9D9A166F-EFC8-4E0C-AF1B-6A2C98BD9DE9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31675630-BA33-4577-B2A5-AEA14A46B127}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31675630-BA33-4577-B2A5-AEA14A46B127}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31675630-BA33-4577-B2A5-AEA14A46B127}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31675630-BA33-4577-B2A5-AEA14A46B127}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -132,6 +138,7 @@ Global
 		{6B181041-453C-468B-A222-88B842AE5CD8} = {E3AFDD7F-ED7A-422B-BA1B-C4018D844310}
 		{402C01CE-23E8-4448-ABBC-5B2AB31C7EDE} = {0ED613C3-6C87-4DDA-AD70-3A10DC438FD8}
 		{9D9A166F-EFC8-4E0C-AF1B-6A2C98BD9DE9} = {5D5ECA57-D7B5-4FAD-9CC5-77048C91A6A6}
+		{31675630-BA33-4577-B2A5-AEA14A46B127} = {E3AFDD7F-ED7A-422B-BA1B-C4018D844310}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {03346F88-9EBA-4F8D-BC63-BEECABC66420}

@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	<Version>0.3.1</Version>
+	<Authors>Ocluse</Authors>
+    <PackageOutputPath>..\..\..\..\build</PackageOutputPath>
+	<Description>Myna Icons for use with Venus libraries. Icons have been sourced from https://github.com/praveenjuge/mynaui-icons</Description>
+	<PackageIcon>logo.png</PackageIcon>
+	<RepositoryUrl>https://github.com/ocluse/liquidsnow</RepositoryUrl>
+	<Copyright>© Ocluse</Copyright>
+	<PackageReleaseNotes>This version includes icons from release version v0.3.1</PackageReleaseNotes>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<None Include="..\..\..\..\logo.png">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
+</Project>
