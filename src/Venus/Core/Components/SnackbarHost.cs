@@ -109,14 +109,14 @@ public sealed class SnackbarHost : ControlBase, ISnackbarHost, IAsyncDisposable
                 await Task.Delay(durationMillis, cancellationToken);
                 if (!cancellationToken.IsCancellationRequested)
                 {
-                    CompletionSource.SetResult();
+                    CompletionSource.TrySetResult();
                 }
             }
         }
 
         public Task CloseAsync()
         {
-            CompletionSource.SetResult();
+            CompletionSource.TrySetResult();
             return Task.CompletedTask;
         }
     }
