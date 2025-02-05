@@ -14,6 +14,12 @@ public sealed class Debouncer(double interval, Action execute) : IDisposable
 {
     private IDisposable? _subscription;
     private bool _disposedValue;
+    private bool _running;
+
+    /// <summary>
+    /// Gets a value indicating whether the <see cref="Debouncer"/> is running.
+    /// </summary>
+    public bool Running => _running;
 
     /// <summary>
     /// Begins the debounce timer. Calling this method will cancel any previously pending timers.
@@ -28,6 +34,8 @@ public sealed class Debouncer(double interval, Action execute) : IDisposable
             {
                 execute.Invoke();
             });
+
+        _running = true;
     }
 
     /// <summary>
@@ -36,6 +44,7 @@ public sealed class Debouncer(double interval, Action execute) : IDisposable
     public void Cancel()
     {
         ObjectDisposedException.ThrowIf(_disposedValue, this);
+        _running = false;
         _subscription?.Dispose();
     }
 
