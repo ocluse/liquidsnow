@@ -32,6 +32,7 @@ public sealed class Debouncer(double interval, Action execute) : IDisposable
             .Timer(TimeSpan.FromMilliseconds(interval))
             .Subscribe((t) =>
             {
+                _running = false;
                 execute.Invoke();
             });
 
