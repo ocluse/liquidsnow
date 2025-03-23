@@ -76,6 +76,12 @@ public class VenusResolver : IVenusResolver
     public virtual bool AlwaysRenderCheckBoxValidationLabel => false;
 
     ///<inheritdoc/>
+    public bool DefaultUseFallbackForEmptyImageSrc => true;
+
+    ///<inheritdoc/>
+    public bool DefaultUseFallbackForEmptyAvatarSrc => true;
+
+    ///<inheritdoc/>
     public virtual Type ResolveContainerStateToComponentType(int containerState)
     {
         return containerState switch

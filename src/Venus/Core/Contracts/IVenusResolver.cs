@@ -58,6 +58,16 @@ public interface IVenusResolver
     string DefaultImageFallbackSrc { get; }
 
     /// <summary>
+    /// Gets a value indicating whether to use the fallback image src when the main image src is empty.
+    /// </summary>
+    bool DefaultUseFallbackForEmptyImageSrc { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether to use the fallback image src when the main avatar src is empty.
+    /// </summary>
+    bool DefaultUseFallbackForEmptyAvatarSrc { get; }
+
+    /// <summary>
     /// Gets or sets the default fallback image src used by avatars when loading images fail.
     /// </summary>
     string DefaultAvatarFallbackSrc { get; }

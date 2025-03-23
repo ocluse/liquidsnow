@@ -29,6 +29,9 @@ public class Avatar : ImageBase
     protected override string GetDefaultFallbackSrc() => Resolver.DefaultAvatarFallbackSrc;
 
     ///<inheritdoc/>
+    protected override bool GetDefaultUseFallbackForEmptySrc() => Resolver.DefaultUseFallbackForEmptyAvatarSrc;
+
+    ///<inheritdoc/>
     protected override string? GetSource() => UserId.IsNotWhiteSpace() ? Resolver.ResolveAvatarId(UserId) : Src;
 
     ///<inheritdoc/>
