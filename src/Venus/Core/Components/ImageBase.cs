@@ -44,12 +44,12 @@ public abstract class ImageBase : ControlBase
     /// <summary>
     /// Returns the height of the image.
     /// </summary>
-    protected abstract double GetHeight();
+    protected abstract double? GetHeight();
 
     /// <summary>
     /// Returns the width of the image.
     /// </summary>
-    protected abstract double GetWidth();
+    protected abstract double? GetWidth();
 
     ///<inheritdoc/>
     protected override void BuildClass(ClassBuilder classBuilder)
@@ -82,11 +82,24 @@ public abstract class ImageBase : ControlBase
             attributes.Add("onerror", $"this.src ='{fallbackSrc}';this.onerror=''");
         }
 
-        string height = GetHeight().ToCssUnitValue(Unit ?? Resolver.DefaultImageSizeUnit);
-        string width = GetWidth().ToCssUnitValue(Unit ?? Resolver.DefaultImageSizeUnit);
+        CssUnit unit = Unit ?? Resolver.DefaultImageSizeUnit;
+
+        double? height = GetHeight();
+
+        if (height.HasValue)
+        {
+            string heightAttribute = height.Value.ToCssUnitValue(unit);
+            attributes.Add("height", heightAttribute);
+        }
+
+        double? width = GetWidth();
         
-        attributes.Add("height", height);
-        attributes.Add("width", width);
+        if (width.HasValue)
+        {
+            string widthAttribute = width.Value.ToCssUnitValue(unit);
+            attributes.Add("width", widthAttribute);
+        }
+       
 
         if (Alt != null)
         {

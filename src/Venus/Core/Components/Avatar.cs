@@ -20,10 +20,10 @@ public class Avatar : ImageBase
     public double? Size { get; set; }
 
     ///<inheritdoc/>
-    protected override double GetHeight() => Size ?? Resolver.DefaultAvatarSize;
+    protected override double? GetHeight() => Size ?? Resolver.DefaultAvatarSize;
 
     ///<inheritdoc/>
-    protected override double GetWidth() => Size ?? Resolver.DefaultAvatarSize;
+    protected override double? GetWidth() => Size ?? Resolver.DefaultAvatarSize;
 
     ///<inheritdoc/>
     protected override string GetDefaultFallbackSrc() => Resolver.DefaultAvatarFallbackSrc;
