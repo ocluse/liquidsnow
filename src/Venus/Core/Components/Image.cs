@@ -22,4 +22,11 @@ public class Image : ImageBase
 
     ///<inheritdoc/>
     protected override double? GetWidth() => Width;
+
+    ///<inheritdoc/>
+    protected override void BuildClass(ClassBuilder classBuilder)
+    {
+        base.BuildClass(classBuilder);
+        classBuilder.Add(ClassNameProvider.Avatar);
+    }
 }

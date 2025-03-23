@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components.Rendering;
+using Ocluse.LiquidSnow.Extensions;
 
 namespace Ocluse.LiquidSnow.Venus.Components;
 
@@ -32,6 +33,12 @@ public abstract class ImageBase : ControlBase
     public string? FallbackSrc { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether to use the fallback source when the main source is empty.
+    /// </summary>
+    [Parameter]
+    public bool? UseFallbackForEmptySrc { get; set; }
+
+    /// <summary>
     /// Returns the value to set as the source of the image.
     /// </summary>
     protected virtual string? GetSource() => Src;
@@ -42,6 +49,12 @@ public abstract class ImageBase : ControlBase
     protected virtual string GetDefaultFallbackSrc() => Resolver.DefaultImageFallbackSrc;
 
     /// <summary>
+    /// Gets the default value for <see cref="UseFallbackForEmptySrc"/>.
+    /// </summary>
+    /// <returns></returns>
+    protected virtual bool GetDefaultUseFallbackForEmptySrc() => Resolver.DefaultUseFallbackForEmptyImageSrc;
+
+    /// <summary>
     /// Returns the height of the image.
     /// </summary>
     protected abstract double? GetHeight();
@@ -50,13 +63,6 @@ public abstract class ImageBase : ControlBase
     /// Returns the width of the image.
     /// </summary>
     protected abstract double? GetWidth();
-
-    ///<inheritdoc/>
-    protected override void BuildClass(ClassBuilder classBuilder)
-    {
-        base.BuildClass(classBuilder);
-        classBuilder.Add(ClassNameProvider.Avatar);
-    }
 
     ///<inheritdoc/>
     protected override void BuildRenderTree(RenderTreeBuilder builder)
@@ -74,12 +80,16 @@ public abstract class ImageBase : ControlBase
         base.BuildAttributes(attributes);
 
         string? src = GetSource();
-
-        if (src != null)
+        string fallbackSrc = FallbackSrc ?? GetDefaultFallbackSrc();
+        if (src.IsNotEmpty())
         {
-            string fallbackSrc = FallbackSrc ?? GetDefaultFallbackSrc();
+            
             attributes.Add("src", src);
             attributes.Add("onerror", $"this.src ='{fallbackSrc}';this.onerror=''");
+        }
+        else if(UseFallbackForEmptySrc ?? GetDefaultUseFallbackForEmptySrc())
+        {
+            attributes.Add("src", fallbackSrc);
         }
 
         CssUnit unit = Unit ?? Resolver.DefaultImageSizeUnit;
