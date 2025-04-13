@@ -76,10 +76,10 @@ public class VenusResolver : IVenusResolver
     public virtual bool AlwaysRenderCheckBoxValidationLabel => false;
 
     ///<inheritdoc/>
-    public bool DefaultUseFallbackForEmptyImageSrc => true;
+    public virtual bool DefaultUseFallbackForEmptyImageSrc => true;
 
     ///<inheritdoc/>
-    public bool DefaultUseFallbackForEmptyAvatarSrc => true;
+    public virtual bool DefaultUseFallbackForEmptyAvatarSrc => true;
 
     ///<inheritdoc/>
     public virtual Type ResolveContainerStateToComponentType(int containerState)
@@ -138,7 +138,7 @@ public class VenusResolver : IVenusResolver
     }
 
     ///<inheritdoc/>
-    public string ResolveSnackbarStatusToClass(int status)
+    public virtual string ResolveSnackbarStatusToClass(int status)
     {
         return status switch
         {
@@ -249,7 +249,7 @@ public class VenusResolver : IVenusResolver
     }
 
     ///<inheritdoc/>
-    public double ResolveTextStyleToIconSize(int textStyle)
+    public virtual double ResolveTextStyleToIconSize(int textStyle)
     {
         return textStyle switch
         {
