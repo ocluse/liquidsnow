@@ -61,7 +61,7 @@ internal class SnackbarMessageView : SnackbarItemComponentBase
                 {
                     builder.AddAttribute(5, nameof(ISvgIcon.Icon), icon);
                     builder.AddAttribute(6, "class", ClassNameProvider.SnackbarMessage_CloseButton);
-                    builder.AddAttribute(7, nameof(ClickableBase.OnClick), EventCallback.Factory.Create(this, HandleCloseAsync));
+                    builder.AddAttribute(7, nameof(ClickableBase.Clicked), EventCallback.Factory.Create(this, HandleCloseAsync));
                 }
                 builder.CloseComponent();
             }

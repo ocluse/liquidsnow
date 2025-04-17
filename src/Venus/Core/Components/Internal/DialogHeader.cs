@@ -38,7 +38,7 @@ internal class DialogHeader : DialogComponentBase
                 {
                     builder.AddAttribute(7, nameof(ISvgIcon.Icon), icon);
                     builder.AddAttribute(8, "class", ClassNameProvider.Dialog_Header_CloseButton);
-                    builder.AddAttribute(9, nameof(ClickableBase.OnClick), EventCallback.Factory.Create(this, HandleClickClose));
+                    builder.AddAttribute(9, nameof(ClickableBase.Clicked), EventCallback.Factory.Create(this, HandleClickClose));
                 }
                 builder.CloseComponent();
             }
