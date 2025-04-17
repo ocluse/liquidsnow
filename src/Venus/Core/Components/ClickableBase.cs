@@ -13,7 +13,7 @@ public abstract class ClickableBase : FormControlBase
     /// Gets or sets the callback that is invoked when the component is clicked.
     /// </summary>
     [Parameter]
-    public EventCallback OnClick { get; set; }
+    public EventCallback Clicked { get; set; }
 
     /// <summary>
     /// Gets or sets the a link to navigate to when the component is clicked.
@@ -67,7 +67,7 @@ public abstract class ClickableBase : FormControlBase
 
         if (!Disabled)
         {
-            attributes.Add("onclick", OnClick);
+            attributes.Add("onclick", Clicked);
         }
 
         if (Disabled)
