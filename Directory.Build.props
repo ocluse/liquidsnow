@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
     <!-- Add to existing NoWarn if any -->
-    <NoWarn>$(NoWarn);NU1902</NoWarn>
+    <NoWarn>$(NoWarn);NU5104</NoWarn>
   </PropertyGroup>
 </Project>
