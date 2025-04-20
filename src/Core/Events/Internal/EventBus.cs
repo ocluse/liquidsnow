@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace Ocluse.LiquidSnow.Events.Internal;
 
-internal sealed class EventBus(IServiceProvider serviceProvider) : IEventBus
+internal sealed class EventBus(IServiceProvider serviceProvider, IServiceScopeFactory serviceScopeFactory) : IEventBus
 {
     private static async Task ExecuteHandler(object? handler, MethodInfo handleMethodInfo, object[] handleMethodArgs)
     {
@@ -56,7 +56,7 @@ internal sealed class EventBus(IServiceProvider serviceProvider) : IEventBus
         {
             try
             {
-                using IServiceScope scope = serviceProvider.CreateScope();
+                using IServiceScope scope = serviceScopeFactory.CreateScope();
                 await PublishAsync(scope.ServiceProvider, e, cancellationToken);
             }
             catch(Exception ex)
