@@ -54,8 +54,16 @@ internal sealed class EventBus(IServiceProvider serviceProvider) : IEventBus
     {
         _ = Task.Run(async () =>
         {
-            using IServiceScope scope = serviceProvider.CreateScope();
-            await PublishAsync(scope.ServiceProvider, e, cancellationToken);
+            try
+            {
+                using IServiceScope scope = serviceProvider.CreateScope();
+                await PublishAsync(scope.ServiceProvider, e, cancellationToken);
+            }
+            catch(Exception ex)
+            {
+                EventBusModel.OnUnobservedException(ex);
+            }
+           
         }, cancellationToken);
     }
 

@@ -1,6 +1,4 @@
-﻿using System.Reactive.Linq;
-
-namespace Ocluse.LiquidSnow.Jobs;
+﻿namespace Ocluse.LiquidSnow.Jobs;
 
 using System;
 using System.Collections.Generic;

@@ -7,7 +7,7 @@
 	<Nullable>enable</Nullable>
 	<ImplicitUsings>enable</ImplicitUsings>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-	<GenerateDocumentationFile>true</GenerateDocumentationFile>
+	<!--<GenerateDocumentationFile>true</GenerateDocumentationFile>-->
 	<Version>0.6.5-preview1.1</Version>
 	<Authors>Ocluse</Authors>
 	<PackageOutputPath>..\..\build</PackageOutputPath>

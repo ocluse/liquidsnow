@@ -38,7 +38,7 @@ public class EventBusBuilder
     private void AddCore()
     {
         Services.TryAddSingleton<EventDescriptorCache>();
-        Services.TryAddTransient<IEventBus, EventBus>();
+        Services.TryAddTransient<IEventBus, Events.Internal.EventBus>();
     }
 
     /// <summary>
