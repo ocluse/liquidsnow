@@ -50,21 +50,21 @@ internal sealed class EventBus(IServiceProvider serviceProvider, IServiceScopeFa
         }
     }
 
-    public void Publish<TEvent>(TEvent e, CancellationToken cancellationToken = default)
+    public void Publish<TEvent>(TEvent e)
     {
         _ = Task.Run(async () =>
         {
             try
             {
                 using IServiceScope scope = serviceScopeFactory.CreateScope();
-                await PublishAsync(scope.ServiceProvider, e, cancellationToken);
+                await PublishAsync(scope.ServiceProvider, e);
             }
             catch(Exception ex)
             {
                 EventBusModel.OnUnobservedException(ex);
             }
            
-        }, cancellationToken);
+        });
     }
 
     public async Task PublishAsync<TEvent>(TEvent e, CancellationToken cancellationToken = default)

@@ -2,10 +2,21 @@
 
 namespace Ocluse.LiquidSnow.Data;
 
+/// <summary>
+/// Provides utilities for loading paging data, keeping track of the current state of the data, and notifying when the data changes.
+/// </summary>
+/// <typeparam name="TKey">The type of key used to load the data.</typeparam>
+/// <typeparam name="TItem">The type of data.</typeparam>
+/// <param name="dataSource">The source used to load the data.</param>
+/// <param name="pageSize">The maximum number of items to load on each operation.</param>
+/// <param name="supportsPrepending">Indicates whether the pager can prepend data, i.e. load data from the page before the initial page (i.e. page 0).</param>
 public class Pager<TKey, TItem>(IDataSource<TKey, TItem> dataSource, int pageSize = 20, bool supportsPrepending = false) : INotifyCollectionChanged
 {
     private record PageKeys(TKey? NextKey, TKey? PrevKey);
 
+    /// <summary>
+    /// The items loaded by the pager.
+    /// </summary>
     protected readonly List<TItem> _items = [];
 
     private readonly List<PageKeys> _keys = [];
@@ -17,12 +28,24 @@ public class Pager<TKey, TItem>(IDataSource<TKey, TItem> dataSource, int pageSiz
         Prepend = LoadState.NotLoading
     };
 
+    /// <summary>
+    /// Returns the list of items that have currently been loaded.
+    /// </summary>
     public IReadOnlyList<TItem> Items => _items;
 
+    /// <summary>
+    /// Returns the maximum number of items to load on each operation.
+    /// </summary>
     public int PageSize => pageSize;
 
+    /// <summary>
+    /// Returns a value indicating whether the pager can prepend data.
+    /// </summary>
     public bool SupportsPrepending => supportsPrepending;
 
+    /// <summary>
+    /// Returns the current state of the pager.
+    /// </summary>
     public PagerState State
     {
         get => _state;
@@ -36,10 +59,17 @@ public class Pager<TKey, TItem>(IDataSource<TKey, TItem> dataSource, int pageSiz
         }
     }
 
+    /// <inheritdoc/>
     public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
+    /// <summary>
+    /// Occurs when the state of the pager changes.
+    /// </summary>
     public event EventHandler<PagerStateChangedArgs>? StateChanged;
 
+    /// <summary>
+    /// Refreshes the data in the pager. This will clear all items and load the data from the data source again.
+    /// </summary>
     public async Task RefreshAsync(CancellationToken cancellationToken = default)
     {
         //do not refresh if we are already refreshing:
@@ -54,6 +84,9 @@ public class Pager<TKey, TItem>(IDataSource<TKey, TItem> dataSource, int pageSiz
         await LoadCoreAsync(refreshKey, LoadType.Refresh, cancellationToken);
     }
 
+    /// <summary>
+    /// Notifies the pager that it has reached the start of the data. This will load more data if the pager supports prepending.
+    /// </summary>
     public void ReachedStart()
     {
         if (!SupportsPrepending) return;
@@ -78,6 +111,9 @@ public class Pager<TKey, TItem>(IDataSource<TKey, TItem> dataSource, int pageSiz
         _ = LoadCoreAsync(firstKey, LoadType.Prepend, CancellationToken.None);
     }
 
+    /// <summary>
+    /// Notifies the pager that it has reached the end of the data. This will load more data if there are more items to load.
+    /// </summary>
     public void ReachedEnd()
     {
         //do not append if we are already appending:
@@ -171,6 +207,9 @@ public class Pager<TKey, TItem>(IDataSource<TKey, TItem> dataSource, int pageSiz
         CollectionChanged?.Invoke(this, args);
     }
 
+    /// <summary>
+    /// Notifies the subscribers of the collection changed event.
+    /// </summary>
     protected void OnCollectionChanged(NotifyCollectionChangedEventArgs args)
     {
         CollectionChanged?.Invoke(this, args);
