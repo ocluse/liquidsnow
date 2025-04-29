@@ -16,5 +16,5 @@ public interface IEventBus
     /// <remarks>
     /// This method creates a new service scope to safely execute the event handlers, in case the current scope is prematurely disposed.
     /// </remarks>
-    void Publish<TEvent>(TEvent e, CancellationToken cancellationToken = default);
+    void Publish<TEvent>(TEvent e);
 }
