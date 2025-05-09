@@ -15,13 +15,13 @@ internal sealed class EventBus(IServiceProvider serviceProvider, IServiceScopeFa
         await (Task)handleMethodInfo.Invoke(handler, handleMethodArgs)!;
     }
 
-    private static async Task PublishAsync<TEvent>(IServiceProvider serviceProvider, TEvent e, CancellationToken cancellationToken = default)
+    private static async Task PublishAsync(IServiceProvider serviceProvider, object e, Type eventType, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(e, nameof(e));
 
         EventDescriptorCache descriptorCache = serviceProvider.GetRequiredService<EventDescriptorCache>();
 
-        EventDescriptor descriptor = descriptorCache.GetDescriptor(typeof(TEvent));
+        EventDescriptor descriptor = descriptorCache.GetDescriptor(eventType);
 
         object[] handleMethodArgs = [e, cancellationToken];
 
@@ -52,23 +52,37 @@ internal sealed class EventBus(IServiceProvider serviceProvider, IServiceScopeFa
 
     public void Publish<TEvent>(TEvent e)
     {
+        ArgumentNullException.ThrowIfNull(e, nameof(e));
+        Publish(e, typeof(TEvent));
+    }
+
+    public void Publish(object e, Type eventType)
+    {
+        ArgumentNullException.ThrowIfNull(e, nameof(e));
         _ = Task.Run(async () =>
         {
             try
             {
                 using IServiceScope scope = serviceScopeFactory.CreateScope();
-                await PublishAsync(scope.ServiceProvider, e);
+                await PublishAsync(scope.ServiceProvider, e, eventType);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 EventBusModel.OnUnobservedException(ex);
             }
-           
+
         });
     }
 
     public async Task PublishAsync<TEvent>(TEvent e, CancellationToken cancellationToken = default)
     {
-        await PublishAsync(serviceProvider, e, cancellationToken);
+        ArgumentNullException.ThrowIfNull(e, nameof(e));
+        await PublishAsync(e, typeof(TEvent), cancellationToken);
+    }
+
+    public async Task PublishAsync(object e, Type eventType, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(e, nameof(e));
+        await PublishAsync(serviceProvider, e, eventType, cancellationToken);
     }
 }
