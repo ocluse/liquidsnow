@@ -10,6 +10,9 @@ public interface IEventBus
     /// </summary>
     Task PublishAsync<TEvent>(TEvent e, CancellationToken cancellationToken = default);
 
+    ///<inheritdoc cref="PublishAsync{TEvent}(TEvent, CancellationToken)"/>
+    Task PublishAsync(object e, Type eventType, CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Publishes an event to all registered listeners capable of handling it, returning immediately after the event is dispatched.
     /// </summary>
@@ -17,4 +20,7 @@ public interface IEventBus
     /// This method creates a new service scope to safely execute the event handlers, in case the current scope is prematurely disposed.
     /// </remarks>
     void Publish<TEvent>(TEvent e);
+
+    ///<inheritdoc cref="Publish{TEvent}(TEvent)"/>
+    void Publish(object e, Type eventType);
 }
