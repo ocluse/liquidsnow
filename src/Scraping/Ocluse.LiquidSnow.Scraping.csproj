@@ -7,7 +7,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
-		<Version>0.6.5-preview1.0</Version>
+		<Version>0.6.5-preview1.1</Version>
 		<Authors>Ocluse</Authors>
 		<PackageOutputPath>..\..\build</PackageOutputPath>
 		<Description>Contains useful utilities for scarping, such as a browser for emulating browser requests.</Description>
