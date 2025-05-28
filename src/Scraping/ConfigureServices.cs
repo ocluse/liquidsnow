@@ -8,13 +8,13 @@ namespace Ocluse.LiquidSnow.Scraping;
 public static class ConfigureServices
 {
     ///<inheritdoc cref="AddScrapingBrowser(IServiceCollection, Action{BrowserOptions})"/>
-    public static IHttpClientBuilder AddScrapingBrowser(IServiceCollection services)
+    public static IHttpClientBuilder AddScrapingBrowser(this IServiceCollection services)
     {
         return AddScrapingBrowser(services, BrowserHeaders.DefaultUserAgent);
     }
 
     ///<inheritdoc cref="AddScrapingBrowser(IServiceCollection, Action{BrowserOptions})"/>
-    public static IHttpClientBuilder AddScrapingBrowser(IServiceCollection services, string userAgent)
+    public static IHttpClientBuilder AddScrapingBrowser(this IServiceCollection services, string userAgent)
     {
         return AddScrapingBrowser(services, options => options.UserAgent = userAgent);
     }
@@ -22,7 +22,7 @@ public static class ConfigureServices
     /// <summary>
     /// Adds the scraping browser, that emulates real browsers, to the container.
     /// </summary>
-    public static IHttpClientBuilder AddScrapingBrowser(IServiceCollection services, Action<BrowserOptions> configureOptions)
+    public static IHttpClientBuilder AddScrapingBrowser(this IServiceCollection services, Action<BrowserOptions> configureOptions)
     {
         services.Configure(configureOptions);
         return services.AddHttpClient<Browser>()
