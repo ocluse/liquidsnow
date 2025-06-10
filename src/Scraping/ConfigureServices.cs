@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Ocluse.LiquidSnow.Scraping.Internal;
 
 namespace Ocluse.LiquidSnow.Scraping;
 
@@ -25,7 +27,17 @@ public static class ConfigureServices
     public static IHttpClientBuilder AddScrapingBrowser(this IServiceCollection services, Action<BrowserOptions> configureOptions)
     {
         services.Configure(configureOptions);
-        return services.AddHttpClient<Browser>()
+        
+        services.AddTransient(sp=>
+        {
+            var factory = sp.GetRequiredService<IBrowserFactory>();
+            var options = sp.GetRequiredService<IOptions<BrowserOptions>>().Value;
+            return factory.CreateBrowser(options);
+        });
+
+        services.AddSingleton<IBrowserFactory, BrowserFactory>();
+
+        return services.AddHttpClient(Browser.HTTPCLIET_NAME)
             .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler()
             {
                 UseCookies = false

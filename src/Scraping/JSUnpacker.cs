@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using Ocluse.LiquidSnow.Scraping.Internal;
+using System.Text.RegularExpressions;
 
 namespace Ocluse.LiquidSnow.Scraping;
 /// <summary>

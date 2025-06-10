@@ -5,44 +5,30 @@ using Ocluse.LiquidSnow.Extensions;
 using System.Net;
 using System.Text;
 
-namespace Ocluse.LiquidSnow.Scraping;
+namespace Ocluse.LiquidSnow.Scraping.Internal;
 
-/// <summary>
-/// Simulates a browser for sending HTTP requests with appropriate headers and cookie management.
-/// </summary>
-/// <remarks>
-/// Initializes a new instance of the <see cref="Browser"/> class.
-/// </remarks>
-/// <param name="httpClient">The HttpClient instance to use for sending requests. It's recommended this HttpClient is NOT configured to handle cookies automatically (e.g., its handler's UseCookies=false) as this class manages cookies manually.</param>
-/// <param name="browserOptions">The options to use for the browser</param>
-public class Browser(HttpClient httpClient, IOptions<BrowserOptions> browserOptions)
+
+internal class Browser(IHttpClientFactory httpClientFactory, BrowserOptions browserOptions) : IBrowser
 {
+    internal const string HTTPCLIET_NAME = "Ocluse.LiquidSnow.Scraping.BrowserHttpClient";
     private readonly CookieContainer _cookieContainer = new();
-    private Uri? _lastSuccessfulNavigationUri;
+    private Uri? _location;
 
-    /// <summary>
-    /// Gets or sets the last successfully navigated URL.
-    /// </summary>
-    public Uri? LastSuccessfulNavigationUri => _lastSuccessfulNavigationUri;
+    public Uri? Location { get; set; }
 
-    /// <summary>
-    /// Applies the necessary headers to the HttpRequestMessage to simulate browser behavior.
-    /// </summary>
-    /// <param name="requestMessage">The request message to modify</param>
-    /// <param name="requestOptions">The options determining how the request message will be modified.</param>
     public void ApplyRequestHeaders(HttpRequestMessage requestMessage, RequestOptions requestOptions)
     {
-        if (requestMessage.RequestUri == null)
+        if (requestOptions.ReferrerUrl != null && !requestOptions.ReferrerUrl.IsAbsoluteUri)
         {
-            throw new ArgumentException("RequestUri must be set on the HttpRequestMessage before applying headers.", nameof(requestMessage));
+            throw new ArgumentException("ReferrerUrl must be an absolute URI.", nameof(requestOptions));
         }
 
         // --- Prepare Headers ---
         // Clear potentially conflicting headers that we will manage.
         // This ensures our headers take precedence over any defaults on the HttpRequestMessage.
         requestMessage.Headers.Remove("User-Agent");
-        requestMessage.Headers.Remove("Accept");
         requestMessage.Headers.Remove("Accept-Language");
+        requestMessage.Headers.Remove("Accept");
         requestMessage.Headers.Remove("Referer");
         requestMessage.Headers.Remove("Origin");
         requestMessage.Headers.Remove("Cookie");
@@ -55,35 +41,34 @@ public class Browser(HttpClient httpClient, IOptions<BrowserOptions> browserOpti
 
 
         // 1. User-Agent
-        requestMessage.Headers.TryAddWithoutValidation("User-Agent", browserOptions.Value.UserAgent);
+        requestMessage.Headers.TryAddWithoutValidation("User-Agent", browserOptions.UserAgent);
 
         // 2. Accept-Language
-        if (browserOptions.Value.AcceptLanguage.IsNotEmpty())
+        if (browserOptions.AcceptLanguage.IsNotEmpty())
         {
-            requestMessage.Headers.TryAddWithoutValidation("Accept-Language", browserOptions.Value.AcceptLanguage);
+            requestMessage.Headers.TryAddWithoutValidation("Accept-Language", browserOptions.AcceptLanguage);
         }
 
         // 3. Determine Effective Referrer and Origin
-        Uri? effectiveReferrerUrl = requestOptions.ReferrerUrl ?? _lastSuccessfulNavigationUri;
+        Uri? effectiveReferralUrl = requestOptions.ReferrerUrl ?? _location;
         string? originHeaderValue = null;
 
-        if (effectiveReferrerUrl != null)
+        if (effectiveReferralUrl != null)
         {
-            requestMessage.Headers.TryAddWithoutValidation("Referer", effectiveReferrerUrl.AbsoluteUri);
-            originHeaderValue = requestOptions.OverrideOrigin ?? $"{effectiveReferrerUrl.Scheme}://{effectiveReferrerUrl.Host}";
+            requestMessage.Headers.TryAddWithoutValidation("Referer", effectiveReferralUrl.AbsoluteUri);
+            originHeaderValue = requestOptions.OverrideOrigin ?? $"{effectiveReferralUrl.Scheme}://{effectiveReferralUrl.Host}";
         }
 
         // 4. Sec-Fetch-Site
         string secFetchSiteValue = "none";
-        if (effectiveReferrerUrl != null)
+        if (effectiveReferralUrl != null)
         {
-            if (AreSameOrigin(requestMessage.RequestUri, effectiveReferrerUrl))
+            if (AreSameOrigin(effectiveReferralUrl, requestMessage.RequestUri))
             {
                 secFetchSiteValue = "same-origin";
             }
             else
             {
-                // Simplified: "cross-site". A more accurate check would involve eTLD+1 for "same-site".
                 secFetchSiteValue = "cross-site";
             }
         }
@@ -97,14 +82,15 @@ public class Browser(HttpClient httpClient, IOptions<BrowserOptions> browserOpti
         switch (requestOptions.Type)
         {
             case BrowserRequestType.Navigation:
-                acceptHeaderValue = browserOptions.Value.AcceptHeaderNavigationAndIframe;
+                acceptHeaderValue = browserOptions.AcceptHeaderNavigationAndIframe;
                 secFetchModeValue = "navigate";
                 secFetchDestValue = "document";
                 if (requestOptions.IsUserInitiated)
                 {
                     requestMessage.Headers.TryAddWithoutValidation("Sec-Fetch-User", "?1");
                 }
-                if (requestMessage.RequestUri.Scheme.Equals("http", StringComparison.OrdinalIgnoreCase) &&
+
+                if (requestMessage.RequestUri?.IsAbsoluteUri == true && requestMessage.RequestUri.Scheme.Equals("http", StringComparison.OrdinalIgnoreCase) &&
                     (requestMessage.Method == HttpMethod.Get || requestMessage.Method == HttpMethod.Head))
                 {
                     requestMessage.Headers.TryAddWithoutValidation("Upgrade-Insecure-Requests", "1");
@@ -112,7 +98,7 @@ public class Browser(HttpClient httpClient, IOptions<BrowserOptions> browserOpti
                 break;
 
             case BrowserRequestType.Xhr:
-                acceptHeaderValue = browserOptions.Value.AcceptHeaderXhr;
+                acceptHeaderValue = browserOptions.AcceptHeaderXhr;
                 // For XHR, Sec-Fetch-Mode is 'cors' if cross-site, 'same-origin' if same-origin.
                 secFetchModeValue = secFetchSiteValue == "cross-site" ? "cors" : "same-origin";
                 secFetchDestValue = "empty";
@@ -125,7 +111,7 @@ public class Browser(HttpClient httpClient, IOptions<BrowserOptions> browserOpti
                 break;
 
             case BrowserRequestType.Iframe:
-                acceptHeaderValue = browserOptions.Value.AcceptHeaderNavigationAndIframe;
+                acceptHeaderValue = browserOptions.AcceptHeaderNavigationAndIframe;
                 secFetchModeValue = "navigate"; // Or "nested-navigate"
                 secFetchDestValue = "iframe";
                 if (!string.IsNullOrEmpty(originHeaderValue) && secFetchSiteValue == "cross-site") // Origin for cross-site iframes
@@ -135,25 +121,25 @@ public class Browser(HttpClient httpClient, IOptions<BrowserOptions> browserOpti
                 break;
 
             case BrowserRequestType.Script:
-                acceptHeaderValue = browserOptions.Value.AcceptHeaderScript;
+                acceptHeaderValue = browserOptions.AcceptHeaderScript;
                 secFetchModeValue = "no-cors";
                 secFetchDestValue = "script";
                 break;
 
             case BrowserRequestType.Style:
-                acceptHeaderValue = browserOptions.Value.AcceptHeaderStyle;
+                acceptHeaderValue = browserOptions.AcceptHeaderStyle;
                 secFetchModeValue = "no-cors";
                 secFetchDestValue = "style";
                 break;
 
             case BrowserRequestType.Image:
-                acceptHeaderValue = browserOptions.Value.AcceptHeaderImage;
+                acceptHeaderValue = browserOptions.AcceptHeaderImage;
                 secFetchModeValue = "no-cors";
                 secFetchDestValue = "image";
                 break;
 
             case BrowserRequestType.Font:
-                acceptHeaderValue = browserOptions.Value.AcceptHeaderFont;
+                acceptHeaderValue = browserOptions.AcceptHeaderFont;
                 secFetchModeValue = "no-cors"; // Often 'cors' if font is from different origin and needs CORS
                 secFetchDestValue = "font";
                 // Origin for cross-origin font requests if they require CORS
@@ -176,7 +162,19 @@ public class Browser(HttpClient httpClient, IOptions<BrowserOptions> browserOpti
 
         // 6. Cookie Management
         var cookieBuilder = new StringBuilder();
-        string mainCookies = _cookieContainer.GetCookieHeader(requestMessage.RequestUri);
+        Uri? cookieUri = _location;
+        string mainCookies = string.Empty;
+
+        if (requestMessage.RequestUri?.IsAbsoluteUri == true)
+        {
+            cookieUri = requestMessage.RequestUri;
+        }
+
+        if (cookieUri != null && cookieUri.IsAbsoluteUri)
+        {
+            mainCookies = _cookieContainer.GetCookieHeader(cookieUri);
+        }
+
         if (!string.IsNullOrWhiteSpace(mainCookies))
         {
             cookieBuilder.Append(mainCookies);
@@ -226,28 +224,27 @@ public class Browser(HttpClient httpClient, IOptions<BrowserOptions> browserOpti
         }
     }
 
-    ///<inheritdoc cref="SendAsync(HttpRequestMessage, RequestOptions, CancellationToken)"/>
     public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage requestMessage, CancellationToken cancellationToken = default)
     {
         return await SendAsync(requestMessage, new RequestOptions(), cancellationToken);
     }
 
-    /// <summary>
-    /// Sends an HTTP request asynchronously, simulating browser behavior.
-    /// </summary>
-    /// <param name="requestMessage">The HttpRequestMessage to send. Headers on this message may be modified.</param>
-    /// <param name="requestOptions">Options for the request, like type, referrer, and additional cookies.</param>
-    /// <param name="cancellationToken">Cancellation token to cancel the request.</param>
-    /// <returns>The HttpResponseMessage from the server.</returns>
     public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage requestMessage, RequestOptions requestOptions, CancellationToken cancellationToken = default)
     {
-        if (requestMessage.RequestUri == null)
+
+        if (Location == null && requestMessage.RequestUri == null)
         {
-            throw new ArgumentException("RequestUri must be set on the HttpRequestMessage before applying headers.", nameof(requestMessage));
+            throw new ArgumentException("Either Location or RequestUri must be set before sending a request.", nameof(requestMessage));
         }
 
-        // --- Apply Headers ---
         ApplyRequestHeaders(requestMessage, requestOptions);
+
+        HttpClient httpClient = httpClientFactory.CreateClient(HTTPCLIET_NAME);
+
+        if (_location != null)
+        {
+            httpClient.BaseAddress = _location;
+        }
 
         // --- Send Request ---
         HttpResponseMessage responseMessage = await httpClient.SendAsync(requestMessage, cancellationToken);
@@ -260,7 +257,7 @@ public class Browser(HttpClient httpClient, IOptions<BrowserOptions> browserOpti
             {
                 try
                 {
-                    _cookieContainer.SetCookies(requestMessage.RequestUri, setCookieHeader);
+                    _cookieContainer.SetCookies(responseMessage.RequestMessage!.RequestUri!, setCookieHeader);
                 }
                 catch (CookieException ex)
                 {
@@ -270,27 +267,29 @@ public class Browser(HttpClient httpClient, IOptions<BrowserOptions> browserOpti
             }
         }
 
-        // 2. Update Last Successful Navigation URL
-        if (requestOptions.Type == BrowserRequestType.Navigation && responseMessage.IsSuccessStatusCode)
+        if (requestOptions.Type == BrowserRequestType.Navigation)
         {
-            _lastSuccessfulNavigationUri = requestMessage.RequestUri;
+            _location = responseMessage.RequestMessage!.RequestUri!;
 
-            // Handle redirects for navigation
-            if (responseMessage.StatusCode == HttpStatusCode.Redirect ||
-                responseMessage.StatusCode == HttpStatusCode.MovedPermanently ||
-                responseMessage.StatusCode == HttpStatusCode.Found || // HttpStatusCode.Found is 302
-                responseMessage.StatusCode == HttpStatusCode.SeeOther ||
-                responseMessage.StatusCode == HttpStatusCode.TemporaryRedirect ||
-                (int)responseMessage.StatusCode == 308) // PermanentRedirect
+            if (responseMessage.IsSuccessStatusCode)
             {
-                if (responseMessage.Headers.Location != null)
+                // Handle redirects for navigation
+                if (responseMessage.StatusCode == HttpStatusCode.Redirect ||
+                    responseMessage.StatusCode == HttpStatusCode.MovedPermanently ||
+                    responseMessage.StatusCode == HttpStatusCode.Found || // HttpStatusCode.Found is 302
+                    responseMessage.StatusCode == HttpStatusCode.SeeOther ||
+                    responseMessage.StatusCode == HttpStatusCode.TemporaryRedirect ||
+                    (int)responseMessage.StatusCode == 308) // PermanentRedirect
                 {
-                    Uri redirectUri = responseMessage.Headers.Location;
-                    if (!redirectUri.IsAbsoluteUri)
+                    if (responseMessage.Headers.Location != null)
                     {
-                        redirectUri = new Uri(_lastSuccessfulNavigationUri, redirectUri);
+                        Uri redirectUri = responseMessage.Headers.Location;
+                        if (!redirectUri.IsAbsoluteUri)
+                        {
+                            redirectUri = new Uri(_location, redirectUri);
+                        }
+                        _location = redirectUri; // Update to the final location after redirect
                     }
-                    _lastSuccessfulNavigationUri = redirectUri; // Update to the final location after redirect
                 }
             }
         }
@@ -298,10 +297,7 @@ public class Browser(HttpClient httpClient, IOptions<BrowserOptions> browserOpti
         return responseMessage;
     }
 
-    /// <summary>
-    /// Sends a GET request to the specified URL and returns a Document object representing the HTML content of the response.
-    /// </summary>
-    public async Task<IDocument> GetDocumentAsync(Uri requestUri, RequestOptions requestOptions, CancellationToken cancellationToken = default)
+    public async Task<IDocument> GetDocumentAsync(Uri? requestUri, RequestOptions requestOptions, CancellationToken cancellationToken = default)
     {
         using HttpRequestMessage requestMessage = new(HttpMethod.Get, requestUri);
 
@@ -313,33 +309,27 @@ public class Browser(HttpClient httpClient, IOptions<BrowserOptions> browserOpti
 
     }
 
-    /// <summary>
-    /// Returns a Document object representing the HTML content of the response.
-    /// </summary>
-    public async Task<IDocument> GetFromHtmlAsync(Uri address, string html, CancellationToken cancellationToken = default)
+    public async Task<IDocument> GetFromHtmlAsync(Uri? address, string html, CancellationToken cancellationToken = default)
     {
-        return await browserOptions.Value.BrowsingContext.OpenAsync(req =>
+        return await browserOptions.BrowsingContext.OpenAsync(req =>
         {
             req.Address(address);
             req.Content(html);
         }, cancellationToken);
     }
 
-    /// <summary>
-    /// Helper method to determine if two URIs are of the same origin (scheme, host, port).
-    /// </summary>
-    private static bool AreSameOrigin(Uri? uri1, Uri? uri2)
+    private static bool AreSameOrigin(Uri location, Uri? requestUri)
     {
-        if (uri1 == null || uri2 == null) return false;
-        return uri1.Scheme.Equals(uri2.Scheme, StringComparison.OrdinalIgnoreCase) &&
-               uri1.Host.Equals(uri2.Host, StringComparison.OrdinalIgnoreCase) &&
-               uri1.Port == uri2.Port;
+        if (requestUri == null || !requestUri.IsAbsoluteUri)
+        {
+            return true;
+        }
+
+        return location.Scheme.Equals(requestUri.Scheme, StringComparison.OrdinalIgnoreCase) &&
+               location.Host.Equals(requestUri.Host, StringComparison.OrdinalIgnoreCase) &&
+               location.Port == requestUri.Port;
     }
 
-    /// <summary>
-    /// Gets all cookies currently stored in the CookieContainer.
-    /// </summary>
-    /// <returns>A list of all cookies.</returns>
     public List<Cookie> GetCookies(Uri uri)
     {
         return [.. _cookieContainer.GetCookies(uri).Cast<Cookie>()];

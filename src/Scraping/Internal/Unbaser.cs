@@ -1,4 +1,4 @@
-﻿namespace Ocluse.LiquidSnow.Scraping;
+﻿namespace Ocluse.LiquidSnow.Scraping.Internal;
 
 internal class Unbaser
 {
