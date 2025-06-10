@@ -1,0 +1,27 @@
+@inherits ControlBase
+
+<button @attributes="GetAttributes()" @onclick="Clicked">
+    <FeatherIcon Icon="@Icon" />
+    <TextBlock>@Name</TextBlock>
+</button>
+
+@code {
+    [Parameter]
+    public string Name { get; init; } = string.Empty;
+
+    [Parameter]
+    public string Icon { get; init; } = string.Empty;
+
+    [Parameter]
+    public bool IsSelected { get; init; }
+
+    [Parameter]
+    public EventCallback Clicked { get; init; }
+
+    protected override void BuildClass(ClassBuilder builder)
+    {
+        base.BuildClass(builder);
+        builder.Add("bottom-navigation-item");
+        builder.AddIf(IsSelected, "selected");
+    }
+}

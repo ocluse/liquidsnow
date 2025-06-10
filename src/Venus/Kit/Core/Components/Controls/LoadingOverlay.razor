@@ -1,0 +1,12 @@
+@if (IsBusy)
+{
+    <div class="loading-overlay">
+        <LoadingSpinner />
+    </div>
+}
+
+
+@code{
+    [Parameter]
+    public bool IsBusy { get; set; }
+}

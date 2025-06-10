@@ -1,0 +1,25 @@
+@inherits ControlBase
+
+<div @attributes="GetAttributes()">
+    <div class="title-section">
+        @Name
+    </div>
+    <div class="content-section">
+        @ChildContent
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    [EditorRequired]
+    public string Name { get; set; } = string.Empty;
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    protected override void BuildClass(ClassBuilder builder)
+    {
+        base.BuildClass(builder);
+        builder.Add("group-box");
+    }
+}

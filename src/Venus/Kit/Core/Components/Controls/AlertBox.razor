@@ -1,0 +1,24 @@
+@inherits ControlBase
+
+<div @attributes="GetAttributes()">
+    <FeatherIcon Icon="@Icon" />
+    <span>@ChildContent</span>
+</div>
+
+@code {
+
+    [Parameter]
+    [EditorRequired]
+    public string? Icon { get; set; }
+
+    [Parameter]
+    [EditorRequired]
+    public RenderFragment? ChildContent { get; set; }
+
+
+    protected override void BuildClass(ClassBuilder builder)
+    {
+        base.BuildClass(builder);
+        builder.Add("alert-box");
+    }
+}

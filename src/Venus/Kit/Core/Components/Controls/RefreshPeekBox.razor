@@ -1,0 +1,12 @@
+<div class="refresh-peek-box">
+    <TextBlock>Pull to Refresh</TextBlock>
+    <FeatherIcon Icon="@Icon" Color="Color" />
+</div>
+
+@code{
+    [Parameter]
+    public string? Icon { get; set; }
+
+    [Parameter]
+    public int Color { get; set; }
+}

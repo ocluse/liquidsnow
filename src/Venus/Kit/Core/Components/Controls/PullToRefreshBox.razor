@@ -1,0 +1,15 @@
+<div @attributes="GetAttributes()">
+    <div class="peek-content">
+        @PeekContent
+    </div>
+    <ScrollBox Class="child-content" @ref="_scrollBox">
+        @if (IsRefreshing)
+        {
+            <div class="refresh-indicator">
+                @RefreshIndicatorContent
+            </div>
+        }
+        @ChildContent
+    </ScrollBox>
+</div>
+

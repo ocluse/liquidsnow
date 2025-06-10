@@ -1,0 +1,16 @@
+@using Ocluse.LiquidSnow.Extensions
+@inherits InputBase<string>
+
+<div @attributes="@GetAttributes()">
+    <div class="field">
+        @PrefixContent
+        <textarea rows="1" @oninput="HandleOnChange" @ref="_textAreaElement" placeholder="@Placeholder" @bind="_value">
+        </textarea>
+        @SuffixContent
+    </div>
+    @if (Validation?.Message.IsNotEmpty() == true)
+    {
+        <div class="@GetValidationClass()">@Validation.Message</div>
+    }
+</div>
+

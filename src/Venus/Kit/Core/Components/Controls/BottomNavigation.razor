@@ -1,0 +1,16 @@
+@inherits ControlBase
+
+<nav @attributes="GetAttributes()">
+    @ChildContent
+</nav>
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; init; }
+
+    protected override void BuildClass(ClassBuilder builder)
+    {
+        base.BuildClass(builder);
+        builder.Add("bottom-navigation");
+    }
+}

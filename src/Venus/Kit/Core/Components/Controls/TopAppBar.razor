@@ -1,0 +1,29 @@
+<div class="top-app-bar">
+    @if (NavigationIcon is not null)
+    {
+        <div class="navigation-icon">
+            @NavigationIcon
+        </div>
+    }
+    <div class="title">
+        @Title
+    </div>
+
+    @if (Actions is not null)
+    {
+        <div class="actions">
+            @Actions
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public RenderFragment? Title { get; init; }
+
+    [Parameter]
+    public RenderFragment? NavigationIcon { get; init; }
+
+    [Parameter]
+    public RenderFragment? Actions { get; init; }
+}
