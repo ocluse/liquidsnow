@@ -1,0 +1,72 @@
+@using Ocluse.LiquidSnow.Venus.Kit.Components.Controls
+<AlertDialog OnDismissingFunc="OnDismissingAsync" @ref="_dialog">
+    <Icon>
+        @if (_options?.Icon != null)
+        {
+            <FeatherIcon Icon="@_options.Icon" />
+        }
+    </Icon>
+    <Title>
+        <TextBlock>@_options?.Title</TextBlock>
+    </Title>
+    <Text>
+        <TextBlock>@_options?.Text</TextBlock>
+    </Text>
+    <ConfirmButton>
+        <Button Class="text" Clicked="@OnClickConfirm">@_options?.ConfirmText</Button>
+    </ConfirmButton>
+    <DismissButton>
+        @if (_options?.DismissText != null)
+        {
+            <Button Class="text" Clicked="@OnClickDismiss">@_options.DismissText</Button>
+        }
+    </DismissButton>
+</AlertDialog>
+
+
+@code {
+    public ManagedAlertOptions? _options;
+
+    private AlertDialog? _dialog;
+    private TaskCompletionSource<bool?>? _tcsDialog;
+
+    private void OnClickConfirm()
+    {
+        SetResult(true);
+    }
+
+    private void OnClickDismiss()
+    {
+        SetResult(false);
+    }
+
+    private Task<bool> OnDismissingAsync()
+    {
+        SetResult(null);
+        return Task.FromResult(false);
+    }
+
+    private void SetResult(bool? result)
+    {
+        if (_tcsDialog != null)
+        {
+            _tcsDialog.TrySetResult(result);
+        }
+    }
+
+    public async Task<bool?> ShowDialogAsync(ManagedAlertOptions options)
+    {
+        _options = options;
+        await InvokeAsync(StateHasChanged);
+        _tcsDialog = new();
+        await _dialog!.ShowAsync();
+
+        var result = await _tcsDialog.Task;
+
+        _tcsDialog = null;
+
+        await _dialog!.HideAsync();
+
+        return result;
+    }
+}
