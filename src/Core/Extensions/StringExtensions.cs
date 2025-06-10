@@ -306,6 +306,18 @@ public static partial class StringExtensions
         return target.TrimStart(trimString, firstOccurrenceOnly).TrimEnd(trimString, firstOccurrenceOnly, stringComparison);
     }
 
+    /// <summary>
+    /// An extension method to convert a string to a Uri.
+    /// </summary>
+    public static Uri ToUri(this string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            throw new ArgumentException("Value cannot be null or whitespace.", nameof(value));
+        }
+        return new Uri(value);
+    }
+
     [GeneratedRegex(@"(^[a-z])|\.\s+(.)", RegexOptions.ExplicitCapture)]
     private static partial Regex MatchFirstSentence();
 }
