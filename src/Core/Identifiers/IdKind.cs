@@ -1,2 +1,2 @@
-﻿namespace Ocluse.LiquidSnow.Cryptography;
+﻿namespace Ocluse.LiquidSnow.Identifiers;
 
