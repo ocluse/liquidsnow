@@ -1,5 +1,6 @@
 ﻿using Ocluse.LiquidSnow.Numerics.Extensions;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
 
 namespace Ocluse.LiquidSnow.Numerics;
@@ -23,19 +24,19 @@ namespace Ocluse.LiquidSnow.Numerics;
 /// </remarks>
 [Serializable]
 [method: MethodImpl(MethodImplOptions.AggressiveInlining)]
-public partial struct FixVector2(Fix64 xFixed, Fix64 yFixed) : IEquatable<FixVector2>, IComparable<FixVector2>, IEqualityComparer<FixVector2>
+public struct FixVector2(Fix64 x, Fix64 y) : IEquatable<FixVector2>, IComparable<FixVector2>, IEqualityComparer<FixVector2>
 {
     #region Fields and Constants
 
     /// <summary>
     /// The X component of the vector.
     /// </summary>
-    public Fix64 X = xFixed;
+    public Fix64 X = x;
 
     /// <summary>
     /// The Y component of the vector.
     /// </summary>
-    public Fix64 Y = yFixed;
+    public Fix64 Y = y;
 
     /// <summary>
     /// (1, 0)

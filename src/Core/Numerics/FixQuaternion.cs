@@ -17,13 +17,16 @@ namespace Ocluse.LiquidSnow.Numerics;
 public struct FixQuaternion(Fix64 x, Fix64 y, Fix64 z, Fix64 w) : IEquatable<FixQuaternion>
 {
     #region Fields and Constants
-
+    [JsonInclude]
     public Fix64 X = x;
 
+    [JsonInclude]
     public Fix64 Y = y;
 
+    [JsonInclude]
     public Fix64 Z = z;
 
+    [JsonInclude]
     public Fix64 W = w;
 
     /// <summary>
@@ -35,9 +38,6 @@ public struct FixQuaternion(Fix64 x, Fix64 y, Fix64 z, Fix64 w) : IEquatable<Fix
     /// Empty quaternion (0, 0, 0, 0).
     /// </summary>
     public static readonly FixQuaternion Zero = new(Fix64.Zero, Fix64.Zero, Fix64.Zero, Fix64.Zero);
-
-    #endregion
-    #region Constructors
 
     #endregion
 

@@ -2,6 +2,7 @@
 
 using Ocluse.LiquidSnow.Numerics.Extensions;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
 
 namespace Ocluse.LiquidSnow.Numerics;
@@ -21,24 +22,27 @@ namespace Ocluse.LiquidSnow.Numerics;
 /// </remarks>
 [Serializable]
 [method: MethodImpl(MethodImplOptions.AggressiveInlining)]
-public partial struct FixVector3(Fix64 xLong, Fix64 yLong, Fix64 zLong) : IEquatable<FixVector3>, IComparable<FixVector3>, IEqualityComparer<FixVector3>
+public partial struct FixVector3(Fix64 x, Fix64 y, Fix64 z) : IEquatable<FixVector3>, IComparable<FixVector3>, IEqualityComparer<FixVector3>
 {
     #region Fields and Constants
 
     /// <summary>
     /// The X component of the vector.
     /// </summary>
-    public Fix64 X = xLong;
+    [JsonInclude]
+    public Fix64 X = x;
 
     /// <summary>
     /// The Y component of the vector.
     /// </summary>
-    public Fix64 Y = yLong;
+    [JsonInclude] 
+    public Fix64 Y = y;
 
     /// <summary>
     /// The Z component of the vector.
     /// </summary>
-    public Fix64 Z = zLong;
+    [JsonInclude] 
+    public Fix64 Z = z;
 
     /// <summary>
     /// The upward direction vector (0, 1, 0).

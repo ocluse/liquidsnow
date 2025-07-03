@@ -9,7 +9,7 @@ public class Fix64JsonConverter : JsonConverter<Fix64>
     public override Fix64 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         long rawValue = reader.GetInt64();
-        return new Fix64(rawValue);
+        return Fix64.FromRaw(rawValue);
     }
 
     public override void Write(Utf8JsonWriter writer, Fix64 value, JsonSerializerOptions options)

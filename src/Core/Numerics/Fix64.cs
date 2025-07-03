@@ -67,7 +67,6 @@ public partial struct Fix64 : IEquatable<Fix64>, IComparable<Fix64>, IEqualityCo
     /// <summary>
     /// The underlying raw long value representing the fixed-point number.
     /// </summary>
-    [JsonIgnore]
     public readonly long RawValue
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

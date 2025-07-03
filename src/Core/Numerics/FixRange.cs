@@ -30,11 +30,13 @@ public struct FixRange : IEquatable<FixRange>
     /// <summary>
     /// Gets the minimum value of the range.
     /// </summary>
+    [JsonInclude]
     public Fix64 Min;
 
     /// <summary>
     /// Gets the maximum value of the range.
     /// </summary>
+    [JsonInclude] 
     public Fix64 Max;
 
     #endregion
