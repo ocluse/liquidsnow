@@ -26,14 +26,17 @@ internal class Dialog : VenusComponentBase, IDialog
         {
             builder.AddAttribute(2, nameof(CascadingValue<IDialog>.Value), this);
             builder.AddAttribute(3, nameof(CascadingValue<IDialog>.IsFixed), true);
-            builder.AddAttribute(4, nameof(CascadingValue<IDialog>.ChildContent), (RenderFragment)BuildDialog);
+            builder.AddAttribute(4, nameof(CascadingValue<IDialog>.ChildContent), (RenderFragment)(builder2 => BuildDialog(builder2)));
         }
         builder.CloseComponent();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await JSInterop.ShowDialogAsync(_dialogElement);
+        if (firstRender)
+        {
+            await JSInterop.ShowDialogAsync(_dialogElement);
+        }
     }
 
     private void BuildDialog(RenderTreeBuilder builder)

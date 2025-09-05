@@ -68,8 +68,6 @@ public sealed class DialogHost : ControlBase, IDialogHost, IAsyncDisposable
         builder.CloseElement();
     }
 
-    
-
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
