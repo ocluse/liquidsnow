@@ -1,22 +1,14 @@
 ﻿namespace Ocluse.LiquidSnow.Orchestrations.Internal;
 
-internal class OrchestrationData<T> : IOrchestrationData<T>
+internal class OrchestrationData<T>(T value) : IOrchestrationData<T>
 {
-    private readonly List<IOrchestrationStepResult> _results;
+    private readonly List<IOrchestrationStepResult> _results = [];
 
     public IReadOnlyList<IOrchestrationStepResult> Results => _results;
 
-    public IOrchestrationBag Bag { get; }
+    public IOrchestrationBag Bag { get; } = new OrchestrationBag();
 
-    public T Orchestration { get; }
-
-
-    public OrchestrationData(T value)
-    {
-        _results = [];
-        Bag = new OrchestrationBag();
-        Orchestration = value;
-    }
+    public T Orchestration { get; } = value;
 
     public void AddResult(IOrchestrationStepResult result)
     {

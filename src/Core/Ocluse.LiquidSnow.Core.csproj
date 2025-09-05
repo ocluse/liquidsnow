@@ -8,8 +8,8 @@
 	<ImplicitUsings>enable</ImplicitUsings>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	<GenerateDocumentationFile>true</GenerateDocumentationFile>
-	<Version>0.6.5-preview5.3</Version>
-	<Authors>Ocluse</Authors>
+	<Version>0.6.5-preview5.7</Version>
+	<Authors>Ocluse</Authors> 
 	<PackageOutputPath>..\..\build</PackageOutputPath>
 	<Description>Useful extensions and utilities for a wide range of scenarios, such as utilities for implementing common patterns.</Description>
 	<PackageIcon>logo.png</PackageIcon>
