@@ -384,7 +384,7 @@ internal sealed class DataFlow<T>(
         public void Dispose()
         {
             _cts.Cancel();
-            _worker?.Wait();
+            _signal.Release();
             _cts.Dispose();
             _signal.Dispose();
         }
