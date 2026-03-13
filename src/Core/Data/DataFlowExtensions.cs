@@ -69,15 +69,30 @@ public static class DataFlowExtensions
     /// <summary>
     /// Returns a new flow that delivers every value emitted by the source flow, but limits how frequently
     /// they are dispatched to subscribers. Values that arrive faster than the interval are queued and
-    /// dispatched one by one at the specified rate. No values are dropped.
+    /// dispatched one by one at the specified rate. No values are dropped unless <paramref name="maxQueueSize"/> is set.
     /// </summary>
     /// <typeparam name="T">The type of value emitted by the flow.</typeparam>
     /// <param name="flow">The source flow.</param>
     /// <param name="intervalMillis">The minimum interval in milliseconds between consecutive dispatches.</param>
+    /// <param name="maxQueueSize">
+    /// The maximum number of values that may be queued awaiting dispatch.
+    /// When zero (the default), the queue is unbounded.
+    /// </param>
+    /// <param name="queueOverflowBehavior">
+    /// Determines what happens when an incoming value arrives and the queue is already at <paramref name="maxQueueSize"/>.
+    /// <see cref="BufferOverflowBehavior.DropOldest"/> removes the oldest queued item to make room;
+    /// <see cref="BufferOverflowBehavior.DropNewest"/> discards the incoming value.
+    /// Ignored when <paramref name="maxQueueSize"/> is zero.
+    /// </param>
     /// <returns>An <see cref="IDataFlow{T}"/> that rate-limits emitted values.</returns>
-    public static IDataFlow<T> RateLimit<T>(this IDataFlow<T> flow, int intervalMillis)
+    public static IDataFlow<T> RateLimit<T>(
+        this IDataFlow<T> flow,
+        int intervalMillis,
+        int maxQueueSize = 0,
+        BufferOverflowBehavior queueOverflowBehavior = BufferOverflowBehavior.DropOldest)
     {
         if (intervalMillis < 0) throw new ArgumentOutOfRangeException(nameof(intervalMillis), "Interval must be non-negative.");
-        return new RateLimitedDataFlow<T>(flow, intervalMillis);
+        if (maxQueueSize < 0) throw new ArgumentOutOfRangeException(nameof(maxQueueSize), "Max queue size must be non-negative.");
+        return new RateLimitedDataFlow<T>(flow, intervalMillis, maxQueueSize, queueOverflowBehavior);
     }
 }

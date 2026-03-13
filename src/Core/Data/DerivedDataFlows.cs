@@ -204,7 +204,11 @@ internal sealed class ThrottledDataFlow<T>(IDataFlow<T> upstream, int delayMilli
     }
 }
 
-internal sealed class RateLimitedDataFlow<T>(IDataFlow<T> upstream, int intervalMillis) : IDataFlow<T>
+internal sealed class RateLimitedDataFlow<T>(
+    IDataFlow<T> upstream,
+    int intervalMillis,
+    int maxQueueSize,
+    BufferOverflowBehavior queueOverflowBehavior) : IDataFlow<T>
 {
     public bool Paused => upstream.Paused;
 
@@ -252,6 +256,15 @@ internal sealed class RateLimitedDataFlow<T>(IDataFlow<T> upstream, int interval
         {
             lock (lockObj)
             {
+                if (maxQueueSize > 0 && queue.Count >= maxQueueSize)
+                {
+                    if (queueOverflowBehavior == BufferOverflowBehavior.DropNewest)
+                        return Task.CompletedTask;
+
+                    // DropOldest: remove the front of the queue to make room
+                    queue.Dequeue();
+                }
+
                 queue.Enqueue(value);
                 if (timer == null)
                 {
