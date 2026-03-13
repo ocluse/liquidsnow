@@ -14,6 +14,16 @@ public sealed class DataFlowScope : IDisposable
     private readonly object _lock = new();
     private bool _disposed;
 
+    private IDisposable Track(IDisposable subscription)
+    {
+        lock (_lock)
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            _subscriptions.Add(subscription);
+        }
+        return subscription;
+    }
+
     /// <summary>
     /// Subscribes to the specified data flow with an async callback and tracks the subscription in this scope.
     /// </summary>
@@ -29,18 +39,12 @@ public sealed class DataFlowScope : IDisposable
     /// <exception cref="ObjectDisposedException">When the scope has already been disposed.</exception>
     public IDisposable Subscribe<T>(
         IDataFlow<T> flow,
-        Func<T?, Task> subscriberFunc,
+        Func<T, Task> subscriberFunc,
         int bufferSize = 0,
         BufferOverflowBehavior overflowBehavior = BufferOverflowBehavior.DropOldest)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-        var subscription = flow.Subscribe(subscriberFunc, bufferSize, overflowBehavior);
-        lock (_lock)
-        {
-            ObjectDisposedException.ThrowIf(_disposed, this);
-            _subscriptions.Add(subscription);
-        }
-        return subscription;
+        return Track(flow.Subscribe(subscriberFunc, bufferSize, overflowBehavior));
     }
 
     /// <summary>
@@ -58,18 +62,12 @@ public sealed class DataFlowScope : IDisposable
     /// <exception cref="ObjectDisposedException">When the scope has already been disposed.</exception>
     public IDisposable Subscribe<T>(
         IDataFlow<T> flow,
-        Action<T?> subscriberFunc,
+        Action<T> subscriberFunc,
         int bufferSize = 0,
         BufferOverflowBehavior overflowBehavior = BufferOverflowBehavior.DropOldest)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-        var subscription = flow.Subscribe(subscriberFunc, bufferSize, overflowBehavior);
-        lock (_lock)
-        {
-            ObjectDisposedException.ThrowIf(_disposed, this);
-            _subscriptions.Add(subscription);
-        }
-        return subscription;
+        return Track(flow.Subscribe(subscriberFunc, bufferSize, overflowBehavior));
     }
 
     /// <summary>
