@@ -1,5 +1,3 @@
-using System.Collections.Concurrent;
-
 namespace Ocluse.LiquidSnow.Data;
 
 /// <summary>
@@ -22,11 +20,12 @@ public static class DataFlow
 
 internal sealed class DataFlow<T>(int replayCount) : IMutableDataFlow<T>
 {
-    private readonly HashSet<SubscriptionHandler> _handlers = [];
+    private readonly HashSet<SubscriptionHandler<T>> _handlers = [];
     private readonly List<T> _history = [];
     private readonly object _lock = new();
 
     private bool _isPaused;
+    private bool _disposed;
     private ResumeData? _resumeData;
 
     public bool Paused => _isPaused;
@@ -59,7 +58,7 @@ internal sealed class DataFlow<T>(int replayCount) : IMutableDataFlow<T>
         {
             _isPaused = false;
 
-            if(_resumeData == null)
+            if (_resumeData == null)
             {
                 return;
             }
@@ -73,19 +72,19 @@ internal sealed class DataFlow<T>(int replayCount) : IMutableDataFlow<T>
 
     public IDisposable Subscribe(Func<T, Task> subscriber, int bufferSize = 0, BufferOverflowBehavior overflowBehavior = BufferOverflowBehavior.DropOldest)
     {
-        SubscriptionHandler handler = new(bufferSize, overflowBehavior, subscriber, null);
+        SubscriptionHandler<T> handler = new(bufferSize, overflowBehavior, subscriber, null);
         AddHandler(handler);
         return handler;
     }
 
     public IDisposable Subscribe(Action<T> subscriber, int bufferSize = 0, BufferOverflowBehavior overflowBehavior = BufferOverflowBehavior.DropOldest)
     {
-        SubscriptionHandler handler = new(bufferSize, overflowBehavior, null, subscriber);
+        SubscriptionHandler<T> handler = new(bufferSize, overflowBehavior, null, subscriber);
         AddHandler(handler);
         return handler;
     }
 
-    private void AddHandler(SubscriptionHandler handler)
+    private void AddHandler(SubscriptionHandler<T> handler)
     {
         lock (_lock)
         {
@@ -104,6 +103,8 @@ internal sealed class DataFlow<T>(int replayCount) : IMutableDataFlow<T>
     {
         lock (_lock)
         {
+            if (_disposed) return;
+
             if (_isPaused)
             {
                 _resumeData = new ResumeData(value);
@@ -135,88 +136,13 @@ internal sealed class DataFlow<T>(int replayCount) : IMutableDataFlow<T>
     {
         lock (_lock)
         {
+            if (_disposed) return;
+            _disposed = true;
             foreach (var handler in _handlers)
             {
                 handler.Dispose();
             }
             _handlers.Clear();
-        }
-    }
-
-    private sealed class SubscriptionHandler(
-        int bufferSize,
-        BufferOverflowBehavior overflowBehavior,
-        Func<T, Task>? asyncFunction,
-        Action<T>? syncFunction) : IDisposable
-    {
-        private readonly ConcurrentQueue<T> _queue = new();
-        private Task? _worker;
-        private readonly SemaphoreSlim _signal = new(0);
-        private readonly CancellationTokenSource _cts = new();
-
-        public void BufferInitial(IEnumerable<T> initialValues)
-        {
-            foreach (var v in initialValues) _queue.Enqueue(v);
-        }
-
-        public void Start()
-        {
-            _worker = Task.Run(ProcessQueueAsync);
-        }
-
-        public void Enqueue(T value)
-        {
-            lock (_queue)
-            {
-                if (bufferSize > 0 && _queue.Count >= bufferSize)
-                {
-                    if (overflowBehavior == BufferOverflowBehavior.DropOldest)
-                    {
-                        _queue.TryDequeue(out _);
-                    }
-                    else if (overflowBehavior == BufferOverflowBehavior.DropNewest)
-                    {
-                        return;
-                    }
-                }
-                _queue.Enqueue(value);
-            }
-            _signal.Release();
-        }
-
-        private async Task ProcessQueueAsync()
-        {
-            while (!_cts.IsCancellationRequested)
-            {
-                await _signal.WaitAsync(_cts.Token);
-
-                if (_queue.TryDequeue(out T? value))
-                {
-                    try
-                    {
-                        if (asyncFunction != null)
-                        {
-                            await asyncFunction(value);
-                        }
-                        else
-                        {
-                            syncFunction?.Invoke(value);
-                        }
-                    }
-                    catch
-                    {
-                        // swallow
-                    }
-                }
-            }
-        }
-
-        public void Dispose()
-        {
-            _cts.Cancel();
-            _signal.Release();
-            _cts.Dispose();
-            _signal.Dispose();
         }
     }
 }

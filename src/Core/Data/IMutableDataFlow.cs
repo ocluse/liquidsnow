@@ -7,7 +7,7 @@ namespace Ocluse.LiquidSnow.Data;
 /// <remarks>
 /// To subscribe to a flow without the ability to emit or control its lifecycle, use <see cref="IDataFlow{T}"/>.
 /// </remarks>
-public interface IMutableDataFlow<T> : IDataFlow<T>
+public interface IMutableDataFlow<T> : IDataFlow<T>, IDisposable
 {
     /// <summary>
     /// Emits a value to the data flow, which will be sent to all subscribers.
