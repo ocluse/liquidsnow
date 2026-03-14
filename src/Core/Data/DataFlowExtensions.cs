@@ -95,4 +95,99 @@ public static class DataFlowExtensions
         if (maxQueueSize < 0) throw new ArgumentOutOfRangeException(nameof(maxQueueSize), "Max queue size must be non-negative.");
         return new RateLimitedDataFlow<T>(flow, intervalMillis, maxQueueSize, queueOverflowBehavior);
     }
+
+    /// <summary>
+    /// Returns a new flow that invokes a side-effect action on each value before forwarding it unchanged.
+    /// Useful for logging or diagnostics mid-chain without breaking the chain type.
+    /// </summary>
+    /// <typeparam name="T">The type of value emitted by the flow.</typeparam>
+    /// <param name="flow">The source flow.</param>
+    /// <param name="sideEffect">The action to invoke on each value. Its return value is ignored.</param>
+    /// <returns>An <see cref="IDataFlow{T}"/> that emits the same values as the source flow.</returns>
+    public static IDataFlow<T> Do<T>(this IDataFlow<T> flow, Action<T> sideEffect)
+    {
+        return new DoDataFlow<T>(flow, sideEffect);
+    }
+
+    /// <summary>
+    /// Returns a new flow that collects values from the source flow and emits them as a batch once
+    /// the specified number of values has been accumulated.
+    /// </summary>
+    /// <typeparam name="T">The type of value emitted by the source flow.</typeparam>
+    /// <param name="flow">The source flow.</param>
+    /// <param name="maxSize">The number of values to accumulate before emitting a batch. Must be greater than zero.</param>
+    /// <param name="flushBehavior">
+    /// Determines what happens to a partial batch remaining in the buffer when the subscription is disposed.
+    /// </param>
+    /// <returns>An <see cref="IDataFlow{T}"/> that emits batches of up to <paramref name="maxSize"/> values.</returns>
+    public static IDataFlow<IReadOnlyList<T>> BatchByCount<T>(
+        this IDataFlow<T> flow,
+        int maxSize,
+        BatchFlushBehavior flushBehavior = BatchFlushBehavior.Discard)
+    {
+        if (maxSize <= 0) throw new ArgumentOutOfRangeException(nameof(maxSize), "Max size must be greater than zero.");
+        return new BatchedDataFlow<T>(flow, maxSize, 0, flushBehavior);
+    }
+
+    /// <summary>
+    /// Returns a new flow that collects values from the source flow and emits them as a batch on a fixed time interval.
+    /// An empty batch is emitted if no values arrived during the window.
+    /// </summary>
+    /// <typeparam name="T">The type of value emitted by the source flow.</typeparam>
+    /// <param name="flow">The source flow.</param>
+    /// <param name="windowMillis">The length of the time window in milliseconds. Must be greater than zero.</param>
+    /// <param name="flushBehavior">
+    /// Determines what happens to a partial batch remaining in the buffer when the subscription is disposed.
+    /// </param>
+    /// <returns>An <see cref="IDataFlow{T}"/> that emits batches of values on each window tick.</returns>
+    public static IDataFlow<IReadOnlyList<T>> BatchByWindow<T>(
+        this IDataFlow<T> flow,
+        int windowMillis,
+        BatchFlushBehavior flushBehavior = BatchFlushBehavior.Discard)
+    {
+        if (windowMillis <= 0) throw new ArgumentOutOfRangeException(nameof(windowMillis), "Window duration must be greater than zero.");
+        return new BatchedDataFlow<T>(flow, 0, windowMillis, flushBehavior);
+    }
+
+    /// <summary>
+    /// Returns a new flow that suppresses consecutive duplicate values.
+    /// A value is only forwarded if it differs from the previously emitted value.
+    /// The first value is always forwarded.
+    /// </summary>
+    /// <typeparam name="T">The type of value emitted by the flow.</typeparam>
+    /// <param name="flow">The source flow.</param>
+    /// <param name="comparer">
+    /// The equality comparer used to determine whether two consecutive values are equal.
+    /// When <see langword="null"/>, <see cref="EqualityComparer{T}.Default"/> is used.
+    /// </param>
+    /// <returns>An <see cref="IDataFlow{T}"/> that only emits values that differ from the previous emission.</returns>
+    public static IDataFlow<T> DistinctUntilChanged<T>(
+        this IDataFlow<T> flow,
+        IEqualityComparer<T>? comparer = null)
+    {
+        return new DistinctUntilChangedDataFlow<T>(flow, comparer ?? EqualityComparer<T>.Default);
+    }
+
+    /// <summary>
+    /// Returns a new flow that samples the source flow on a fixed interval, emitting the most recently
+    /// received value on each tick.
+    /// </summary>
+    /// <typeparam name="T">The type of value emitted by the flow.</typeparam>
+    /// <param name="flow">The source flow.</param>
+    /// <param name="intervalMillis">The sampling interval in milliseconds. Must be greater than zero.</param>
+    /// <param name="emptyBehavior">
+    /// Determines what happens when the timer ticks but no new value has arrived since the last emission.
+    /// <see cref="SampleEmptyBehavior.Skip"/> emits nothing;
+    /// <see cref="SampleEmptyBehavior.ReplayLast"/> re-emits the last known value.
+    /// The very first tick is always suppressed if no value has ever arrived.
+    /// </param>
+    /// <returns>An <see cref="IDataFlow{T}"/> that emits sampled values at the specified interval.</returns>
+    public static IDataFlow<T> Sample<T>(
+        this IDataFlow<T> flow,
+        int intervalMillis,
+        SampleEmptyBehavior emptyBehavior = SampleEmptyBehavior.Skip)
+    {
+        if (intervalMillis <= 0) throw new ArgumentOutOfRangeException(nameof(intervalMillis), "Interval must be greater than zero.");
+        return new SampledDataFlow<T>(flow, intervalMillis, emptyBehavior);
+    }
 }
