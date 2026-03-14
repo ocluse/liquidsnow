@@ -9,8 +9,8 @@ internal sealed class BatchedDataFlow<T>(
     int windowMillis,
     BatchFlushBehavior flushBehavior) : IDataFlow<IReadOnlyList<T>>
 {
-    // maxSize == 0  → window-only mode
-    // windowMillis == 0 → count-only mode
+    // maxSize == 0  -> window-only mode
+    // windowMillis == 0 -> count-only mode
 
     public bool Paused => upstream.Paused;
 
@@ -107,7 +107,7 @@ internal sealed class BatchedDataFlow<T>(
                 stopTimer();
                 if (flushBehavior == BatchFlushBehavior.Flush && buffer.Count > 0)
                 {
-                    toFlush = buffer.ToList();
+                    toFlush = [.. buffer];
                     buffer.Clear();
                 }
             }
