@@ -25,6 +25,7 @@ internal sealed class DataFlow<T>(int replayCount) : IMutableDataFlow<T>
     private readonly object _lock = new();
 
     private bool _isPaused;
+    private bool _disposed;
     private ResumeData? _resumeData;
 
     public bool Paused => _isPaused;
@@ -102,6 +103,8 @@ internal sealed class DataFlow<T>(int replayCount) : IMutableDataFlow<T>
     {
         lock (_lock)
         {
+            if (_disposed) return;
+
             if (_isPaused)
             {
                 _resumeData = new ResumeData(value);
@@ -133,6 +136,8 @@ internal sealed class DataFlow<T>(int replayCount) : IMutableDataFlow<T>
     {
         lock (_lock)
         {
+            if (_disposed) return;
+            _disposed = true;
             foreach (var handler in _handlers)
             {
                 handler.Dispose();

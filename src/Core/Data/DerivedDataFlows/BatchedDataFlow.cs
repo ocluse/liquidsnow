@@ -32,6 +32,7 @@ internal sealed class BatchedDataFlow<T>(
         var lockObj = new object();
         var buffer = new List<T>();
         Timer? timer = null;
+        var disposed = new DisposedFlag();
         bool windowOnly = maxSize == 0;
 
         IReadOnlyList<T> Snapshot()
@@ -46,8 +47,8 @@ internal sealed class BatchedDataFlow<T>(
             IReadOnlyList<T> batch;
             lock (lockObj)
             {
-                if (buffer.Count == 0 && !windowOnly)
-                    return;
+                if (disposed.Value) return;
+                if (buffer.Count == 0 && !windowOnly) return;
                 batch = Snapshot();
             }
             _ = invoke(batch);
@@ -58,6 +59,8 @@ internal sealed class BatchedDataFlow<T>(
             IReadOnlyList<T>? toFlush = null;
             lock (lockObj)
             {
+                if (disposed.Value) return Task.CompletedTask;
+
                 buffer.Add(value);
 
                 // Start window timer on first item in the window
@@ -84,17 +87,21 @@ internal sealed class BatchedDataFlow<T>(
             return Task.CompletedTask;
         }, bufferSize, overflowBehavior);
 
-        return new BatchSubscription(innerSubscription, lockObj, buffer, () =>
+        return new BatchSubscription(innerSubscription, lockObj, buffer, disposed, () =>
         {
             timer?.Dispose();
             timer = null;
         }, flushBehavior, invoke);
     }
 
+    // Simple mutable wrapper so nested classes/lambdas can share the disposed flag.
+    private sealed class DisposedFlag { public bool Value; }
+
     private sealed class BatchSubscription(
         IDisposable inner,
         object lockObj,
         List<T> buffer,
+        DisposedFlag disposed,
         Action stopTimer,
         BatchFlushBehavior flushBehavior,
         Func<IReadOnlyList<T>, Task> invoke) : IDisposable
@@ -104,6 +111,7 @@ internal sealed class BatchedDataFlow<T>(
             IReadOnlyList<T>? toFlush = null;
             lock (lockObj)
             {
+                disposed.Value = true;
                 stopTimer();
                 if (flushBehavior == BatchFlushBehavior.Flush && buffer.Count > 0)
                 {

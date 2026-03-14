@@ -12,6 +12,7 @@ internal sealed class SubscriptionHandler<T>(
     private Task? _worker;
     private readonly SemaphoreSlim _signal = new(0);
     private readonly CancellationTokenSource _cts = new();
+    private bool _disposed;
 
     public void BufferInitial(IEnumerable<T> initialValues)
     {
@@ -27,6 +28,8 @@ internal sealed class SubscriptionHandler<T>(
     {
         lock (_queue)
         {
+            if (_disposed) return;
+
             if (bufferSize > 0 && _queue.Count >= bufferSize)
             {
                 if (overflowBehavior == BufferOverflowBehavior.DropOldest)
@@ -45,35 +48,49 @@ internal sealed class SubscriptionHandler<T>(
 
     private async Task ProcessQueueAsync()
     {
-        while (!_cts.IsCancellationRequested)
+        try
         {
-            await _signal.WaitAsync(_cts.Token);
-
-            if (_queue.TryDequeue(out T? value))
+            while (!_cts.IsCancellationRequested)
             {
-                try
+                await _signal.WaitAsync(_cts.Token);
+
+                if (_queue.TryDequeue(out T? value))
                 {
-                    if (asyncFunction != null)
+                    try
                     {
-                        await asyncFunction(value);
+                        if (asyncFunction != null)
+                        {
+                            await asyncFunction(value);
+                        }
+                        else
+                        {
+                            syncFunction?.Invoke(value);
+                        }
                     }
-                    else
+                    catch
                     {
-                        syncFunction?.Invoke(value);
+                        // swallow subscriber exceptions
                     }
-                }
-                catch
-                {
-                    // swallow
                 }
             }
+        }
+        catch (OperationCanceledException)
+        {
+            // clean exit on cancellation
         }
     }
 
     public void Dispose()
     {
+        lock (_queue)
+        {
+            if (_disposed) return;
+            _disposed = true;
+        }
+
         _cts.Cancel();
-        _signal.Release();
+        _signal.Release();          // unblock WaitAsync so the loop can observe cancellation
+        _worker?.Wait();            // wait for the loop to exit before releasing resources
         _cts.Dispose();
         _signal.Dispose();
     }

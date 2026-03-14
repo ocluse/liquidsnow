@@ -9,60 +9,89 @@ internal sealed class ThrottledDataFlow<T>(IDataFlow<T> upstream, int delayMilli
 
     public IDisposable Subscribe(Func<T, Task> subscriberFunc, int bufferSize = 0, BufferOverflowBehavior overflowBehavior = BufferOverflowBehavior.DropOldest)
     {
-        return upstream.Subscribe(BuildThrottled(subscriberFunc), bufferSize, overflowBehavior);
+        return BuildSubscription(subscriberFunc, bufferSize, overflowBehavior);
     }
 
     public IDisposable Subscribe(Action<T> subscriberFunc, int bufferSize = 0, BufferOverflowBehavior overflowBehavior = BufferOverflowBehavior.DropOldest)
     {
-        return upstream.Subscribe(
-            BuildThrottled(value => { subscriberFunc(value); return Task.CompletedTask; }),
+        return BuildSubscription(
+            value => { subscriberFunc(value); return Task.CompletedTask; },
             bufferSize,
             overflowBehavior);
     }
 
-    private Func<T, Task> BuildThrottled(Func<T, Task> invoke)
+    private ThrottledSubscription BuildSubscription(Func<T, Task> invoke, int bufferSize, BufferOverflowBehavior overflowBehavior)
     {
-        var lockObj = new object();
-        T pendingValue = default!;
-        bool pendingValueSet = false;
-        Timer? delayTimer = null;
+        var state = new ThrottledState(invoke, delayMillis, trailing);
+        var inner = upstream.Subscribe(state.OnValue, bufferSize, overflowBehavior);
+        return new ThrottledSubscription(inner, state);
+    }
 
-        void Flush(object? sender, ElapsedEventArgs e)
-        {
-            T value;
-            bool shouldInvoke;
-            lock (lockObj)
-            {
-                delayTimer?.Dispose();
-                delayTimer = null;
-                shouldInvoke = trailing && pendingValueSet;
-                value = pendingValue;
-                pendingValue = default!;
-                pendingValueSet = false;
-            }
-            if (shouldInvoke) _ = invoke(value);
-        }
+    private sealed class ThrottledState(Func<T, Task> invoke, int delayMillis, bool trailing)
+    {
+        private readonly object _lock = new();
+        private T _pendingValue = default!;
+        private bool _pendingValueSet;
+        private bool _disposed;
+        private Timer? _delayTimer;
 
-        return value =>
+        public Task OnValue(T value)
         {
-            lock (lockObj)
+            lock (_lock)
             {
-                if (delayTimer != null)
+                if (_disposed) return Task.CompletedTask;
+
+                if (_delayTimer != null)
                 {
                     if (trailing)
                     {
-                        pendingValue = value;
-                        pendingValueSet = true;
+                        _pendingValue = value;
+                        _pendingValueSet = true;
                     }
                     return Task.CompletedTask;
                 }
 
-                delayTimer = new Timer(delayMillis) { AutoReset = false };
-                delayTimer.Elapsed += Flush;
-                delayTimer.Start();
+                _delayTimer = new Timer(delayMillis) { AutoReset = false };
+                _delayTimer.Elapsed += Flush;
+                _delayTimer.Start();
             }
 
             return invoke(value);
-        };
+        }
+
+        private void Flush(object? sender, ElapsedEventArgs e)
+        {
+            T value;
+            bool shouldInvoke;
+            lock (_lock)
+            {
+                _delayTimer?.Dispose();
+                _delayTimer = null;
+                shouldInvoke = trailing && _pendingValueSet && !_disposed;
+                value = _pendingValue;
+                _pendingValue = default!;
+                _pendingValueSet = false;
+            }
+            if (shouldInvoke) _ = invoke(value);
+        }
+
+        public void Dispose()
+        {
+            lock (_lock)
+            {
+                _disposed = true;
+                _delayTimer?.Dispose();
+                _delayTimer = null;
+            }
+        }
+    }
+
+    private sealed class ThrottledSubscription(IDisposable inner, ThrottledState state) : IDisposable
+    {
+        public void Dispose()
+        {
+            state.Dispose();
+            inner.Dispose();
+        }
     }
 }

@@ -21,50 +21,63 @@ internal sealed class SampledDataFlow<T>(IDataFlow<T> upstream, int intervalMill
 
     private SampleSubscription BuildSubscription(Func<T, Task> invoke, int bufferSize, BufferOverflowBehavior overflowBehavior)
     {
-        var lockObj = new object();
-        T lastValue = default!;
-        bool hasValue = false;
-        bool hasFresh = false;
+        var state = new SampledState(invoke, emptyBehavior);
+
+        var innerSubscription = upstream.Subscribe(state.OnValue, bufferSize, overflowBehavior);
 
         var timer = new Timer(intervalMillis) { AutoReset = true };
-
-        timer.Elapsed += (_, _) =>
-        {
-            T value;
-            lock (lockObj)
-            {
-                if (!hasValue)
-                    return;
-
-                if (!hasFresh && emptyBehavior == SampleEmptyBehavior.Skip)
-                    return;
-
-                value = lastValue;
-                hasFresh = false;
-            }
-            _ = invoke(value);
-        };
-
-        var innerSubscription = upstream.Subscribe(value =>
-        {
-            lock (lockObj)
-            {
-                lastValue = value;
-                hasValue = true;
-                hasFresh = true;
-            }
-            return Task.CompletedTask;
-        }, bufferSize, overflowBehavior);
-
+        timer.Elapsed += state.OnTick;
         timer.Start();
 
-        return new SampleSubscription(innerSubscription, timer);
+        return new SampleSubscription(innerSubscription, timer, state);
     }
 
-    private sealed class SampleSubscription(IDisposable inner, Timer timer) : IDisposable
+    private sealed class SampledState(Func<T, Task> invoke, SampleEmptyBehavior emptyBehavior)
+    {
+        private readonly object _lock = new();
+        private T _lastValue = default!;
+        private bool _hasValue;
+        private bool _hasFresh;
+        private bool _disposed;
+
+        public Task OnValue(T value)
+        {
+            lock (_lock)
+            {
+                _lastValue = value;
+                _hasValue = true;
+                _hasFresh = true;
+            }
+            return Task.CompletedTask;
+        }
+
+        public void OnTick(object? sender, System.Timers.ElapsedEventArgs e)
+        {
+            T value;
+            lock (_lock)
+            {
+                if (_disposed || !_hasValue) return;
+                if (!_hasFresh && emptyBehavior == SampleEmptyBehavior.Skip) return;
+                value = _lastValue;
+                _hasFresh = false;
+            }
+            _ = invoke(value);
+        }
+
+        public void Dispose()
+        {
+            lock (_lock)
+            {
+                _disposed = true;
+            }
+        }
+    }
+
+    private sealed class SampleSubscription(IDisposable inner, Timer timer, SampledState state) : IDisposable
     {
         public void Dispose()
         {
+            state.Dispose();
             timer.Dispose();
             inner.Dispose();
         }

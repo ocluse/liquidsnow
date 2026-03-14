@@ -27,6 +27,7 @@ internal sealed class StateFlow<T>(T initialValue, IEqualityComparer<T> comparer
     private readonly object _lock = new();
 
     private T _value = initialValue;
+    private bool _disposed;
 
     /// <inheritdoc/>
     public bool Paused => false;
@@ -48,6 +49,7 @@ internal sealed class StateFlow<T>(T initialValue, IEqualityComparer<T> comparer
     {
         lock (_lock)
         {
+            if (_disposed) return;
             if (comparer.Equals(_value, value)) return;
             _value = value;
             Dispatch(value);
@@ -93,6 +95,8 @@ internal sealed class StateFlow<T>(T initialValue, IEqualityComparer<T> comparer
     {
         lock (_lock)
         {
+            if (_disposed) return;
+            _disposed = true;
             foreach (var handler in _handlers)
             {
                 handler.Dispose();
