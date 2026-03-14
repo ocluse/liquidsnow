@@ -5,10 +5,9 @@ namespace Ocluse.LiquidSnow.Data;
 /// </summary>
 /// <typeparam name="T">The type of value emitted by this flow.</typeparam>
 /// <remarks>
-/// Disposing the data flow will unsubscribe all subscribers and stop the flow.
-/// To emit values or control the flow lifecycle, see <see cref="IMutableDataFlow{T}"/>.
+/// To emit values or control the flow lifecycle (including disposal), see <see cref="IMutableDataFlow{T}"/>.
 /// </remarks>
-public interface IDataFlow<T> : IDisposable
+public interface IDataFlow<T>
 {
     /// <summary>
     /// Gets a value indicating whether the data flow is currently paused.
