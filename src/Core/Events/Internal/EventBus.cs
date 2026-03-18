@@ -1,53 +1,39 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Ocluse.LiquidSnow.Events.Internal;
 
-internal sealed class EventBus(IServiceProvider serviceProvider, IServiceScopeFactory serviceScopeFactory) : IEventBus
+internal sealed class EventBus(
+    IServiceProvider serviceProvider,
+    IServiceScopeFactory serviceScopeFactory,
+    IEnumerable<IEventDispatchContributor> contributors)
+    : IEventBus
 {
-    private static async Task ExecuteHandler(object? handler, MethodInfo handleMethodInfo, object[] handleMethodArgs)
-    {
-        if (handler == null)
-        {
-            return;
-        }
-
-        await (Task)handleMethodInfo.Invoke(handler, handleMethodArgs)!;
-    }
+    private readonly Dictionary<EventDispatchKey, EventDispatchDescriptor> _descriptors = contributors
+        .SelectMany(x => x.Descriptors)
+        .GroupBy(x => new EventDispatchKey(x.EventType))
+        .ToDictionary(x => x.Key, x => x.Single());
 
     private static async Task PublishAsync(IServiceProvider serviceProvider, object e, Type eventType, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(e, nameof(e));
 
-        EventDescriptorCache descriptorCache = serviceProvider.GetRequiredService<EventDescriptorCache>();
+        EventBus eventBus = serviceProvider.GetRequiredService<EventBus>();
+        await eventBus.PublishInternalAsync(serviceProvider, e, eventType, cancellationToken);
+    }
 
-        EventDescriptor descriptor = descriptorCache.GetDescriptor(eventType);
-
-        object[] handleMethodArgs = [e, cancellationToken];
-
-        IEnumerable<object?> handlers = serviceProvider
-            .GetServices(descriptor.HandlerType);
-
-        List<Exception> exceptions = [];
-
-        foreach (object? handler in handlers)
+    private Task PublishInternalAsync(
+        IServiceProvider serviceProvider,
+        object e,
+        Type eventType,
+        CancellationToken cancellationToken)
+    {
+        var key = new EventDispatchKey(eventType);
+        if (!_descriptors.TryGetValue(key, out EventDispatchDescriptor? descriptor))
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            try
-            {
-                await ExecuteHandler(handler, descriptor.HandleMethodInfo, handleMethodArgs);
-            }
-            catch (Exception ex)
-            {
-                exceptions.Add(ex);
-            }
+            return Task.CompletedTask;
         }
 
-        if (exceptions.Count > 1)
-        {
-            throw new AggregateException(exceptions);
-        }
+        return descriptor.ExecuteAsync(e, serviceProvider, cancellationToken);
     }
 
     public void Publish<TEvent>(TEvent e)
@@ -83,6 +69,6 @@ internal sealed class EventBus(IServiceProvider serviceProvider, IServiceScopeFa
     public async Task PublishAsync(object e, Type eventType, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(e, nameof(e));
-        await PublishAsync(serviceProvider, e, eventType, cancellationToken);
+        await PublishInternalAsync(serviceProvider, e, eventType, cancellationToken);
     }
 }

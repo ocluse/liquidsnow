@@ -1,0 +1,937 @@
+using System.Collections.Immutable;
+using System.Text;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
+
+namespace Ocluse.LiquidSnow.Core.SourceGenerators;
+
+internal enum DispatchKindName
+{
+    Command,
+    Query
+}
+
+[Generator(LanguageNames.CSharp)]
+public sealed class CqrsSourceGenerator : IIncrementalGenerator
+{
+    private const string CommandHandlerName = "Ocluse.LiquidSnow.Cqrs.ICommandHandler`2";
+    private const string QueryHandlerName = "Ocluse.LiquidSnow.Cqrs.IQueryHandler`2";
+    private const string CommandPreprocessorName = "Ocluse.LiquidSnow.Cqrs.ICommandPreprocessor`2";
+    private const string CommandPostprocessorName = "Ocluse.LiquidSnow.Cqrs.ICommandPostprocessor`2";
+    private const string QueryPreprocessorName = "Ocluse.LiquidSnow.Cqrs.IQueryPreprocessor`2";
+    private const string QueryPostprocessorName = "Ocluse.LiquidSnow.Cqrs.IQueryPostprocessor`2";
+    private const string NotRegisteredAttributeName = "Ocluse.LiquidSnow.DependencyInjection.NotRegisteredAttribute";
+    private const string EventListenerName = "Ocluse.LiquidSnow.Events.IEventListener`1";
+
+    public void Initialize(IncrementalGeneratorInitializationContext context)
+    {
+        IncrementalValueProvider<CqrsGenerationModel> modelProvider = context
+            .CompilationProvider
+            .Select(static (compilation, _) => BuildModel(compilation));
+
+        context.RegisterSourceOutput(modelProvider, static (productionContext, model) =>
+        {
+            productionContext.AddSource("ProjectCqrs.g.cs", model.Source);
+        });
+    }
+
+    private static CqrsGenerationModel BuildModel(Compilation compilation)
+    {
+        INamedTypeSymbol? commandHandler = compilation.GetTypeByMetadataName(CommandHandlerName);
+        INamedTypeSymbol? queryHandler = compilation.GetTypeByMetadataName(QueryHandlerName);
+        INamedTypeSymbol? commandPreprocessor = compilation.GetTypeByMetadataName(CommandPreprocessorName);
+        INamedTypeSymbol? commandPostprocessor = compilation.GetTypeByMetadataName(CommandPostprocessorName);
+        INamedTypeSymbol? queryPreprocessor = compilation.GetTypeByMetadataName(QueryPreprocessorName);
+        INamedTypeSymbol? queryPostprocessor = compilation.GetTypeByMetadataName(QueryPostprocessorName);
+        INamedTypeSymbol? eventListener = compilation.GetTypeByMetadataName(EventListenerName);
+        INamedTypeSymbol? notRegistered = compilation.GetTypeByMetadataName(NotRegisteredAttributeName);
+
+        if (commandHandler is null ||
+            queryHandler is null ||
+            commandPreprocessor is null ||
+            commandPostprocessor is null ||
+            queryPreprocessor is null ||
+            queryPostprocessor is null ||
+            eventListener is null)
+        {
+            return CqrsGenerationModel.Empty;
+        }
+
+        List<INamedTypeSymbol> concreteTypes = [];
+        CollectTypes(compilation.Assembly.GlobalNamespace, concreteTypes);
+
+        List<ServiceRegistration> serviceRegistrations = [];
+        List<DispatchRoute> dispatchRoutes = [];
+        List<EventDispatchRoute> eventDispatchRoutes = [];
+
+        foreach (INamedTypeSymbol type in concreteTypes)
+        {
+            if (type.IsAbstract || type.TypeKind is TypeKind.Interface)
+            {
+                continue;
+            }
+
+            AddServiceRegistrations(type, commandHandler, notRegistered, serviceRegistrations);
+            AddServiceRegistrations(type, queryHandler, notRegistered, serviceRegistrations);
+            AddServiceRegistrations(type, commandPreprocessor, notRegistered, serviceRegistrations);
+            AddServiceRegistrations(type, commandPostprocessor, notRegistered, serviceRegistrations);
+            AddServiceRegistrations(type, queryPreprocessor, notRegistered, serviceRegistrations);
+            AddServiceRegistrations(type, queryPostprocessor, notRegistered, serviceRegistrations);
+            AddServiceRegistrations(type, eventListener, notRegistered, serviceRegistrations);
+
+            AddDispatchRoutes(type, commandHandler, DispatchKindName.Command, dispatchRoutes);
+            AddDispatchRoutes(type, queryHandler, DispatchKindName.Query, dispatchRoutes);
+            AddEventDispatchRoutes(type, eventListener, eventDispatchRoutes);
+        }
+
+        string assemblyName = compilation.AssemblyName ?? "Project";
+        string generatedNamespace = $"{assemblyName}.Generated.Cqrs";
+        string source = RenderSource(generatedNamespace, serviceRegistrations, dispatchRoutes, eventDispatchRoutes);
+        return new CqrsGenerationModel(source);
+    }
+
+    private static string RenderSource(
+        string generatedNamespace,
+        IReadOnlyCollection<ServiceRegistration> registrations,
+        IReadOnlyCollection<DispatchRoute> dispatchRoutes,
+        IReadOnlyCollection<EventDispatchRoute> eventDispatchRoutes)
+    {
+        StringBuilder sb = new();
+        sb.AppendLine("// <auto-generated />");
+        sb.AppendLine("using System;");
+        sb.AppendLine("using System.Collections.Generic;");
+        sb.AppendLine("using Ocluse.LiquidSnow.Cqrs.Internal;");
+        sb.AppendLine("using Ocluse.LiquidSnow.Events.Internal;");
+        sb.AppendLine("using Microsoft.Extensions.DependencyInjection;");
+        sb.AppendLine("using Microsoft.Extensions.DependencyInjection.Extensions;");
+        sb.AppendLine();
+        sb.Append("namespace ").Append(generatedNamespace).AppendLine(";");
+        sb.AppendLine();
+        sb.AppendLine("/// <summary>");
+        sb.AppendLine("/// Provides generated CQRS handler registration for this assembly.");
+        sb.AppendLine("/// </summary>");
+        sb.AppendLine("public static class ProjectCqrs");
+        sb.AppendLine("{");
+        sb.AppendLine("    /// <summary>");
+        sb.AppendLine("    /// Registers all CQRS handlers and dispatch routes discovered in this assembly.");
+        sb.AppendLine("    /// </summary>");
+        sb.AppendLine("    /// <param name=\"builder\">The CQRS builder.</param>");
+        sb.AppendLine("    /// <param name=\"lifetime\">The service lifetime to use for generated registrations.</param>");
+        sb.AppendLine("    /// <returns>The same <paramref name=\"builder\"/> instance.</returns>");
+        sb.AppendLine("    public static global::Ocluse.LiquidSnow.DependencyInjection.CqrsBuilder AddHandlers(");
+        sb.AppendLine("        global::Ocluse.LiquidSnow.DependencyInjection.CqrsBuilder builder,");
+        sb.AppendLine("        ServiceLifetime lifetime = ServiceLifetime.Transient)");
+        sb.AppendLine("    {");
+        sb.AppendLine("        ArgumentNullException.ThrowIfNull(builder);");
+        sb.AppendLine("        IServiceCollection services = builder.Services;");
+        sb.AppendLine();
+
+        foreach (ServiceRegistration registration in registrations.Distinct().Where(IsCqrsServiceRegistration))
+        {
+            sb.AppendLine("        services.TryAddEnumerable(new ServiceDescriptor(");
+            sb.Append("            typeof(").Append(registration.ServiceType).AppendLine("),");
+            sb.Append("            typeof(").Append(registration.ImplementationType).AppendLine("),");
+            sb.AppendLine("            lifetime));");
+            sb.AppendLine();
+        }
+
+        sb.AppendLine("        services.TryAddEnumerable(ServiceDescriptor.Singleton<global::Ocluse.LiquidSnow.Cqrs.Internal.ICqrsDispatchContributor, __ProjectCqrsDispatchContributor>());");
+        sb.AppendLine("        return builder;");
+        sb.AppendLine("    }");
+        sb.AppendLine("}");
+        sb.AppendLine();
+
+        sb.AppendLine("/// <summary>");
+        sb.AppendLine("/// Provides generated EventBus listener registration for this assembly.");
+        sb.AppendLine("/// </summary>");
+        sb.AppendLine("public static class ProjectEvents");
+        sb.AppendLine("{");
+        sb.AppendLine("    /// <summary>");
+        sb.AppendLine("    /// Registers all event listeners and event dispatch routes discovered in this assembly.");
+        sb.AppendLine("    /// </summary>");
+        sb.AppendLine("    /// <param name=\"builder\">The EventBus builder.</param>");
+        sb.AppendLine("    /// <param name=\"lifetime\">The service lifetime to use for generated registrations.</param>");
+        sb.AppendLine("    /// <returns>The same <paramref name=\"builder\"/> instance.</returns>");
+        sb.AppendLine("    public static global::Ocluse.LiquidSnow.DependencyInjection.EventBusBuilder AddListeners(");
+        sb.AppendLine("        global::Ocluse.LiquidSnow.DependencyInjection.EventBusBuilder builder,");
+        sb.AppendLine("        ServiceLifetime lifetime = ServiceLifetime.Transient)");
+        sb.AppendLine("    {");
+        sb.AppendLine("        ArgumentNullException.ThrowIfNull(builder);");
+        sb.AppendLine("        IServiceCollection services = builder.Services;");
+        sb.AppendLine();
+
+        foreach (ServiceRegistration registration in registrations.Distinct().Where(x => x.ServiceType.StartsWith("global::Ocluse.LiquidSnow.Events.IEventListener<", StringComparison.Ordinal)))
+        {
+            sb.AppendLine("        services.TryAddEnumerable(new ServiceDescriptor(");
+            sb.Append("            typeof(").Append(registration.ServiceType).AppendLine("),");
+            sb.Append("            typeof(").Append(registration.ImplementationType).AppendLine("),");
+            sb.AppendLine("            lifetime));");
+            sb.AppendLine();
+        }
+
+        sb.AppendLine("        services.TryAddEnumerable(ServiceDescriptor.Singleton<global::Ocluse.LiquidSnow.Events.Internal.IEventDispatchContributor, __ProjectEventsDispatchContributor>());");
+        sb.AppendLine("        return builder;");
+        sb.AppendLine("    }");
+        sb.AppendLine("}");
+        sb.AppendLine();
+
+        sb.AppendLine("internal sealed class __ProjectCqrsDispatchContributor : global::Ocluse.LiquidSnow.Cqrs.Internal.ICqrsDispatchContributor");
+        sb.AppendLine("{");
+        sb.AppendLine("    public IEnumerable<global::Ocluse.LiquidSnow.Cqrs.Internal.DispatchDescriptor> Descriptors => new global::Ocluse.LiquidSnow.Cqrs.Internal.DispatchDescriptor[]");
+        sb.AppendLine("    {");
+
+        foreach (DispatchRoute route in dispatchRoutes.Distinct())
+        {
+            string kind = route.Kind == DispatchKindName.Command
+                ? "global::Ocluse.LiquidSnow.Cqrs.Internal.DispatchKind.Command"
+                : "global::Ocluse.LiquidSnow.Cqrs.Internal.DispatchKind.Query";
+
+            string executor = route.Kind == DispatchKindName.Command
+                ? "global::Ocluse.LiquidSnow.Cqrs.CqrsDispatchExecutor.ExecuteCommandBoxedAsync"
+                : "global::Ocluse.LiquidSnow.Cqrs.CqrsDispatchExecutor.ExecuteQueryBoxedAsync";
+
+            sb.AppendLine("        new global::Ocluse.LiquidSnow.Cqrs.Internal.DispatchDescriptor(");
+            sb.Append("            ").Append(kind).AppendLine(",");
+            sb.Append("            typeof(").Append(route.RequestType).AppendLine("),");
+            sb.Append("            typeof(").Append(route.ResultType).AppendLine("),");
+            sb.Append("            ").Append(executor).Append("<").Append(route.RequestType).Append(", ").Append(route.ResultType).AppendLine(">),");
+        }
+
+        sb.AppendLine("    };");
+        sb.AppendLine("}");
+
+        sb.AppendLine();
+        sb.AppendLine("internal sealed class __ProjectEventsDispatchContributor : global::Ocluse.LiquidSnow.Events.Internal.IEventDispatchContributor");
+        sb.AppendLine("{");
+        sb.AppendLine("    public IEnumerable<global::Ocluse.LiquidSnow.Events.Internal.EventDispatchDescriptor> Descriptors => new global::Ocluse.LiquidSnow.Events.Internal.EventDispatchDescriptor[]");
+        sb.AppendLine("    {");
+
+        foreach (EventDispatchRoute route in eventDispatchRoutes.Distinct())
+        {
+            sb.AppendLine("        new global::Ocluse.LiquidSnow.Events.Internal.EventDispatchDescriptor(");
+            sb.Append("            typeof(").Append(route.EventType).AppendLine("),");
+            sb.Append("            global::Ocluse.LiquidSnow.Events.EventDispatchExecutor.ExecuteAsync<").Append(route.EventType).AppendLine(">),");
+        }
+
+        sb.AppendLine("    };");
+        sb.AppendLine("}");
+
+        return sb.ToString();
+    }
+
+    private static void AddServiceRegistrations(
+        INamedTypeSymbol type,
+        INamedTypeSymbol serviceOpenGeneric,
+        INamedTypeSymbol? notRegisteredAttribute,
+        List<ServiceRegistration> registrations)
+    {
+        foreach (INamedTypeSymbol serviceInterface in GetImplementedOpenGeneric(type, serviceOpenGeneric))
+        {
+            if (ShouldSkipRegistration(type, serviceInterface, notRegisteredAttribute))
+            {
+                continue;
+            }
+
+            registrations.Add(new ServiceRegistration(
+                ToGlobalTypeName(serviceInterface),
+                ToGlobalTypeName(type)));
+        }
+    }
+
+    private static bool IsCqrsServiceRegistration(ServiceRegistration registration)
+    {
+        return registration.ServiceType.StartsWith("global::Ocluse.LiquidSnow.Cqrs.ICommandHandler<", StringComparison.Ordinal)
+            || registration.ServiceType.StartsWith("global::Ocluse.LiquidSnow.Cqrs.IQueryHandler<", StringComparison.Ordinal)
+            || registration.ServiceType.StartsWith("global::Ocluse.LiquidSnow.Cqrs.ICommandPreprocessor<", StringComparison.Ordinal)
+            || registration.ServiceType.StartsWith("global::Ocluse.LiquidSnow.Cqrs.ICommandPostprocessor<", StringComparison.Ordinal)
+            || registration.ServiceType.StartsWith("global::Ocluse.LiquidSnow.Cqrs.IQueryPreprocessor<", StringComparison.Ordinal)
+            || registration.ServiceType.StartsWith("global::Ocluse.LiquidSnow.Cqrs.IQueryPostprocessor<", StringComparison.Ordinal);
+    }
+
+    private static bool ShouldSkipRegistration(
+        INamedTypeSymbol implementationType,
+        INamedTypeSymbol serviceType,
+        INamedTypeSymbol? notRegisteredAttribute)
+    {
+        if (notRegisteredAttribute is null)
+        {
+            return false;
+        }
+
+        foreach (AttributeData attribute in implementationType.GetAttributes())
+        {
+            if (!SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, notRegisteredAttribute))
+            {
+                continue;
+            }
+
+            if (attribute.ConstructorArguments.Length == 0)
+            {
+                return true;
+            }
+
+            TypedConstant typed = attribute.ConstructorArguments[0];
+            if (typed.Kind == TypedConstantKind.Type)
+            {
+                if (typed.IsNull)
+                {
+                    return true;
+                }
+
+                if (typed.Value is ITypeSymbol excludedType && SymbolEqualityComparer.Default.Equals(excludedType, serviceType))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private static void AddDispatchRoutes(
+        INamedTypeSymbol type,
+        INamedTypeSymbol serviceOpenGeneric,
+        DispatchKindName kind,
+        List<DispatchRoute> routes)
+    {
+        foreach (INamedTypeSymbol serviceInterface in GetImplementedOpenGeneric(type, serviceOpenGeneric))
+        {
+            ITypeSymbol requestType = serviceInterface.TypeArguments[0];
+            ITypeSymbol resultType = serviceInterface.TypeArguments[1];
+
+            routes.Add(new DispatchRoute(
+                kind,
+                ToGlobalTypeName(requestType),
+                ToGlobalTypeName(resultType)));
+        }
+    }
+
+    private static void AddEventDispatchRoutes(
+        INamedTypeSymbol type,
+        INamedTypeSymbol eventListenerOpenGeneric,
+        List<EventDispatchRoute> routes)
+    {
+        foreach (INamedTypeSymbol serviceInterface in GetImplementedOpenGeneric(type, eventListenerOpenGeneric))
+        {
+            ITypeSymbol eventType = serviceInterface.TypeArguments[0];
+            routes.Add(new EventDispatchRoute(ToGlobalTypeName(eventType)));
+        }
+    }
+
+    private static IEnumerable<INamedTypeSymbol> GetImplementedOpenGeneric(INamedTypeSymbol implementation, INamedTypeSymbol openGenericType)
+    {
+        foreach (INamedTypeSymbol iface in implementation.AllInterfaces)
+        {
+            if (SymbolEqualityComparer.Default.Equals(iface.OriginalDefinition, openGenericType))
+            {
+                yield return iface;
+            }
+        }
+    }
+
+    private static string ToGlobalTypeName(ITypeSymbol symbol)
+    {
+        return symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+    }
+
+    private static void CollectTypes(INamespaceSymbol ns, List<INamedTypeSymbol> allTypes)
+    {
+        foreach (INamedTypeSymbol type in ns.GetTypeMembers())
+        {
+            CollectTypeAndNested(type, allTypes);
+        }
+
+        foreach (INamespaceSymbol child in ns.GetNamespaceMembers())
+        {
+            CollectTypes(child, allTypes);
+        }
+    }
+
+    private static void CollectTypeAndNested(INamedTypeSymbol type, List<INamedTypeSymbol> allTypes)
+    {
+        allTypes.Add(type);
+
+        foreach (INamedTypeSymbol nested in type.GetTypeMembers())
+        {
+            CollectTypeAndNested(nested, allTypes);
+        }
+    }
+
+    private readonly struct CqrsGenerationModel
+    {
+        public CqrsGenerationModel(string source)
+        {
+            Source = source;
+        }
+
+        public string Source { get; }
+
+        public static readonly CqrsGenerationModel Empty = new("// <auto-generated />");
+    }
+
+    private readonly struct ServiceRegistration : IEquatable<ServiceRegistration>
+    {
+        public ServiceRegistration(string serviceType, string implementationType)
+        {
+            ServiceType = serviceType;
+            ImplementationType = implementationType;
+        }
+
+        public string ServiceType { get; }
+
+        public string ImplementationType { get; }
+
+        public bool Equals(ServiceRegistration other)
+        {
+            return ServiceType == other.ServiceType && ImplementationType == other.ImplementationType;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is ServiceRegistration other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            int hash = 17;
+            hash = (hash * 31) + ServiceType.GetHashCode();
+            hash = (hash * 31) + ImplementationType.GetHashCode();
+            return hash;
+        }
+    }
+
+    private readonly struct DispatchRoute : IEquatable<DispatchRoute>
+    {
+        public DispatchRoute(DispatchKindName kind, string requestType, string resultType)
+        {
+            Kind = kind;
+            RequestType = requestType;
+            ResultType = resultType;
+        }
+
+        public DispatchKindName Kind { get; }
+
+        public string RequestType { get; }
+
+        public string ResultType { get; }
+
+        public bool Equals(DispatchRoute other)
+        {
+            return Kind == other.Kind && RequestType == other.RequestType && ResultType == other.ResultType;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is DispatchRoute other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            int hash = 17;
+            hash = (hash * 31) + (int)Kind;
+            hash = (hash * 31) + RequestType.GetHashCode();
+            hash = (hash * 31) + ResultType.GetHashCode();
+            return hash;
+        }
+    }
+
+    private readonly struct EventDispatchRoute : IEquatable<EventDispatchRoute>
+    {
+        public EventDispatchRoute(string eventType)
+        {
+            EventType = eventType;
+        }
+
+        public string EventType { get; }
+
+        public bool Equals(EventDispatchRoute other)
+        {
+            return EventType == other.EventType;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is EventDispatchRoute other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return EventType.GetHashCode();
+        }
+    }
+}
+
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+public sealed class CqrsDispatchAnalyzer : DiagnosticAnalyzer
+{
+    private const string CommandDispatcherName = "Ocluse.LiquidSnow.Cqrs.ICommandDispatcher";
+    private const string QueryDispatcherName = "Ocluse.LiquidSnow.Cqrs.IQueryDispatcher";
+    private const string CommandHandlerName = "Ocluse.LiquidSnow.Cqrs.ICommandHandler`2";
+    private const string QueryHandlerName = "Ocluse.LiquidSnow.Cqrs.IQueryHandler`2";
+    private const string EventBusName = "Ocluse.LiquidSnow.Events.IEventBus";
+    private const string EventListenerName = "Ocluse.LiquidSnow.Events.IEventListener`1";
+
+    private static readonly DiagnosticDescriptor MissingCommandHandler = new(
+        id: "LSCQRS001",
+        title: "No command handler found",
+        messageFormat: "No reachable ICommandHandler<{0}, {1}> found for this dispatch call",
+        category: "Usage",
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true);
+
+    private static readonly DiagnosticDescriptor MissingQueryHandler = new(
+        id: "LSCQRS002",
+        title: "No query handler found",
+        messageFormat: "No reachable IQueryHandler<{0}, {1}> found for this dispatch call",
+        category: "Usage",
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true);
+
+    private static readonly DiagnosticDescriptor AmbiguousDispatch = new(
+        id: "LSCQRS003",
+        title: "Ambiguous dispatch handlers",
+        messageFormat: "Multiple reachable handlers match this dispatch call: {0}",
+        category: "Usage",
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true);
+
+    private static readonly DiagnosticDescriptor MissingEventListeners = new(
+        id: "LSEVT001",
+        title: "No event listeners found",
+        messageFormat: "No reachable IEventListener<{0}> found for this publish call",
+        category: "Usage",
+        defaultSeverity: DiagnosticSeverity.Info,
+        isEnabledByDefault: true);
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
+        [MissingCommandHandler, MissingQueryHandler, AmbiguousDispatch, MissingEventListeners];
+
+    public override void Initialize(AnalysisContext context)
+    {
+        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+        context.EnableConcurrentExecution();
+
+        context.RegisterCompilationStartAction(static startContext =>
+        {
+            INamedTypeSymbol? commandDispatcher = startContext.Compilation.GetTypeByMetadataName(CommandDispatcherName);
+            INamedTypeSymbol? queryDispatcher = startContext.Compilation.GetTypeByMetadataName(QueryDispatcherName);
+            INamedTypeSymbol? commandHandler = startContext.Compilation.GetTypeByMetadataName(CommandHandlerName);
+            INamedTypeSymbol? queryHandler = startContext.Compilation.GetTypeByMetadataName(QueryHandlerName);
+            INamedTypeSymbol? eventBus = startContext.Compilation.GetTypeByMetadataName(EventBusName);
+            INamedTypeSymbol? eventListener = startContext.Compilation.GetTypeByMetadataName(EventListenerName);
+
+            if (commandDispatcher is null || queryDispatcher is null || commandHandler is null || queryHandler is null || eventBus is null || eventListener is null)
+            {
+                return;
+            }
+
+            ImmutableArray<HandlerContract> contracts = BuildContracts(startContext.Compilation, commandHandler, queryHandler);
+            ImmutableArray<ITypeSymbol> eventListenerTypes = BuildEventListenerTypes(startContext.Compilation, eventListener);
+
+            startContext.RegisterOperationAction(operationContext =>
+            {
+                AnalyzeInvocation(
+                    operationContext,
+                    contracts,
+                    eventListenerTypes,
+                    commandDispatcher,
+                    queryDispatcher,
+                    eventBus);
+            }, OperationKind.Invocation);
+        });
+    }
+
+    private static void AnalyzeInvocation(
+        OperationAnalysisContext context,
+        ImmutableArray<HandlerContract> contracts,
+        ImmutableArray<ITypeSymbol> eventListenerTypes,
+        INamedTypeSymbol commandDispatcher,
+        INamedTypeSymbol queryDispatcher,
+        INamedTypeSymbol eventBus)
+    {
+        var invocation = (IInvocationOperation)context.Operation;
+        IMethodSymbol method = invocation.TargetMethod;
+
+        if (method.Name != "DispatchAsync")
+        {
+            if (method.Name is "Publish" or "PublishAsync")
+            {
+                AnalyzePublishInvocation(context, invocation, eventListenerTypes, eventBus);
+            }
+
+            return;
+        }
+
+        DispatchKindName? kind = GetDispatchKind(method, commandDispatcher, queryDispatcher);
+        if (kind is null)
+        {
+            return;
+        }
+
+        if (!TryGetDispatchTypes(invocation, out ITypeSymbol? requestType, out ITypeSymbol? resultType))
+        {
+            return;
+        }
+
+        List<HandlerContract> candidates = contracts
+            .Where(x => x.Kind == kind && SymbolEqualityComparer.Default.Equals(x.ResultType, resultType) && IsAssignableFrom(x.RequestType, requestType))
+            .ToList();
+
+        if (candidates.Count == 0)
+        {
+            DiagnosticDescriptor descriptor = kind == DispatchKindName.Command ? MissingCommandHandler : MissingQueryHandler;
+            context.ReportDiagnostic(Diagnostic.Create(
+                descriptor,
+                invocation.Syntax.GetLocation(),
+                requestType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
+                resultType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)));
+            return;
+        }
+
+        int maxScore = candidates.Max(x => ComputeMatchScore(requestType, x.RequestType));
+        List<HandlerContract> best = candidates.Where(x => ComputeMatchScore(requestType, x.RequestType) == maxScore).ToList();
+
+        if (best.Count > 1)
+        {
+            string matches = string.Join(", ",
+                best.Select(x => $"{x.RequestType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)} -> {x.ResultType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)}"));
+
+            context.ReportDiagnostic(Diagnostic.Create(AmbiguousDispatch, invocation.Syntax.GetLocation(), matches));
+        }
+    }
+
+    private static void AnalyzePublishInvocation(
+        OperationAnalysisContext context,
+        IInvocationOperation invocation,
+        ImmutableArray<ITypeSymbol> eventListenerTypes,
+        INamedTypeSymbol eventBus)
+    {
+        IMethodSymbol method = invocation.TargetMethod;
+        INamedTypeSymbol containingType = method.ContainingType;
+
+        bool isEventBus = SymbolEqualityComparer.Default.Equals(containingType, eventBus)
+            || containingType.AllInterfaces.Any(x => SymbolEqualityComparer.Default.Equals(x, eventBus));
+
+        if (!isEventBus)
+        {
+            return;
+        }
+
+        ITypeSymbol? eventType = null;
+
+        if (method.TypeArguments.Length == 1)
+        {
+            eventType = method.TypeArguments[0];
+        }
+        else if (invocation.Arguments.Length > 1 && invocation.Arguments[1].Value is ITypeOfOperation typeOfOperation)
+        {
+            eventType = typeOfOperation.TypeOperand;
+        }
+
+        if (eventType is null)
+        {
+            return;
+        }
+
+        if (eventType.TypeKind == TypeKind.TypeParameter)
+        {
+            return;
+        }
+
+        bool hasListener = eventListenerTypes.Any(x => SymbolEqualityComparer.Default.Equals(x, eventType));
+        if (!hasListener)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(
+                MissingEventListeners,
+                invocation.Syntax.GetLocation(),
+                eventType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)));
+        }
+    }
+
+    private static bool TryGetDispatchTypes(IInvocationOperation invocation, out ITypeSymbol requestType, out ITypeSymbol resultType)
+    {
+        requestType = null!;
+        resultType = null!;
+
+        ImmutableArray<ITypeSymbol> methodTypeArguments = invocation.TargetMethod.TypeArguments;
+
+        if (methodTypeArguments.Length == 2)
+        {
+            requestType = methodTypeArguments[0];
+            resultType = methodTypeArguments[1];
+            return true;
+        }
+
+        if (methodTypeArguments.Length == 1 && invocation.Arguments.Length > 0)
+        {
+            IOperation argumentValue = invocation.Arguments[0].Value;
+
+            if (argumentValue is IConversionOperation conversion && conversion.Operand.Type is not null)
+            {
+                argumentValue = conversion.Operand;
+            }
+
+            ITypeSymbol? inferredRequestType = argumentValue.Type;
+            if (inferredRequestType is null)
+            {
+                return false;
+            }
+
+            requestType = inferredRequestType;
+            resultType = methodTypeArguments[0];
+            return true;
+        }
+
+        return false;
+    }
+
+    private static DispatchKindName? GetDispatchKind(
+        IMethodSymbol method,
+        INamedTypeSymbol commandDispatcher,
+        INamedTypeSymbol queryDispatcher)
+    {
+        INamedTypeSymbol containingType = method.ContainingType;
+
+        if (SymbolEqualityComparer.Default.Equals(containingType, commandDispatcher) ||
+            containingType.AllInterfaces.Any(x => SymbolEqualityComparer.Default.Equals(x, commandDispatcher)))
+        {
+            return DispatchKindName.Command;
+        }
+
+        if (SymbolEqualityComparer.Default.Equals(containingType, queryDispatcher) ||
+            containingType.AllInterfaces.Any(x => SymbolEqualityComparer.Default.Equals(x, queryDispatcher)))
+        {
+            return DispatchKindName.Query;
+        }
+
+        return null;
+    }
+
+    private static ImmutableArray<HandlerContract> BuildContracts(
+        Compilation compilation,
+        INamedTypeSymbol commandHandler,
+        INamedTypeSymbol queryHandler)
+    {
+        List<HandlerContract> all = [];
+
+        AddContractsFromNamespace(compilation.Assembly.GlobalNamespace, commandHandler, queryHandler, all);
+
+        foreach (MetadataReference reference in compilation.References)
+        {
+            if (compilation.GetAssemblyOrModuleSymbol(reference) is not IAssemblySymbol assembly)
+            {
+                continue;
+            }
+
+            AddContractsFromNamespace(assembly.GlobalNamespace, commandHandler, queryHandler, all);
+        }
+
+        return all.Distinct().ToImmutableArray();
+    }
+
+    private static ImmutableArray<ITypeSymbol> BuildEventListenerTypes(
+        Compilation compilation,
+        INamedTypeSymbol eventListener)
+    {
+        List<ITypeSymbol> all = [];
+        AddEventListenersFromNamespace(compilation.Assembly.GlobalNamespace, eventListener, all);
+
+        foreach (MetadataReference reference in compilation.References)
+        {
+            if (compilation.GetAssemblyOrModuleSymbol(reference) is not IAssemblySymbol assembly)
+            {
+                continue;
+            }
+
+            AddEventListenersFromNamespace(assembly.GlobalNamespace, eventListener, all);
+        }
+
+        return all
+            .Distinct(SymbolEqualityComparer.Default)
+            .Cast<ITypeSymbol>()
+            .ToImmutableArray();
+    }
+
+    private static void AddEventListenersFromNamespace(
+        INamespaceSymbol ns,
+        INamedTypeSymbol eventListener,
+        List<ITypeSymbol> all)
+    {
+        foreach (INamedTypeSymbol type in ns.GetTypeMembers())
+        {
+            AddEventListenersFromType(type, eventListener, all);
+        }
+
+        foreach (INamespaceSymbol child in ns.GetNamespaceMembers())
+        {
+            AddEventListenersFromNamespace(child, eventListener, all);
+        }
+    }
+
+    private static void AddEventListenersFromType(
+        INamedTypeSymbol type,
+        INamedTypeSymbol eventListener,
+        List<ITypeSymbol> all)
+    {
+        if (!type.IsAbstract && type.TypeKind is not TypeKind.Interface)
+        {
+            foreach (INamedTypeSymbol iface in type.AllInterfaces)
+            {
+                if (SymbolEqualityComparer.Default.Equals(iface.OriginalDefinition, eventListener))
+                {
+                    all.Add(iface.TypeArguments[0]);
+                }
+            }
+        }
+
+        foreach (INamedTypeSymbol nested in type.GetTypeMembers())
+        {
+            AddEventListenersFromType(nested, eventListener, all);
+        }
+    }
+
+    private static void AddContractsFromNamespace(
+        INamespaceSymbol ns,
+        INamedTypeSymbol commandHandler,
+        INamedTypeSymbol queryHandler,
+        List<HandlerContract> all)
+    {
+        foreach (INamedTypeSymbol type in ns.GetTypeMembers())
+        {
+            AddContractsFromType(type, commandHandler, queryHandler, all);
+        }
+
+        foreach (INamespaceSymbol child in ns.GetNamespaceMembers())
+        {
+            AddContractsFromNamespace(child, commandHandler, queryHandler, all);
+        }
+    }
+
+    private static void AddContractsFromType(
+        INamedTypeSymbol type,
+        INamedTypeSymbol commandHandler,
+        INamedTypeSymbol queryHandler,
+        List<HandlerContract> all)
+    {
+        if (!type.IsAbstract && type.TypeKind is not TypeKind.Interface)
+        {
+            foreach (INamedTypeSymbol iface in type.AllInterfaces)
+            {
+                if (SymbolEqualityComparer.Default.Equals(iface.OriginalDefinition, commandHandler))
+                {
+                    all.Add(new HandlerContract(DispatchKindName.Command, iface.TypeArguments[0], iface.TypeArguments[1]));
+                }
+                else if (SymbolEqualityComparer.Default.Equals(iface.OriginalDefinition, queryHandler))
+                {
+                    all.Add(new HandlerContract(DispatchKindName.Query, iface.TypeArguments[0], iface.TypeArguments[1]));
+                }
+            }
+        }
+
+        foreach (INamedTypeSymbol nested in type.GetTypeMembers())
+        {
+            AddContractsFromType(nested, commandHandler, queryHandler, all);
+        }
+    }
+
+    private static bool IsAssignableFrom(ITypeSymbol baseType, ITypeSymbol type)
+    {
+        if (SymbolEqualityComparer.Default.Equals(baseType, type))
+        {
+            return true;
+        }
+
+        if (type.AllInterfaces.Any(x => SymbolEqualityComparer.Default.Equals(x, baseType)))
+        {
+            return true;
+        }
+
+        ITypeSymbol? current = type.BaseType;
+        while (current is not null)
+        {
+            if (SymbolEqualityComparer.Default.Equals(current, baseType))
+            {
+                return true;
+            }
+
+            current = current.BaseType;
+        }
+
+        return false;
+    }
+
+    private static int ComputeMatchScore(ITypeSymbol runtimeType, ITypeSymbol candidateType)
+    {
+        if (SymbolEqualityComparer.Default.Equals(runtimeType, candidateType))
+        {
+            return 10_000;
+        }
+
+        if (candidateType.TypeKind == TypeKind.Interface)
+        {
+            ImmutableArray<INamedTypeSymbol> interfaces = runtimeType.AllInterfaces;
+            for (int i = 0; i < interfaces.Length; i++)
+            {
+                if (SymbolEqualityComparer.Default.Equals(interfaces[i], candidateType))
+                {
+                    return 2_000 - i;
+                }
+            }
+
+            return int.MinValue;
+        }
+
+        int distance = 0;
+        ITypeSymbol? current = runtimeType;
+        while (current is not null)
+        {
+            if (SymbolEqualityComparer.Default.Equals(current, candidateType))
+            {
+                return 5_000 - distance;
+            }
+
+            current = current.BaseType;
+            distance++;
+        }
+
+        return int.MinValue;
+    }
+
+    private readonly struct HandlerContract : IEquatable<HandlerContract>
+    {
+        public HandlerContract(DispatchKindName kind, ITypeSymbol requestType, ITypeSymbol resultType)
+        {
+            Kind = kind;
+            RequestType = requestType;
+            ResultType = resultType;
+        }
+
+        public DispatchKindName Kind { get; }
+
+        public ITypeSymbol RequestType { get; }
+
+        public ITypeSymbol ResultType { get; }
+
+        public bool Equals(HandlerContract other)
+        {
+            return Kind == other.Kind
+                && SymbolEqualityComparer.Default.Equals(RequestType, other.RequestType)
+                && SymbolEqualityComparer.Default.Equals(ResultType, other.ResultType);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is HandlerContract other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            int hash = 17;
+            hash = (hash * 31) + (int)Kind;
+            hash = (hash * 31) + SymbolEqualityComparer.Default.GetHashCode(RequestType);
+            hash = (hash * 31) + SymbolEqualityComparer.Default.GetHashCode(ResultType);
+            return hash;
+        }
+    }
+}

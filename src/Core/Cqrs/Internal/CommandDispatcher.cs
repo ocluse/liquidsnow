@@ -5,11 +5,13 @@ internal sealed class CommandDispatcher(CoreDispatcher coreDispatcher, IServiceP
 {
     public async Task<TCommandResult> DispatchAsync<TCommandResult>(ICommand<TCommandResult> command, CancellationToken cancellationToken)
     {
-        return await coreDispatcher.DispatchAsync<TCommandResult>(ExecutionKind.Command, command.GetType(),  command, serviceProvider, cancellationToken);
+        ArgumentNullException.ThrowIfNull(command);
+        return await coreDispatcher.DispatchCommandAsync(command, serviceProvider, cancellationToken);
     }
 
     public Task<TCommandResult> DispatchAsync<TCommand, TCommandResult>(TCommand command, CancellationToken cancellationToken = default) where TCommand : ICommand<TCommandResult>
     {
-        return coreDispatcher.DispatchAsync<TCommandResult>(ExecutionKind.Command, typeof(TCommand), command, serviceProvider, cancellationToken);
+        ArgumentNullException.ThrowIfNull(command);
+        return coreDispatcher.DispatchCommandAsync<TCommand, TCommandResult>(command, serviceProvider, cancellationToken);
     }
 }

@@ -1,9 +1,10 @@
-﻿namespace Ocluse.LiquidSnow.Core.Tests.Cqrs;
+namespace Ocluse.LiquidSnow.Core.Tests.Cqrs;
 
 public class CqrsApplication : SimpleApplication
 {
     public override void ConfigureServices(IServiceCollection services)
     {
-        services.AddCqrs();
+        var builder = services.AddCqrs();
+        Ocluse.LiquidSnow.Core.Tests.Generated.Cqrs.ProjectCqrs.AddHandlers(builder);
     }
 }

@@ -13,22 +13,11 @@ public static class BuilderExtensions
     #region CQRS
 
     /// <summary>
-    /// Adds the CQRS dispatchers and handlers implemented in the calling assembly.
+    /// Adds the CQRS dispatchers implemented in the current service collection.
     /// </summary>
-    public static CqrsBuilder AddCqrs(this IServiceCollection services, ServiceLifetime handlerLifetime = ServiceLifetime.Transient)
+    public static CqrsBuilder AddCqrs(this IServiceCollection services)
     {
-        return services.AddCqrs(Assembly.GetCallingAssembly(), handlerLifetime);
-    }
-
-    /// <summary>
-    /// Adds the CQRS dispatchers and handlers from the provided assembly.
-    /// </summary>
-    public static CqrsBuilder AddCqrs(
-        this IServiceCollection services,
-        Assembly assembly,
-        ServiceLifetime handlerLifetime = ServiceLifetime.Transient)
-    {
-        return new CqrsBuilder(services, assembly, handlerLifetime);
+        return new CqrsBuilder(services);
     }
 
     #endregion
@@ -36,22 +25,11 @@ public static class BuilderExtensions
     #region EVENT BUS
 
     /// <summary>
-    /// Adds the Event Bus and event listeners from the calling assembly using the default configuration.
+    /// Adds the Event Bus services.
     /// </summary>
-    public static EventBusBuilder AddEventBus(this IServiceCollection services, ServiceLifetime listenerLifetime = ServiceLifetime.Transient)
+    public static EventBusBuilder AddEventBus(this IServiceCollection services)
     {
-        return services.AddEventBus(Assembly.GetCallingAssembly(), listenerLifetime);
-    }
-
-    /// <summary>
-    /// Adds the Event Bus and event listeners using the provided options.
-    /// </summary>
-    public static EventBusBuilder AddEventBus(
-        this IServiceCollection services,
-        Assembly assembly,
-        ServiceLifetime listenerLifetime = ServiceLifetime.Transient)
-    {
-        return new EventBusBuilder(services, assembly, listenerLifetime);
+        return new EventBusBuilder(services);
     }
 
     #endregion
