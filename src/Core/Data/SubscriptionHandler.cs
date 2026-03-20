@@ -9,11 +9,10 @@ internal sealed class SubscriptionHandler<T>(
     Action<T>? syncFunction) : IDisposable
 {
     private readonly ConcurrentQueue<T> _queue = new();
-    private Task? _worker;
     private readonly SemaphoreSlim _signal = new(0);
     private readonly CancellationTokenSource _cts = new();
     private bool _disposed;
-
+    
     public void BufferInitial(IEnumerable<T> initialValues)
     {
         foreach (var v in initialValues) _queue.Enqueue(v);
@@ -21,7 +20,7 @@ internal sealed class SubscriptionHandler<T>(
 
     public void Start()
     {
-        _worker = Task.Run(ProcessQueueAsync);
+        _ = Task.Run(ProcessQueueAsync);
     }
 
     public void Enqueue(T value)
@@ -89,8 +88,7 @@ internal sealed class SubscriptionHandler<T>(
         }
 
         _cts.Cancel();
-        _signal.Release();          // unblock WaitAsync so the loop can observe cancellation
-        _worker?.Wait();            // wait for the loop to exit before releasing resources
+        _signal.Release();
         _cts.Dispose();
         _signal.Dispose();
     }
