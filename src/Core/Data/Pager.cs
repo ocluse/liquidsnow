@@ -10,7 +10,7 @@ namespace Ocluse.LiquidSnow.Data;
 /// <param name="dataSource">The source used to load the data.</param>
 /// <param name="pageSize">The maximum number of items to load on each operation.</param>
 /// <param name="supportsPrepending">Indicates whether the pager can prepend data, i.e. load data from the page before the initial page (i.e. page 0).</param>
-public class Pager<TKey, TItem>(IDataSource<TKey, TItem> dataSource, int pageSize = 20, bool supportsPrepending = false) : INotifyCollectionChanged
+public class Pager<TKey, TItem>(IDataSource<TKey, TItem> dataSource, int pageSize = 20, bool supportsPrepending = false) : IPager<TKey, TItem>
 {
     private record PageKeys(TKey? NextKey, TKey? PrevKey);
 
