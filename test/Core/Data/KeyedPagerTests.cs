@@ -151,6 +151,71 @@ public class KeyedPagerTests
         Assert.Equal("local", pager.Items[0].Value);
     }
 
+    [Fact]
+    public async Task LoadConflictStrategy_Replace_ReplacesExistingItem()
+    {
+        TestDataSource dataSource = new(request =>
+        {
+            if (request.Type == LoadType.Refresh)
+            {
+                return Task.FromResult(new LoadResult<int?, TestItem>
+                {
+                    NextKey = 2,
+                    PreviousKey = -1,
+                    Items = [new TestItem(1, "A")]
+                });
+            }
+
+            if (request.Type == LoadType.Append)
+            {
+                return Task.FromResult(new LoadResult<int?, TestItem>
+                {
+                    NextKey = null,
+                    PreviousKey = 1,
+                    Items = [new TestItem(1, "A-updated")]
+                });
+            }
+
+            return Task.FromResult(LoadResult<int?, TestItem>.Empty());
+        });
+
+        KeyedPager<int?, TestItem, int> pager = new(
+            dataSource,
+            x => x.Id,
+            loadConflictStrategy: ConflictStrategy.Replace);
+
+        await pager.RefreshAsync();
+        pager.ReachedEnd();
+        await WaitUntilAsync(() => pager.Items.Count == 1 && pager.Items[0].Value == "A-updated");
+
+        Assert.Single(pager.Items);
+        Assert.Equal("A-updated", pager.Items[0].Value);
+    }
+
+    [Fact]
+    public async Task LoadConflictStrategy_Error_SetsErrorStateOnDuplicate()
+    {
+        TestDataSource dataSource = new(_ => Task.FromResult(new LoadResult<int?, TestItem>
+        {
+            NextKey = null,
+            PreviousKey = null,
+            Items =
+            [
+                new TestItem(1, "A"),
+                new TestItem(1, "A-duplicate")
+            ]
+        }));
+
+        KeyedPager<int?, TestItem, int> pager = new(
+            dataSource,
+            x => x.Id,
+            loadConflictStrategy: ConflictStrategy.Error);
+
+        await pager.RefreshAsync();
+
+        Assert.Equal(LoadState.Error, pager.State.Refresh);
+    }
+
     private static async Task WaitUntilAsync(Func<bool> condition, int timeoutMs = 2000)
     {
         var timeoutAt = DateTime.UtcNow.AddMilliseconds(timeoutMs);

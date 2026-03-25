@@ -4,7 +4,9 @@ using System.Collections.Specialized;
 namespace Ocluse.LiquidSnow.Data;
 
 /// <summary>
-/// Provides utilities for loading keyed paging data while enforcing key uniqueness.
+/// Loads and manages keyed paged data from an <see cref="IDataSource{TKey, TItem}"/> while ensuring
+/// that only one item per key exists in <see cref="Items"/>.
+/// Duplicate keys from refresh, append, and prepend loads are ignored.
 /// </summary>
 /// <typeparam name="TKey">The type of key used to load page data.</typeparam>
 /// <typeparam name="TItem">The type of data item.</typeparam>
@@ -13,6 +15,7 @@ public class KeyedPager<TKey, TItem, TId> : IPager<TKey, TItem>
 {
     private readonly IDataSource<TKey, TItem> _dataSource;
     private readonly Func<TItem, TId> _idSelector;
+    private readonly ConflictStrategy _loadConflictStrategy;
     private readonly object _jobsLock = new();
     private readonly object _stateLock = new();
 
@@ -51,36 +54,61 @@ public class KeyedPager<TKey, TItem, TId> : IPager<TKey, TItem>
 
     /// <summary>
     /// Queue for mutations that arrive while loading is in progress.
+    /// Queued mutations run immediately after the current load operation finishes.
     /// </summary>
     protected readonly List<Action> _pendingActions = [];
 
     /// <summary>
     /// Creates a keyed pager.
     /// </summary>
+    /// <param name="dataSource">The source used to load paged data.</param>
+    /// <param name="idSelector">A function that extracts the unique key from each item.</param>
+    /// <param name="comparer">
+    /// An optional key comparer for uniqueness checks. When <see langword="null"/>,
+    /// <see cref="EqualityComparer{T}.Default"/> is used.
+    /// </param>
+    /// <param name="pageSize">The maximum number of items to request per load operation.</param>
+    /// <param name="supportsPrepending">
+    /// Indicates whether this pager should respond to <see cref="ReachedStart"/> by attempting a prepend load.
+    /// </param>
+    /// <param name="loadConflictStrategy">
+    /// Specifies how duplicate keys encountered during load operations (refresh, append, prepend) are handled.
+    /// Defaults to <see cref="ConflictStrategy.Ignore"/>, which keeps the existing item and drops the duplicate.
+    /// </param>
     public KeyedPager(
         IDataSource<TKey, TItem> dataSource,
         Func<TItem, TId> idSelector,
         IEqualityComparer<TId>? comparer = null,
         int pageSize = 20,
-        bool supportsPrepending = false)
+        bool supportsPrepending = false,
+        ConflictStrategy loadConflictStrategy = ConflictStrategy.Ignore)
     {
         _dataSource = dataSource;
         _idSelector = idSelector;
+        _loadConflictStrategy = loadConflictStrategy;
         _itemIds = new HashSet<TId>(comparer ?? EqualityComparer<TId>.Default);
         PageSize = pageSize;
         SupportsPrepending = supportsPrepending;
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Gets the current in-memory snapshot of loaded items.
+    /// </summary>
     public IReadOnlyList<TItem> Items => _items;
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Gets the maximum number of items requested per load operation.
+    /// </summary>
     public int PageSize { get; }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Gets whether this pager supports loading items that come before the current first page.
+    /// </summary>
     public bool SupportsPrepending { get; }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Gets the current state of refresh, append, and prepend operations.
+    /// </summary>
     public PagerState State
     {
         get
@@ -110,7 +138,10 @@ public class KeyedPager<TKey, TItem, TId> : IPager<TKey, TItem>
     /// <inheritdoc/>
     public event EventHandler<PagerStateChangedArgs>? StateChanged;
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Clears currently loaded items and reloads data from the source using the refresh key.
+    /// Any in-flight append or prepend operations are cancelled before the refresh begins.
+    /// </summary>
     public async Task RefreshAsync(CancellationToken cancellationToken = default)
     {
         if (State.Refresh == LoadState.Loading)
@@ -141,7 +172,10 @@ public class KeyedPager<TKey, TItem, TId> : IPager<TKey, TItem>
         await LoadCoreAsync(refreshKey, LoadType.Refresh, linkedCts.Token);
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Notifies the pager that the data accessor has reached the start and should load more prepending data when supported.
+    /// If prepending is unsupported, already loading, or there is no previous key, this call does nothing.
+    /// </summary>
     public void ReachedStart()
     {
         if (!SupportsPrepending)
@@ -176,7 +210,10 @@ public class KeyedPager<TKey, TItem, TId> : IPager<TKey, TItem>
         _ = LoadCoreAsync(firstKey, LoadType.Prepend, token);
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Notifies the pager that the data accessor has reached the end and should load more appending data when available.
+    /// If already loading or there is no next key, this call does nothing.
+    /// </summary>
     public void ReachedEnd()
     {
         if (State.Append == LoadState.Loading || State.Refresh == LoadState.Loading)
@@ -390,14 +427,18 @@ public class KeyedPager<TKey, TItem, TId> : IPager<TKey, TItem>
             lock (_syncRoot)
             {
                 var keys = new PageKeys(result.NextKey, result.PreviousKey);
-                var addedItems = ApplyLoadResultUnsafe(request.Type, result.Items, keys);
+                var applyResult = ApplyLoadResultUnsafe(request.Type, result.Items, keys);
 
-                if (addedItems.Count > 0)
+                if (applyResult.HadReplacements)
+                {
+                    OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+                }
+                else if (applyResult.AddedItems.Count > 0)
                 {
                     NotifyCollectionChangedEventArgs args = request.Type switch
                     {
-                        LoadType.Prepend => new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, addedItems, 0),
-                        _ => new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, addedItems)
+                        LoadType.Prepend => new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, applyResult.AddedItems, 0),
+                        _ => new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, applyResult.AddedItems)
                     };
                     OnCollectionChanged(args);
                 }
@@ -417,9 +458,12 @@ public class KeyedPager<TKey, TItem, TId> : IPager<TKey, TItem>
         }
     }
 
-    private IList ApplyLoadResultUnsafe(LoadType type, IReadOnlyList<TItem> incoming, PageKeys keys)
+    private readonly record struct ApplyResult(IList AddedItems, bool HadReplacements);
+
+    private ApplyResult ApplyLoadResultUnsafe(LoadType type, IReadOnlyList<TItem> incoming, PageKeys keys)
     {
         List<TItem> added = [];
+        bool hadReplacements = false;
 
         switch (type)
         {
@@ -429,11 +473,9 @@ public class KeyedPager<TKey, TItem, TId> : IPager<TKey, TItem>
                 _keys.Clear();
                 foreach (var item in incoming)
                 {
-                    var id = GetId(item);
-                    if (_itemIds.Add(id))
+                    if (ApplyIncomingItemUnsafe(item, LoadType.Append, added))
                     {
-                        _items.Add(item);
-                        added.Add(item);
+                        hadReplacements = true;
                     }
                 }
 
@@ -443,11 +485,9 @@ public class KeyedPager<TKey, TItem, TId> : IPager<TKey, TItem>
             case LoadType.Append:
                 foreach (var item in incoming)
                 {
-                    var id = GetId(item);
-                    if (_itemIds.Add(id))
+                    if (ApplyIncomingItemUnsafe(item, LoadType.Append, added))
                     {
-                        _items.Add(item);
-                        added.Add(item);
+                        hadReplacements = true;
                     }
                 }
 
@@ -457,10 +497,9 @@ public class KeyedPager<TKey, TItem, TId> : IPager<TKey, TItem>
             case LoadType.Prepend:
                 foreach (var item in incoming)
                 {
-                    var id = GetId(item);
-                    if (_itemIds.Add(id))
+                    if (ApplyIncomingItemUnsafe(item, LoadType.Prepend, added))
                     {
-                        added.Add(item);
+                        hadReplacements = true;
                     }
                 }
 
@@ -476,7 +515,46 @@ public class KeyedPager<TKey, TItem, TId> : IPager<TKey, TItem>
                 throw new InvalidOperationException("Invalid load type");
         }
 
-        return added;
+        return new ApplyResult(added, hadReplacements);
+    }
+
+    private bool ApplyIncomingItemUnsafe(TItem item, LoadType type, List<TItem> added)
+    {
+        var id = GetId(item);
+        var existingIndex = IndexOfIdUnsafe(id);
+
+        if (existingIndex >= 0)
+        {
+            switch (_loadConflictStrategy)
+            {
+                case ConflictStrategy.Ignore:
+                    return false;
+
+                case ConflictStrategy.Replace:
+                    _items[existingIndex] = item;
+                    return true;
+
+                case ConflictStrategy.Error:
+                    throw new InvalidOperationException($"Duplicate item key '{id}' encountered during {type} load.");
+
+                default:
+                    throw new InvalidOperationException("Invalid conflict strategy.");
+            }
+        }
+
+        _itemIds.Add(id);
+
+        if (type == LoadType.Prepend)
+        {
+            added.Add(item);
+        }
+        else
+        {
+            _items.Add(item);
+            added.Add(item);
+        }
+
+        return false;
     }
 
     private void ProcessPendingMutationsUnsafe()

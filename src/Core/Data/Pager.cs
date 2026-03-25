@@ -3,7 +3,8 @@
 namespace Ocluse.LiquidSnow.Data;
 
 /// <summary>
-/// Provides utilities for loading paging data, keeping track of the current state of the data, and notifying when the data changes.
+/// Loads and manages paged data from an <see cref="IDataSource{TKey, TItem}"/>.
+/// Tracks refresh/append/prepend load states and emits collection and state notifications as items are loaded.
 /// </summary>
 /// <typeparam name="TKey">The type of key used to load the data.</typeparam>
 /// <typeparam name="TItem">The type of data.</typeparam>
@@ -29,22 +30,22 @@ public class Pager<TKey, TItem>(IDataSource<TKey, TItem> dataSource, int pageSiz
     };
 
     /// <summary>
-    /// Returns the list of items that have currently been loaded.
+    /// Gets the current in-memory snapshot of loaded items.
     /// </summary>
     public IReadOnlyList<TItem> Items => _items;
 
     /// <summary>
-    /// Returns the maximum number of items to load on each operation.
+    /// Gets the maximum number of items requested per load operation.
     /// </summary>
     public int PageSize => pageSize;
 
     /// <summary>
-    /// Returns a value indicating whether the pager can prepend data.
+    /// Gets whether this pager supports loading items that come before the current first page.
     /// </summary>
     public bool SupportsPrepending => supportsPrepending;
 
     /// <summary>
-    /// Returns the current state of the pager.
+    /// Gets the current state of refresh, append, and prepend operations.
     /// </summary>
     public PagerState State
     {
@@ -68,7 +69,7 @@ public class Pager<TKey, TItem>(IDataSource<TKey, TItem> dataSource, int pageSiz
     public event EventHandler<PagerStateChangedArgs>? StateChanged;
 
     /// <summary>
-    /// Refreshes the data in the pager. This will clear all items and load the data from the data source again.
+    /// Clears currently loaded items and reloads data from the source using the refresh key.
     /// </summary>
     public async Task RefreshAsync(CancellationToken cancellationToken = default)
     {
@@ -85,7 +86,7 @@ public class Pager<TKey, TItem>(IDataSource<TKey, TItem> dataSource, int pageSiz
     }
 
     /// <summary>
-    /// Notifies the pager that it has reached the start of the data. This will load more data if the pager supports prepending.
+    /// Notifies the pager that the data accessor has reached the start and should load more prepending data when supported.
     /// </summary>
     public void ReachedStart()
     {
@@ -112,7 +113,7 @@ public class Pager<TKey, TItem>(IDataSource<TKey, TItem> dataSource, int pageSiz
     }
 
     /// <summary>
-    /// Notifies the pager that it has reached the end of the data. This will load more data if there are more items to load.
+    /// Notifies the pager that the data accessor has reached the end and should load more appending data when available.
     /// </summary>
     public void ReachedEnd()
     {
