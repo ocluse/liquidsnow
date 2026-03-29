@@ -15,7 +15,10 @@ internal sealed class SubscriptionHandler<T>(
     
     public void BufferInitial(IEnumerable<T> initialValues)
     {
-        foreach (var v in initialValues) _queue.Enqueue(v);
+        foreach (var v in initialValues)
+        {
+            Enqueue(v);
+        }
     }
 
     public void Start()
