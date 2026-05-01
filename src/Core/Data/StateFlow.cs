@@ -19,7 +19,7 @@ namespace Ocluse.LiquidSnow.Data;
 /// Defaults to <see cref="EqualityComparer{T}.Default"/>.
 /// </param>
 /// <returns>A new <see cref="StateFlow{T}"/>.</returns>
-public sealed class StateFlow<T>(T initialValue, IEqualityComparer<T>? comparer) : IStateFlow<T>, IDisposable
+public sealed class StateFlow<T>(T initialValue, IEqualityComparer<T>? comparer = null) : IStateFlow<T>, IDisposable
 {
     private readonly HashSet<SubscriptionHandler<T>> _handlers = [];
     private readonly object _lock = new();
