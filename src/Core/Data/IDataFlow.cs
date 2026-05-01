@@ -5,7 +5,7 @@ namespace Ocluse.LiquidSnow.Data;
 /// </summary>
 /// <typeparam name="T">The type of value emitted by this flow.</typeparam>
 /// <remarks>
-/// To emit values or control the flow lifecycle (including disposal), see <see cref="IMutableDataFlow{T}"/>.
+/// To emit values or control the flow lifecycle (including disposal), see <see cref="DataFlow{T}"/>.
 /// </remarks>
 public interface IDataFlow<T>
 {

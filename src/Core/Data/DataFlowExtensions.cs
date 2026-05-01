@@ -14,7 +14,7 @@ public static class DataFlowExtensions
     /// <param name="flow">The source flow.</param>
     /// <param name="predicate">A function that returns <see langword="true"/> for values that should be passed through.</param>
     /// <returns>An <see cref="IDataFlow{T}"/> that only emits values satisfying the predicate.</returns>
-    public static IDataFlow<T> Filter<T>(this IDataFlow<T> flow, Func<T, bool> predicate)
+    public static IDataFlow<T> Where<T>(this IDataFlow<T> flow, Func<T, bool> predicate)
     {
         return new FilteredDataFlow<T>(flow, predicate);
     }
@@ -27,7 +27,7 @@ public static class DataFlowExtensions
     /// <param name="flow">The source flow.</param>
     /// <param name="selector">A function that maps each emitted value to <typeparamref name="TResult"/>.</param>
     /// <returns>An <see cref="IDataFlow{TResult}"/> that emits transformed values.</returns>
-    public static IDataFlow<TResult> Transform<T, TResult>(this IDataFlow<T> flow, Func<T, TResult> selector)
+    public static IDataFlow<TResult> Select<T, TResult>(this IDataFlow<T> flow, Func<T, TResult> selector)
     {
         return new TransformedDataFlow<T, TResult>(flow, selector);
     }

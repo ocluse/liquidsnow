@@ -39,7 +39,7 @@ public class MutableKeyedPager<TKey, TItem, TId> : KeyedPager<TKey, TItem, TId>
     }
 
     /// <summary>
-    /// Adds a new item, or updates an existing item with the same key.
+    /// Adds a new item, or updates an existing item with the same key. The index of the the existing item is preserved when updating, and the new item is inserted at the specified index when adding.
     /// </summary>
     /// <param name="item">The item to add or update.</param>
     /// <param name="atIndex">Optional insertion index when the item does not already exist.</param>
@@ -88,8 +88,8 @@ public class MutableKeyedPager<TKey, TItem, TId> : KeyedPager<TKey, TItem, TId>
     /// Forces an item to be inserted at a given index by removing any existing item with the same key.
     /// </summary>
     /// <param name="item">The item to insert.</param>
-    /// <param name="atIndex">The preferred insertion index. Values outside bounds are clamped.</param>
-    public void ForceAdd(TItem item, int atIndex = 0)
+    /// <param name="atIndex">The preferred insertion index. If not provided, the item is added at the end of the list.</param>
+    public void ForceAdd(TItem item, int? atIndex = null)
     {
         RunOrQueueMutation(() =>
         {
@@ -107,9 +107,13 @@ public class MutableKeyedPager<TKey, TItem, TId> : KeyedPager<TKey, TItem, TId>
                 _itemIds.Add(itemId);
             }
 
-            int target = Math.Clamp(atIndex, 0, _items.Count);
-            _items.Insert(target, item);
-            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, target));
+            int index = atIndex.HasValue
+                   ? Math.Clamp(atIndex.Value, 0, _items.Count)
+                   : _items.Count;
+
+            _items.Insert(index, item);
+
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, index));
         });
     }
 

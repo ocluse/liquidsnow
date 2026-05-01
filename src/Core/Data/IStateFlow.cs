@@ -7,7 +7,7 @@ namespace Ocluse.LiquidSnow.Data;
 /// <typeparam name="T">The type of value held by this flow.</typeparam>
 /// <remarks>
 /// A state flow is never paused; <see cref="IDataFlow{T}.Paused"/> always returns <c>false</c>.
-/// To update the value or dispose the flow, see <see cref="IMutableStateFlow{T}"/>.
+/// To update the value or dispose the flow, see <see cref="StateFlow{T}"/>.
 /// </remarks>
 public interface IStateFlow<T> : IDataFlow<T>
 {
