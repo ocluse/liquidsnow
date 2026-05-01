@@ -1,38 +1,43 @@
 namespace Ocluse.LiquidSnow.Data;
 
 /// <summary>
-/// Provides a method for creating state flows.
+/// Defines a mutable state flow that can be observed by multiple subscbers for state changes.
 /// </summary>
-public static class StateFlow
-{
-    /// <summary>
-    /// Creates a new state flow with the given initial value.
-    /// </summary>
-    /// <typeparam name="T">The type of value held by the flow.</typeparam>
-    /// <param name="initialValue">The initial value replayed to subscribers until the first update.</param>
-    /// <param name="comparer">
-    /// An optional equality comparer used to determine whether a new value differs from the current one.
-    /// Defaults to <see cref="EqualityComparer{T}.Default"/>.
-    /// </param>
-    /// <returns>A new <see cref="IMutableStateFlow{T}"/>.</returns>
-    public static IMutableStateFlow<T> Create<T>(T initialValue, IEqualityComparer<T>? comparer = null)
-    {
-        return new StateFlow<T>(initialValue, comparer ?? EqualityComparer<T>.Default);
-    }
-}
-
-internal sealed class StateFlow<T>(T initialValue, IEqualityComparer<T> comparer) : IMutableStateFlow<T>
+/// <remarks>
+/// The current value is always replayed to new subscribers.
+/// When a new value is set, it is compared to the current value using the provided equality comparer (or default if none is provided). 
+/// If they are equal, the update is ignored and subscribers are not notified. 
+/// Otherwise, the new value replaces the current one and is dispatched to all subscribers.
+/// </remarks>
+/// <typeparam name="T">The type of value held by this flow.</typeparam>
+/// <remarks>
+/// Creates a new state flow with the given initial value.
+/// </remarks>
+/// <param name="initialValue">The initial value replayed to subscribers until the first update.</param>
+/// <param name="comparer">
+/// An optional equality comparer used to determine whether a new value differs from the current one.
+/// Defaults to <see cref="EqualityComparer{T}.Default"/>.
+/// </param>
+/// <returns>A new <see cref="StateFlow{T}"/>.</returns>
+public sealed class StateFlow<T>(T initialValue, IEqualityComparer<T>? comparer) : IStateFlow<T>, IDisposable
 {
     private readonly HashSet<SubscriptionHandler<T>> _handlers = [];
     private readonly object _lock = new();
-
+    private readonly IEqualityComparer<T> _comparer = comparer ?? EqualityComparer<T>.Default;
     private T _value = initialValue;
     private bool _disposed;
 
     /// <inheritdoc/>
     public bool Paused => false;
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Gets or sets the current value of the state flow.
+    /// </summary>
+    /// <remarks>
+    /// Setting this property updates the value only if it differs from the current value, as
+    /// determined by the equality comparer. If the flow disposed, setting the value has no
+    /// effect.
+    /// </remarks>
     public T Value
     {
         get
@@ -42,17 +47,15 @@ internal sealed class StateFlow<T>(T initialValue, IEqualityComparer<T> comparer
                 return _value;
             }
         }
-    }
-
-    /// <inheritdoc/>
-    public void Update(T value)
-    {
-        lock (_lock)
+        set
         {
-            if (_disposed) return;
-            if (comparer.Equals(_value, value)) return;
-            _value = value;
-            Dispatch(value);
+            lock (_lock)
+            {
+                if (_disposed) return;
+                if (_comparer.Equals(_value, value)) return;
+                _value = value;
+                Dispatch(value);
+            }
         }
     }
 
