@@ -34,7 +34,7 @@ public sealed class DataFlow<T> : IDataFlow<T>, IDisposable
     /// <param name="replayCount">The number of past values that will be replayed to each new subscriber on join.</param>
     /// <returns>A new <see cref="DataFlow{T}"/>.</returns>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
-    public DataFlow(int replayCount)
+    public DataFlow(int replayCount = 0)
     {
         if (replayCount < 0) throw new ArgumentOutOfRangeException(nameof(replayCount), "Replay count must be non-negative.");
         _replayCount = replayCount;
