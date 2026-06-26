@@ -1,29 +1,45 @@
 ﻿using System.Reflection;
 using System.Collections.Concurrent;
 using Ocluse.LiquidSnow.Utils;
+using Ocluse.LiquidSnow.Extensions;
 
 namespace Ocluse.LiquidSnow.Jobs.Internal;
 
-internal sealed class JobDescriptorCache
+internal sealed class JobDescriptorCache(JobsOptions options)
 {
-    private readonly ConcurrentDictionary<string, JobDescriptor> _descriptors = [];
+    private readonly ConcurrentDictionary<string, JobDescriptor[]> _polymorphicChains = [];
 
     private const string HandleMethodName = nameof(IJobHandler<IJob>.HandleAsync);
 
-    public JobDescriptor GetDescriptor(Type jobType)
+    public JobDescriptor[] GetPolymorphicChain(Type jobType)
     {
         string key = CacheKeyHelper.GetKey(jobType);
 
-        return _descriptors.GetOrAdd(key, (_) =>
+        return _polymorphicChains.GetOrAdd(key, (_) =>
         {
-            Type handlerType = typeof(IJobHandler<>).MakeGenericType(jobType);
+            List<JobDescriptor> chain = [CreateDescriptor(jobType)];
 
-            Type[] paramTypes = [jobType, typeof(long), typeof(CancellationToken)];
+            if (options.EnablePolymorphicResolution)
+            {
+                foreach(var baseType in jobType.GetBaseTypes())
+                {
+                    chain.Add(CreateDescriptor(baseType));
+                }
+            }
 
-            MethodInfo handleMethodInfo = handlerType.GetMethod(HandleMethodName, paramTypes)
-                ?? throw new InvalidOperationException("Handle method not found on job handler");
-
-            return new JobDescriptor(jobType, handlerType, handleMethodInfo);
+            return [.. chain];
         });
+    }
+
+    private static JobDescriptor CreateDescriptor(Type jobType)
+    {
+        Type handlerType = typeof(IJobHandler<>).MakeGenericType(jobType);
+
+        Type[] paramTypes = [jobType, typeof(long), typeof(CancellationToken)];
+
+        MethodInfo handleMethodInfo = handlerType.GetMethod(HandleMethodName, paramTypes)
+            ?? throw new InvalidOperationException("Handle method not found on job handler");
+
+        return new JobDescriptor(jobType, handlerType, handleMethodInfo);
     }
 }

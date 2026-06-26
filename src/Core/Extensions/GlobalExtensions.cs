@@ -537,19 +537,19 @@ public static class GlobalExtensions
             return num.ToString("0,,,.###B", cultureInfo);
         }
         else
-        if (num > million || num < -million)
-        {
-            return num.ToString("0,,.##M", cultureInfo);
-        }
-        else
-        if (num > thousand || num < -thousand)
-        {
-            return num.ToString("0,.#K", cultureInfo);
-        }
-        else
-        {
-            return num.ToString(format: null, formatProvider: cultureInfo);
-        }
+            if (num > million || num < -million)
+            {
+                return num.ToString("0,,.##M", cultureInfo);
+            }
+            else
+                if (num > thousand || num < -thousand)
+                {
+                    return num.ToString("0,.#K", cultureInfo);
+                }
+                else
+                {
+                    return num.ToString(format: null, formatProvider: cultureInfo);
+                }
     }
 
 
@@ -606,5 +606,23 @@ public static class GlobalExtensions
         return type.GetInterfaces().Any(x =>
             x.IsGenericType &&
             x.GetGenericTypeDefinition() == genericInterfaceType);
+    }
+
+    /// <summary>
+    /// Gets all base types of a given type in heirarchical order, starting from the immediate base type up to the root base type (excluding System.Object, unless specified).
+    /// </summary>
+    public static IEnumerable<Type> GetBaseTypes(this Type type, bool includeSystemObject = false)
+    {
+        Type? currentType = type.BaseType;
+        while (currentType != null)
+        {
+            if (!includeSystemObject && currentType == typeof(object))
+            {
+                yield break;
+            }
+
+            yield return currentType;
+            currentType = currentType.BaseType;
+        }
     }
 }

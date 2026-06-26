@@ -1,35 +1,59 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-
 namespace Ocluse.LiquidSnow.Cqrs.Internal;
 
 internal sealed class CoreDispatcher(ExecutionDescriptorCache descriptorCache)
 {
-    public async Task<TExecutionResult> DispatchAsync<TExecutionResult>(ExecutionKind kind, Type executionType, object execution, IServiceProvider serviceProvider, CancellationToken cancellationToken)
+    public async Task<TExecutionResult> DispatchAsync<TExecutionResult>(
+        ExecutionKind kind, 
+        Type executionType, 
+        object execution, 
+        IServiceProvider serviceProvider,
+        CancellationToken cancellationToken)
     {
-        ExecutionDescriptor descriptor = descriptorCache.GetDescriptor(kind, executionType, typeof(TExecutionResult));
+        ExecutionDescriptor[] chain = descriptorCache.GetPolymorphicChain(kind, executionType, typeof(TExecutionResult));
 
-        object? preprocessor = serviceProvider.GetService(descriptor.PreprocessorType);
-
+        //Preprocess:
+        var (preprocessor, preprocessorDescriptor) = Resolve(chain, d => d.PreprocessorType, serviceProvider);
+        
         if (preprocessor != null)
         {
-            var task = (Task)descriptor.PreprocessMethodInfo.Invoke(preprocessor, [execution, cancellationToken])!;
+            var task = (Task)preprocessorDescriptor!.PreprocessMethodInfo.Invoke(preprocessor, [execution, cancellationToken])!;
             await task;
-            execution = descriptor.TaskResultPropertyInfo.GetValue(task)!;
-            //execution = await (dynamic)descriptor.Preprocess.Invoke(preprocessor, [execution, cancellationToken])!;
+            execution = preprocessorDescriptor.TaskResultPropertyInfo.GetValue(task)!;
         }
 
-        //Handler:
-        object handler = serviceProvider.GetRequiredService(descriptor.HandlerType);
+        //Handle:
+        var (handler, handlerDescriptor) = Resolve(chain, d => d.HandlerType, serviceProvider);
 
-        TExecutionResult result = await (Task<TExecutionResult>)descriptor.HandleMethodInfo.Invoke(handler, [execution, cancellationToken])!;
-
-        //Postprocessing:
-        var postExecutionHandler = serviceProvider.GetService(descriptor.PostprocessorType);
-        if (postExecutionHandler != null)
+        if (handler == null)
         {
-            result = await (Task<TExecutionResult>)descriptor.PostprocessMethodInfo.Invoke(postExecutionHandler, [execution, result!, cancellationToken])!;
+            throw new InvalidOperationException(
+                $"No handler registered for '{executionType.Name}' or any of its base types (in case of polymorphic resolution).");
+        }
+
+        TExecutionResult result = await (Task<TExecutionResult>)handlerDescriptor!.HandleMethodInfo.Invoke(handler, [execution, cancellationToken])!;
+
+        //Postprocess:
+        var (postprocessor, postprocessorDescriptor) = Resolve(chain, d => d.PostprocessorType, serviceProvider);
+
+        if (postprocessor != null)
+        {
+            result = await (Task<TExecutionResult>)postprocessorDescriptor!.PostprocessMethodInfo.Invoke(postprocessor, [execution, result!, cancellationToken])!;
         }
 
         return result;
+    }
+
+    private static (object? Service, ExecutionDescriptor? Descriptor) Resolve(
+    ExecutionDescriptor[] chain,
+    Func<ExecutionDescriptor, Type> typeSelector,
+    IServiceProvider serviceProvider)
+    {
+        foreach (ExecutionDescriptor descriptor in chain)
+        {
+            object? service = serviceProvider.GetService(typeSelector(descriptor));
+            if (service != null)
+                return (service, descriptor);
+        }
+        return (null, null);
     }
 }

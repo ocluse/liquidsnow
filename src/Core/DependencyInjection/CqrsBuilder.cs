@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Ocluse.LiquidSnow.Cqrs;
 using Ocluse.LiquidSnow.Cqrs.Internal;
@@ -37,10 +37,23 @@ public class CqrsBuilder
 
     private void AddCore()
     {
+        Services.TryAddSingleton<CqrsOptions>();
         Services.TryAddTransient<ICommandDispatcher, CommandDispatcher>();
         Services.TryAddTransient<IQueryDispatcher, QueryDispatcher>();
         Services.TryAddTransient<CoreDispatcher>();
         Services.TryAddSingleton<ExecutionDescriptorCache>();
+    }
+
+    /// <summary>
+    /// Configures CQRS options.
+    /// </summary>
+    public CqrsBuilder Configure(Action<CqrsOptions> configure)
+    {
+        var options = new CqrsOptions();
+        configure(options);
+        // Replace the default instance with the configured one
+        Services.AddSingleton(options);
+        return this;
     }
 
     /// <summary>

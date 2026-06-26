@@ -3,6 +3,6 @@
 namespace Ocluse.LiquidSnow.Events.Internal;
 
 internal sealed record EventDescriptor(
-    Type EventType, 
+    Type EventType,
     Type HandlerType, 
     MethodInfo HandleMethodInfo);
