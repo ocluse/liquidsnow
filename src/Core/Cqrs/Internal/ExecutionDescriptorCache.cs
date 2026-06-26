@@ -1,4 +1,5 @@
-﻿using Ocluse.LiquidSnow.Extensions;
+﻿using Ocluse.LiquidSnow.DependencyInjection;
+using Ocluse.LiquidSnow.Extensions;
 using Ocluse.LiquidSnow.Utils;
 using System.Collections.Concurrent;
 
@@ -17,7 +18,7 @@ internal sealed class ExecutionDescriptorCache(CqrsOptions options)
         {
             List<ExecutionDescriptor> chain = [CreateDescriptor(kind, executionType, resultType)];
 
-            if (options.EnablePolymorphicResolution)
+            if (options.EnablePolymorphicResolution || executionType.IsDefined(typeof(PolymorphicResolutionAttribute), false))
             {
                 foreach(var baseExecutionType in executionType.GetBaseTypes())
                 {

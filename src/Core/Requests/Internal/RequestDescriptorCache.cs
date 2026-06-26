@@ -1,4 +1,5 @@
-﻿using Ocluse.LiquidSnow.Extensions;
+﻿using Ocluse.LiquidSnow.DependencyInjection;
+using Ocluse.LiquidSnow.Extensions;
 using Ocluse.LiquidSnow.Utils;
 using System.Collections.Concurrent;
 using System.Reflection;
@@ -16,7 +17,7 @@ internal class RequestDescriptorCache(RequestsOptions options)
         {
             List<RequestDescriptor> chain = [CreateDescriptor(requestType)];
 
-            if (options.EnablePolymorphicResolution)
+            if (options.EnablePolymorphicResolution || requestType.IsDefined(typeof(PolymorphicResolutionAttribute), false))
             {
                 foreach(var baseType in requestType.GetBaseTypes())
                 {

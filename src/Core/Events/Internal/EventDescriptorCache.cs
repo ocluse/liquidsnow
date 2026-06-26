@@ -1,4 +1,5 @@
-﻿using Ocluse.LiquidSnow.Extensions;
+﻿using Ocluse.LiquidSnow.DependencyInjection;
+using Ocluse.LiquidSnow.Extensions;
 using Ocluse.LiquidSnow.Utils;
 using System.Collections.Concurrent;
 using System.Reflection;
@@ -8,16 +9,16 @@ namespace Ocluse.LiquidSnow.Events.Internal;
 internal sealed class EventDescriptorCache(EventBusOptions eventBusOptions)
 {
     private readonly ConcurrentDictionary<string, List<EventDescriptor>> _descriptors = [];
-    
+
     public IEnumerable<EventDescriptor> GetDescriptors(Type eventType)
     {
         string key = CacheKeyHelper.GetKey(eventType);
-        
+
         return _descriptors.GetOrAdd(key, (_) =>
         {
             List<EventDescriptor> descriptors = [CreateDescriptor(eventType)];
 
-            if (eventBusOptions.EnablePolymorphicResolution)
+            if (eventBusOptions.EnablePolymorphicResolution || eventType.IsDefined(typeof(PolymorphicResolutionAttribute), false))
             {
                 foreach (var baseType in eventType.GetBaseTypes())
                 {

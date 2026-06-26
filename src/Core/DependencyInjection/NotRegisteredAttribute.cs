@@ -7,7 +7,7 @@ namespace Ocluse.LiquidSnow.DependencyInjection;
 /// Allows a class to be excluded from auto registration in the DI Container when using methods such as 
 /// <see cref="BuilderExtensions.TryAddImplementersOfGenericAsImplemented(IServiceCollection, Type, Assembly, ServiceLifetime)"/>
 /// </summary>
-[AttributeUsage(AttributeTargets.Class, AllowMultiple =true, Inherited = false)]
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
 public class NotRegisteredAttribute : Attribute
 {
     /// <summary>

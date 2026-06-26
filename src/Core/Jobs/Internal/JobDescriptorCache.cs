@@ -1,7 +1,8 @@
-﻿using System.Reflection;
-using System.Collections.Concurrent;
-using Ocluse.LiquidSnow.Utils;
+﻿using Ocluse.LiquidSnow.DependencyInjection;
 using Ocluse.LiquidSnow.Extensions;
+using Ocluse.LiquidSnow.Utils;
+using System.Collections.Concurrent;
+using System.Reflection;
 
 namespace Ocluse.LiquidSnow.Jobs.Internal;
 
@@ -19,7 +20,7 @@ internal sealed class JobDescriptorCache(JobsOptions options)
         {
             List<JobDescriptor> chain = [CreateDescriptor(jobType)];
 
-            if (options.EnablePolymorphicResolution)
+            if (options.EnablePolymorphicResolution || jobType.IsDefined(typeof(PolymorphicResolutionAttribute), false))
             {
                 foreach(var baseType in jobType.GetBaseTypes())
                 {
