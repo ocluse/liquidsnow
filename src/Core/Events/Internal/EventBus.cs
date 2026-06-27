@@ -15,21 +15,16 @@ internal sealed class EventBus(IServiceProvider serviceProvider, IServiceScopeFa
         await (Task)handleMethodInfo.Invoke(handler, handleMethodArgs)!;
     }
 
-    private static async Task PublishAsync(IServiceProvider serviceProvider, object e, Type eventType, CancellationToken cancellationToken = default)
+    private static async Task ExecuteDescriptor(
+        IServiceProvider serviceProvider, 
+        EventDescriptor descriptor, 
+        object[] handleMethodArgs,
+        List<Exception> exceptions,
+        CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(e, nameof(e));
-
-        EventDescriptorCache descriptorCache = serviceProvider.GetRequiredService<EventDescriptorCache>();
-
-        EventDescriptor descriptor = descriptorCache.GetDescriptor(eventType);
-
-        object[] handleMethodArgs = [e, cancellationToken];
-
         IEnumerable<object?> handlers = serviceProvider
             .GetServices(descriptor.HandlerType);
-
-        List<Exception> exceptions = [];
-
+        
         foreach (object? handler in handlers)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -43,10 +38,39 @@ internal sealed class EventBus(IServiceProvider serviceProvider, IServiceScopeFa
                 exceptions.Add(ex);
             }
         }
+    }
 
-        if (exceptions.Count > 1)
+    private static async Task PublishAsync(IServiceProvider serviceProvider, object e, Type eventType, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(e, nameof(e));
+
+        EventDescriptorCache descriptorCache = serviceProvider.GetRequiredService<EventDescriptorCache>();
+
+        IEnumerable<EventDescriptor> descriptors = descriptorCache.GetDescriptors(eventType);
+
+        if(descriptors.Any())
         {
-            throw new AggregateException(exceptions);
+            object[] handleMethodArgs = [e, cancellationToken];
+
+            List<Exception> exceptions = [];
+
+            foreach(var descriptor in descriptors)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                await ExecuteDescriptor(
+                    serviceProvider, 
+                    descriptor,
+                    handleMethodArgs, 
+                    exceptions, 
+                    cancellationToken);
+            }
+
+            if (exceptions.Count > 1)
+            {
+                throw new AggregateException(exceptions);
+            }
+
         }
     }
 

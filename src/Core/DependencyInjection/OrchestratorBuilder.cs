@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using Ocluse.LiquidSnow.Orchestrations;
 using Ocluse.LiquidSnow.Orchestrations.Internal;

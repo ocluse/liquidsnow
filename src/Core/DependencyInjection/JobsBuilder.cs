@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Ocluse.LiquidSnow.Jobs;
 using Ocluse.LiquidSnow.Jobs.Internal;
@@ -34,9 +34,21 @@ public class JobsBuilder
 
     private void AddCore()
     {
+        Services.TryAddSingleton<JobsOptions>();
         Services.TryAddSingleton<IJobScheduler, JobScheduler>();
         Services.TryAddSingleton<JobDescriptorCache>();
         Services.TryAddTransient<IJobDispatcher, JobDispatcher>();
+    }
+
+    /// <summary>
+    /// Configures Jobs options.
+    /// </summary>
+    public JobsBuilder Configure(Action<JobsOptions> configure)
+    {
+        var options = new JobsOptions();
+        configure(options);
+        Services.AddSingleton(options);
+        return this;
     }
 
     /// <summary>

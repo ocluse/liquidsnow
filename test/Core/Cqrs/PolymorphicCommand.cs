@@ -7,11 +7,13 @@ public record PolymorphicCommand : ICommand<int>
     public int Value { get; init; }
 }
 
+[PolymorphicResolution]
 public record AdditivePolymorphicCommand : PolymorphicCommand
 {
     public int Added { get; init; }
 }
 
+[PolymorphicResolution]
 public record SubtractivePolymorphicCommand : PolymorphicCommand
 {
     public int Subtracted { get; init; }

@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Ocluse.LiquidSnow.Requests;
 using Ocluse.LiquidSnow.Requests.Internal;
@@ -40,8 +40,20 @@ public class RequestsBuilder
 
     private void AddCore()
     {
+        Services.TryAddSingleton<RequestsOptions>();
         Services.TryAddTransient<IRequestDispatcher, RequestDispatcher>();
         Services.TryAddSingleton<RequestDescriptorCache>();
+    }
+
+    /// <summary>
+    /// Configures Requests options.
+    /// </summary>
+    public RequestsBuilder Configure(Action<RequestsOptions> configure)
+    {
+        var options = new RequestsOptions();
+        configure(options);
+        Services.AddSingleton(options);
+        return this;
     }
 
     /// <summary>

@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Ocluse.LiquidSnow.Events;
 using Ocluse.LiquidSnow.Events.Internal;
@@ -37,8 +37,20 @@ public class EventBusBuilder
 
     private void AddCore()
     {
+        Services.TryAddSingleton<EventBusOptions>();
         Services.TryAddSingleton<EventDescriptorCache>();
         Services.TryAddTransient<IEventBus, EventBus>();
+    }
+
+    /// <summary>
+    /// Configures EventBus options.
+    /// </summary>
+    public EventBusBuilder Configure(Action<EventBusOptions> configure)
+    {
+        var options = new EventBusOptions();
+        configure(options);
+        Services.AddSingleton(options);
+        return this;
     }
 
     /// <summary>

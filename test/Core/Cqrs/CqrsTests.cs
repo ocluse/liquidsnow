@@ -106,8 +106,8 @@ public class CqrsTests : IClassFixture<CqrsApplication>
             Subtracted = subtractiveValue
         };
 
-        var additiveResult = await _commandDispatcher.DispatchAsync<PolymorphicCommand, int>(additiveCommand);
-        var subtractiveResult = await _commandDispatcher.DispatchAsync<PolymorphicCommand, int>(subtractiveCommand);
+        var additiveResult = await _commandDispatcher.DispatchAsync(additiveCommand);
+        var subtractiveResult = await _commandDispatcher.DispatchAsync(subtractiveCommand);
 
         Assert.Equal(initialValue + additiveValue, additiveResult);
         Assert.Equal(initialValue - subtractiveValue, subtractiveResult);

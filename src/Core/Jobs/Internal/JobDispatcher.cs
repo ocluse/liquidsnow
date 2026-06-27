@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using Ocluse.LiquidSnow.Events;
 
@@ -6,6 +6,8 @@ namespace Ocluse.LiquidSnow.Jobs.Internal;
 
 internal class JobDispatcher(JobDescriptorCache descriptorCache, IServiceProvider serviceProvider) : IJobDispatcher
 {
+    private record MulticastExecutionData(object Handler, JobDescriptor Descriptor);
+
     private static async Task ExecuteHandler(object? handler, MethodInfo handleMethodInfo, object[] handleMethodArgs)
     {
         if (handler == null)
@@ -53,30 +55,41 @@ internal class JobDispatcher(JobDescriptorCache descriptorCache, IServiceProvide
 
     public async Task DispatchAsync(object job, Type jobType, long tick, bool throwExceptions, CancellationToken cancellationToken = default)
     {
-        JobDescriptor descriptor = descriptorCache.GetDescriptor(jobType);
+        JobDescriptor[] chain = descriptorCache.GetPolymorphicChain(jobType);
 
         object[] handleMethodArgs = [job, tick, cancellationToken];
 
         if (job is IMulticastJob multicastJob)
         {
-            IEnumerable<object?> handlers = serviceProvider.GetServices(descriptor.HandlerType);
+            List<MulticastExecutionData> executionList = [];
+
+            foreach (var descriptor in chain)
+            {
+                var handlers = serviceProvider.GetServices(descriptor.HandlerType);
+
+                foreach (var handler in handlers)
+                {
+                    if (handler != null)
+                        executionList.Add(new MulticastExecutionData(handler, descriptor));
+                }
+            }
 
             try
             {
                 if (multicastJob.ExecuteParallel)
                 {
-                    await Task.WhenAll(handlers.Select(handler =>
-                    ExecuteHandler(handler, descriptor.HandleMethodInfo, handleMethodArgs)));
+                    await Task.WhenAll(executionList.Select(info =>
+                    ExecuteHandler(info.Handler, info.Descriptor.HandleMethodInfo, handleMethodArgs)));
                 }
                 else
                 {
-                    foreach (object? handler in handlers)
+                    foreach (var info in executionList)
                     {
                         if (cancellationToken.IsCancellationRequested)
                         {
                             break;
                         }
-                        await ExecuteHandler(handler, descriptor.HandleMethodInfo, handleMethodArgs);
+                        await ExecuteHandler(info.Handler, info.Descriptor.HandleMethodInfo, handleMethodArgs);
                     }
                 }
             }
@@ -94,23 +107,37 @@ internal class JobDispatcher(JobDescriptorCache descriptorCache, IServiceProvide
         }
         else
         {
-            object? handler = serviceProvider.GetService(descriptor.HandlerType);
+            (object? handler, JobDescriptor? descriptor) = ResolveHandler(chain, serviceProvider);
 
-            try
+            if (descriptor != null && handler != null)
             {
-                await ExecuteHandler(handler, descriptor.HandleMethodInfo, handleMethodArgs);
-            }
-            catch (Exception ex)
-            {
-                if (throwExceptions)
+                try
                 {
-                    throw;
+                    await ExecuteHandler(handler, descriptor.HandleMethodInfo, handleMethodArgs);
                 }
-                else
+                catch (Exception ex)
                 {
-                    PublishJobFailedEvent(job,tick, ex);
+                    if (throwExceptions)
+                    {
+                        throw;
+                    }
+                    else
+                    {
+                        PublishJobFailedEvent(job, tick, ex);
+                    }
                 }
             }
         }
+    }
+
+    private static (object?, JobDescriptor?) ResolveHandler(JobDescriptor[] chain, IServiceProvider serviceProvider)
+    {
+        foreach (JobDescriptor descriptor in chain)
+        {
+            object? handler = serviceProvider.GetService(descriptor.HandlerType);
+            if (handler != null)
+                return (handler, descriptor);
+        }
+        return (null, null);
     }
 }
