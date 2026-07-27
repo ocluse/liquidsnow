@@ -13,4 +13,7 @@ public interface ICommandDispatcher
     ///<inheritdoc cref="DispatchAsync{TCommandResult}(ICommand{TCommandResult}, CancellationToken)"/>
     Task<TCommandResult> DispatchAsync<TCommand, TCommandResult>(TCommand command, CancellationToken cancellationToken = default)
         where TCommand : ICommand<TCommandResult>;
+
+    ///<inheritdoc cref="DispatchAsync{TCommandResult}(ICommand{TCommandResult}, CancellationToken)"/>
+    Task<TCommandResult> DispatchAsync<TCommandResult>(Type commandType, ICommand<TCommandResult> command, CancellationToken cancellationToken = default);
 }

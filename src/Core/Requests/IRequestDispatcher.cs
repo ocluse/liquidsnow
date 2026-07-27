@@ -17,4 +17,14 @@ public interface IRequestDispatcher
     /// Dispatches a request to its appropriate handler.
     /// </summary>
     Task DispatchAsync<TRequest>(TRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Dispatches a request to its appropriate handler using the specified request type.
+    /// </summary>
+    Task<TResult> DispatchAsync<TResult>(Type requestType, object request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Dispatches a request to its appropriate handler using the specified request type.
+    /// </summary>
+    Task DispatchAsync(Type requestType, object request, CancellationToken cancellationToken = default);
 }
