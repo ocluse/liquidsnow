@@ -12,4 +12,9 @@ internal sealed class CommandDispatcher(CoreDispatcher coreDispatcher, IServiceP
     {
         return coreDispatcher.DispatchAsync<TCommandResult>(ExecutionKind.Command, typeof(TCommand), command, serviceProvider, cancellationToken);
     }
+
+    public Task<TCommandResult> DispatchAsync<TCommandResult>(Type commandType, ICommand<TCommandResult> command, CancellationToken cancellationToken = default)
+    {
+        return coreDispatcher.DispatchAsync<TCommandResult>(ExecutionKind.Command, commandType, command, serviceProvider, cancellationToken);
+    }
 }

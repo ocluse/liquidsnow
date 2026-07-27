@@ -52,7 +52,29 @@ internal class RequestDispatcher(RequestDescriptorCache descriptorCache, IServic
         return await DispatchAsync<TResult>(request, requestType, cancellationToken);
     }
 
-    
+    public async Task<TResult> DispatchAsync<TResult>(Type requestType, object request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request, nameof(request));
+        return await DispatchAsync<TResult>(request, requestType, cancellationToken);
+    }
+
+    public async Task DispatchAsync(Type requestType, object request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request, nameof(request));
+        Type resultType = typeof(object);
+
+        RequestDescriptor[] chain = descriptorCache.GetPolymorphicChain(requestType);
+        (var handler, var descriptor) = Resolve(chain, serviceProvider);
+
+        if (handler == null || descriptor == null)
+        {
+            throw new InvalidOperationException($"No handler found for request type {requestType.FullName}");
+        }
+
+        object[] handleMethodArgs = [request, cancellationToken];
+
+        await (Task)descriptor.MethodInfo.Invoke(handler, handleMethodArgs)!;
+    }
 
     private static (object? Service, RequestDescriptor? Descriptor) Resolve(
         RequestDescriptor[] chain,

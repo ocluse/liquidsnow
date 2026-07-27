@@ -14,4 +14,9 @@ internal sealed class QueryDispatcher(CoreDispatcher coreDispatcher, IServicePro
         ArgumentNullException.ThrowIfNull(query);
         return coreDispatcher.DispatchAsync<TQueryResult>(ExecutionKind.Query, typeof(TQuery), query, serviceProvider, cancellationToken);
     }
+
+    public Task<TQueryResult> DispatchAsync<TQueryResult>(Type queryType, IQuery<TQueryResult> query, CancellationToken cancellationToken = default)
+    {
+        return coreDispatcher.DispatchAsync<TQueryResult>(ExecutionKind.Query, queryType, query, serviceProvider, cancellationToken);
+    }
 } 

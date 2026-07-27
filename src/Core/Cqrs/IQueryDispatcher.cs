@@ -13,4 +13,7 @@ public interface IQueryDispatcher
     ///<inheritdoc cref="DispatchAsync{TQueryResult}(IQuery{TQueryResult}, CancellationToken)"/>
     Task<TQueryResult> DispatchAsync<TQuery, TQueryResult>(TQuery query, CancellationToken cancellationToken = default)
      where TQuery : IQuery<TQueryResult>;
+
+    ///<inheritdoc cref="DispatchAsync{TQueryResult}(IQuery{TQueryResult}, CancellationToken)"/>
+    Task<TQueryResult> DispatchAsync<TQueryResult>(Type queryType, IQuery<TQueryResult> query, CancellationToken cancellationToken = default);
 }
