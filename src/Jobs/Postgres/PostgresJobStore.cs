@@ -60,7 +60,7 @@ internal sealed class PostgresJobStore : IJobStore, IAsyncDisposable
                 due_at = EXCLUDED.due_at,
                 interval_ticks = EXCLUDED.interval_ticks,
                 tick = EXCLUDED.tick,
-                sequence = nextval('\"{{_options.Schema}}\".\"jobs_sequence\"'::regclass),
+                sequence = nextval('"{{_options.Schema}}"."jobs_sequence"'::regclass),
                 version = current_job.version + 1,
                 lease_owner = NULL,
                 lease_expires_at = NULL,
