@@ -3,24 +3,24 @@
 namespace Ocluse.LiquidSnow.Data;
 
 /// <summary>
-/// Loads and manages paged data from an <see cref="IDataSource{TKey, TItem}"/>.
+/// Loads and manages paged data from an <see cref="IDataSource{TCursor, TItem}"/>.
 /// Tracks refresh/append/prepend load states and emits collection and state notifications as items are loaded.
 /// </summary>
-/// <typeparam name="TKey">The type of key used to load the data.</typeparam>
+/// <typeparam name="TCursor">The type of cursor used to load the data.</typeparam>
 /// <typeparam name="TItem">The type of data.</typeparam>
 /// <param name="dataSource">The source used to load the data.</param>
 /// <param name="pageSize">The maximum number of items to load on each operation.</param>
 /// <param name="supportsPrepending">Indicates whether the pager can prepend data, i.e. load data from the page before the initial page (i.e. page 0).</param>
-public class Pager<TKey, TItem>(IDataSource<TKey, TItem> dataSource, int pageSize = 20, bool supportsPrepending = false) : IPager<TKey, TItem>
+public class Pager<TCursor, TItem>(IDataSource<TCursor, TItem> dataSource, int pageSize = 20, bool supportsPrepending = false) : IPager<TCursor, TItem>
 {
-    private record PageKeys(TKey? NextKey, TKey? PrevKey);
+    private record PageCursors(TCursor? NextCursor, TCursor? PreviousCursor);
 
     /// <summary>
     /// The items loaded by the pager.
     /// </summary>
     protected readonly List<TItem> _items = [];
 
-    private readonly List<PageKeys> _keys = [];
+    private readonly List<PageCursors> _cursors = [];
 
     private PagerState _state = new()
     {
@@ -69,7 +69,7 @@ public class Pager<TKey, TItem>(IDataSource<TKey, TItem> dataSource, int pageSiz
     public event EventHandler<PagerStateChangedArgs>? StateChanged;
 
     /// <summary>
-    /// Clears currently loaded items and reloads data from the source using the refresh key.
+    /// Clears currently loaded items and reloads data from the source using the refresh cursor.
     /// </summary>
     public async Task RefreshAsync(CancellationToken cancellationToken = default)
     {
@@ -79,10 +79,10 @@ public class Pager<TKey, TItem>(IDataSource<TKey, TItem> dataSource, int pageSiz
             return;
         }
 
-        _keys.Clear();
+        _cursors.Clear();
         ClearItems();
-        var refreshKey = await dataSource.GetRefreshKeyAsync(cancellationToken);
-        await LoadCoreAsync(refreshKey, LoadType.Refresh, cancellationToken);
+        var refreshCursor = await dataSource.GetRefreshCursorAsync(cancellationToken);
+        await LoadCoreAsync(refreshCursor, LoadType.Refresh, cancellationToken);
     }
 
     /// <summary>
@@ -99,17 +99,17 @@ public class Pager<TKey, TItem>(IDataSource<TKey, TItem> dataSource, int pageSiz
         }
 
         //reached the start of the scroll list, do we need to load more?
-        if (_keys.Count == 0)
+        if (_cursors.Count == 0)
         {
             return;
         }
-        var firstKey = _keys[0].PrevKey;
-        if (firstKey == null)
+        var firstCursor = _cursors[0].PreviousCursor;
+        if (firstCursor == null)
         {
             return;
         }
 
-        _ = LoadCoreAsync(firstKey, LoadType.Prepend, CancellationToken.None);
+        _ = LoadCoreAsync(firstCursor, LoadType.Prepend, CancellationToken.None);
     }
 
     /// <summary>
@@ -124,23 +124,23 @@ public class Pager<TKey, TItem>(IDataSource<TKey, TItem> dataSource, int pageSiz
         }
 
         //reached the end of the scroll list, do we need to load more?
-        if (_keys.Count == 0)
+        if (_cursors.Count == 0)
         {
             return;
         }
-        var lastKey = _keys[^1].NextKey;
-        if (lastKey == null)
+        var lastCursor = _cursors[^1].NextCursor;
+        if (lastCursor == null)
         {
             return;
         }
 
-        _ = LoadCoreAsync(lastKey, LoadType.Append, CancellationToken.None);
+        _ = LoadCoreAsync(lastCursor, LoadType.Append, CancellationToken.None);
     }
-    private async Task LoadCoreAsync(TKey? key, LoadType type, CancellationToken cancellationToken = default)
+    private async Task LoadCoreAsync(TCursor? cursor, LoadType type, CancellationToken cancellationToken = default)
     {
-        LoadRequest<TKey> request = new()
+        LoadRequest<TCursor> request = new()
         {
-            Key = key,
+            Cursor = cursor,
             Type = type,
             PageSize = PageSize
         };
@@ -157,24 +157,24 @@ public class Pager<TKey, TItem>(IDataSource<TKey, TItem> dataSource, int pageSiz
         {
             var result = await dataSource.LoadAsync(request, cancellationToken);
 
-            PageKeys keys = new(result.NextKey, result.PreviousKey);
+            PageCursors cursors = new(result.NextCursor, result.PreviousCursor);
 
             if (result.Items.Count > 0)
             {
                 if (request.Type == LoadType.Prepend)
                 {
                     _items.InsertRange(0, result.Items);
-                    _keys.Insert(0, keys);
+                    _cursors.Insert(0, cursors);
                 }
                 else if (request.Type == LoadType.Append)
                 {
                     _items.AddRange(result.Items);
-                    _keys.Add(keys);
+                    _cursors.Add(cursors);
                 }
                 else
                 {
                     _items.AddRange(result.Items);
-                    _keys.Add(keys);
+                    _cursors.Add(cursors);
                 }
 
                 NotifyCollectionChangedEventArgs args = new(NotifyCollectionChangedAction.Add, result.Items);

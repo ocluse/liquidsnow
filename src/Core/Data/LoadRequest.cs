@@ -3,13 +3,13 @@
 /// <summary>
 /// Represents a request to load data from a data source.
 /// </summary>
-/// <typeparam name="TKey">The type of key used to page the data.</typeparam>
-public record LoadRequest<TKey>
+/// <typeparam name="TCursor">The type of cursor used to page the data.</typeparam>
+public record LoadRequest<TCursor>
 {
     /// <summary>
-    /// The key used to identify the page of data to load.
+    /// The cursor identifying the page of data to load.
     /// </summary>
-    public required TKey? Key { get; init; }
+    public required TCursor? Cursor { get; init; }
 
     /// <summary>
     /// The type of load operation to perform.
