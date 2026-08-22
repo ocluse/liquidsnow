@@ -2,6 +2,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Ocluse.LiquidSnow.Jobs;
 using Ocluse.LiquidSnow.Jobs.Internal;
+using Ocluse.LiquidSnow.Jobs.Persistence;
+using Microsoft.Extensions.Hosting;
 using System.Reflection;
 
 namespace Ocluse.LiquidSnow.DependencyInjection;
@@ -35,7 +37,13 @@ public class JobsBuilder
     private void AddCore()
     {
         Services.TryAddSingleton<JobsOptions>();
-        Services.TryAddSingleton<IJobScheduler, JobScheduler>();
+        Services.TryAddSingleton<IJobStore, InMemoryJobStore>();
+        Services.TryAddSingleton<IJobSerializer, JsonJobSerializer>();
+        Services.TryAddSingleton<IJobKeySerializer, DefaultJobKeySerializer>();
+        Services.TryAddSingleton(TimeProvider.System);
+        Services.TryAddSingleton<JobScheduler>();
+        Services.TryAddSingleton<IJobScheduler>(provider => provider.GetRequiredService<JobScheduler>());
+        Services.TryAddEnumerable(ServiceDescriptor.Singleton<IHostedService, JobSchedulerHostedService>());
         Services.TryAddSingleton<JobDescriptorCache>();
         Services.TryAddTransient<IJobDispatcher, JobDispatcher>();
     }
@@ -62,6 +70,31 @@ public class JobsBuilder
     public JobsBuilder AddHandlers(Assembly assembly, ServiceLifetime handlerLifetime = ServiceLifetime.Transient)
     {
         Services.TryAddImplementersOfGenericAsImplemented(typeof(IJobHandler<>), assembly, handlerLifetime);
+
+        IEnumerable<Type> jobTypes = assembly.GetTypes()
+            .Where(type => !type.IsAbstract && !type.IsInterface)
+            .SelectMany(type => type.GetInterfaces())
+            .Where(type => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IJobHandler<>))
+            .Select(type => type.GetGenericArguments()[0])
+            .Distinct();
+
+        foreach (Type jobType in jobTypes)
+        {
+            string typeName = jobType.FullName
+                ?? throw new InvalidOperationException("Durable job types must have a full name.");
+            Services.AddSingleton(new JobTypeRegistration(jobType, typeName));
+        }
+
+        return this;
+    }
+
+    /// <summary>
+    /// Registers a stable serialized name for a durable job type.
+    /// </summary>
+    public JobsBuilder AddJob<T>(string typeName) where T : IJob
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(typeName);
+        Services.AddSingleton(new JobTypeRegistration(typeof(T), typeName));
         return this;
     }
 
