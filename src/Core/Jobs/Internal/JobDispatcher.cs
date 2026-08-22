@@ -95,13 +95,10 @@ internal class JobDispatcher(JobDescriptorCache descriptorCache, IServiceProvide
             }
             catch (Exception ex)
             {
+                PublishJobFailedEvent(job, tick, ex);
                 if (throwExceptions)
                 {
                     throw;
-                }
-                else
-                {
-                    PublishJobFailedEvent(job, tick, ex);
                 }
             }
         }
@@ -117,13 +114,10 @@ internal class JobDispatcher(JobDescriptorCache descriptorCache, IServiceProvide
                 }
                 catch (Exception ex)
                 {
+                    PublishJobFailedEvent(job, tick, ex);
                     if (throwExceptions)
                     {
                         throw;
-                    }
-                    else
-                    {
-                        PublishJobFailedEvent(job, tick, ex);
                     }
                 }
             }

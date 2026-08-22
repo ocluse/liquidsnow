@@ -1,7 +1,7 @@
 ﻿namespace Ocluse.LiquidSnow.Data;
 
 /// <summary>
-/// Represents the state of a <see cref="Pager{TKey, TItem}"/>'s load operations.
+/// Represents the state of a <see cref="Pager{TCursor, TItem}"/>'s load operations.
 /// </summary>
 public record PagerState
 {

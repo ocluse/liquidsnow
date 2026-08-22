@@ -10,8 +10,8 @@ public class KeyedPagerTests
         TestDataSource dataSource = new(
             _ => Task.FromResult(new LoadResult<int?, TestItem>
             {
-                NextKey = 1,
-                PreviousKey = -1,
+                NextCursor = 1,
+                PreviousCursor = -1,
                 Items =
                 [
                     new TestItem(1, "A"),
@@ -39,8 +39,8 @@ public class KeyedPagerTests
             {
                 return Task.FromResult(new LoadResult<int?, TestItem>
                 {
-                    NextKey = 2,
-                    PreviousKey = 0,
+                    NextCursor = 2,
+                    PreviousCursor = 0,
                     Items =
                     [
                         new TestItem(1, "A"),
@@ -49,12 +49,12 @@ public class KeyedPagerTests
                 });
             }
 
-            if (request.Type == LoadType.Append && request.Key == 2)
+            if (request.Type == LoadType.Append && request.Cursor == 2)
             {
                 return Task.FromResult(new LoadResult<int?, TestItem>
                 {
-                    NextKey = null,
-                    PreviousKey = 1,
+                    NextCursor = null,
+                    PreviousCursor = 1,
                     Items =
                     [
                         new TestItem(2, "B-duplicate"),
@@ -63,12 +63,12 @@ public class KeyedPagerTests
                 });
             }
 
-            if (request.Type == LoadType.Prepend && request.Key == 0)
+            if (request.Type == LoadType.Prepend && request.Cursor == 0)
             {
                 return Task.FromResult(new LoadResult<int?, TestItem>
                 {
-                    NextKey = 1,
-                    PreviousKey = -1,
+                    NextCursor = 1,
+                    PreviousCursor = -1,
                     Items =
                     [
                         new TestItem(0, "Z"),
@@ -114,6 +114,38 @@ public class KeyedPagerTests
     }
 
     [Fact]
+    public void KeyedPager_ExposesItsItemKey()
+    {
+        TestDataSource dataSource = new(_ => Task.FromResult(LoadResult<int?, TestItem>.Empty()));
+        KeyedPager<int?, TestItem, int> pager = new(dataSource, item => item.Id);
+        TestItem item = new(42, "answer");
+
+        Assert.Equal(42, pager.GetItemKey(item));
+
+        IItemKeyProvider<TestItem> keyProvider = pager;
+        Assert.Equal(42, keyProvider.GetItemKey(item));
+    }
+
+    [Fact]
+    public void MutableKeyedPager_KeyOperationsUseItemKeys()
+    {
+        TestDataSource dataSource = new(_ => Task.FromResult(LoadResult<int?, TestItem>.Empty()));
+        MutableKeyedPager<int?, TestItem, int> pager = new(dataSource, item => item.Id);
+        TestItem item = new(42, "answer");
+
+        pager.AddOrUpdate(item);
+
+        Assert.True(pager.TryFindByKey(42, out var found));
+        Assert.Same(item, found);
+        Assert.Same(item, pager.FindByKey(42));
+        Assert.Equal(0, pager.IndexOfKey(42));
+
+        pager.RemoveByKey(42);
+
+        Assert.Empty(pager.Items);
+    }
+
+    [Fact]
     public async Task MutableKeyedPager_QueuesMutationsDuringLoad()
     {
         TaskCompletionSource started = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -128,8 +160,8 @@ public class KeyedPagerTests
 
                 return new LoadResult<int?, TestItem>
                 {
-                    NextKey = 1,
-                    PreviousKey = -1,
+                    NextCursor = 1,
+                    PreviousCursor = -1,
                     Items = [new TestItem(1, "server")]
                 };
             }
@@ -160,8 +192,8 @@ public class KeyedPagerTests
             {
                 return Task.FromResult(new LoadResult<int?, TestItem>
                 {
-                    NextKey = 2,
-                    PreviousKey = -1,
+                    NextCursor = 2,
+                    PreviousCursor = -1,
                     Items = [new TestItem(1, "A")]
                 });
             }
@@ -170,8 +202,8 @@ public class KeyedPagerTests
             {
                 return Task.FromResult(new LoadResult<int?, TestItem>
                 {
-                    NextKey = null,
-                    PreviousKey = 1,
+                    NextCursor = null,
+                    PreviousCursor = 1,
                     Items = [new TestItem(1, "A-updated")]
                 });
             }
@@ -197,8 +229,8 @@ public class KeyedPagerTests
     {
         TestDataSource dataSource = new(_ => Task.FromResult(new LoadResult<int?, TestItem>
         {
-            NextKey = null,
-            PreviousKey = null,
+            NextCursor = null,
+            PreviousCursor = null,
             Items =
             [
                 new TestItem(1, "A"),
@@ -232,7 +264,7 @@ public class KeyedPagerTests
 
     private sealed class TestDataSource(Func<LoadRequest<int?>, Task<LoadResult<int?, TestItem>>> load) : IDataSource<int?, TestItem>
     {
-        public Task<int?> GetRefreshKeyAsync(CancellationToken cancellationToken = default)
+        public Task<int?> GetRefreshCursorAsync(CancellationToken cancellationToken = default)
         {
             return Task.FromResult<int?>(0);
         }

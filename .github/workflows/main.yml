@@ -16,6 +16,21 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: liquidsnow
+          POSTGRES_PASSWORD: liquidsnow
+          POSTGRES_DB: liquidsnow_tests
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
     steps:
     - uses: actions/checkout@v3
    
@@ -32,6 +47,8 @@ jobs:
     
     - name: Run tests
       run: dotnet test --no-build
+      env:
+        LIQUIDSNOW_POSTGRES_TEST_CONNECTION: Host=localhost;Port=5432;Database=liquidsnow_tests;Username=liquidsnow;Password=liquidsnow
 
       #PUBLISH
     - name: Publish to Nuget

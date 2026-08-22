@@ -1,7 +1,7 @@
 ﻿namespace Ocluse.LiquidSnow.Data;
 
 /// <summary>
-/// Represents the arguments for the <see cref="Pager{TKey, TItem}.StateChanged"/> event.
+/// Represents the arguments for the <see cref="Pager{TCursor, TItem}.StateChanged"/> event.
 /// </summary>
 /// <param name="state"></param>
 public class PagerStateChangedArgs(PagerState state) : EventArgs

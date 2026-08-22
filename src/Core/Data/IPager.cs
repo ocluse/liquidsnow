@@ -3,12 +3,12 @@ using System.Collections.Specialized;
 namespace Ocluse.LiquidSnow.Data;
 
 /// <summary>
-/// Defines a paged data controller that loads items incrementally from an <see cref="IDataSource{TKey, TItem}"/>,
+/// Defines a paged data controller that loads items incrementally from an <see cref="IDataSource{TCursor, TItem}"/>,
 /// tracks loading state for refresh/append/prepend operations, and exposes collection and state change notifications.
 /// </summary>
-/// <typeparam name="TKey">The type of key used to load the data.</typeparam>
+/// <typeparam name="TCursor">The type of cursor used to load the data.</typeparam>
 /// <typeparam name="TItem">The type of data item.</typeparam>
-public interface IPager<TKey, TItem> : INotifyCollectionChanged
+public interface IPager<TCursor, TItem> : INotifyCollectionChanged
 {
     /// <summary>
     /// Gets the current in-memory snapshot of loaded items.

@@ -16,6 +16,9 @@ public interface IJobScheduler
     /// </returns>
     IDisposable Schedule<T>(T job) where T : IJob;
 
+    /// <summary>Durably schedules a job and returns after the store has accepted it.</summary>
+    ValueTask<IJobHandle> ScheduleAsync<T>(T job, CancellationToken cancellationToken = default) where T : IJob;
+
     /// <summary>
     /// Schedules a job to be added to the execution queue at a particular time.
     /// </summary>
@@ -28,6 +31,9 @@ public interface IJobScheduler
     /// </returns>
     IDisposable Queue<T>(T job) where T : IQueueJob;
 
+    /// <summary>Durably schedules a queued job and returns after the store has accepted it.</summary>
+    ValueTask<IJobHandle> QueueAsync<T>(T job, CancellationToken cancellationToken = default) where T : IQueueJob;
+
     /// <summary>
     /// Cancels a job with the provided id or prevents it from running.
     /// </summary>
@@ -36,9 +42,15 @@ public interface IJobScheduler
     /// </returns>
     bool Cancel(object id);
 
+    /// <summary>Durably cancels a non-queued job.</summary>
+    ValueTask<bool> CancelAsync(object id, CancellationToken cancellationToken = default);
+
     /// <inheritdoc cref="Cancel(object)"/>
     /// <remarks>
     /// This is the way to cancel jobs that were queued via <see cref="Queue{T}(T)"/>
     /// </remarks>
     bool Cancel(object queueId, object id);
+
+    /// <summary>Durably cancels a queued job.</summary>
+    ValueTask<bool> CancelAsync(object queueId, object id, CancellationToken cancellationToken = default);
 }

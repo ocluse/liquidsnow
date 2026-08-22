@@ -4,22 +4,23 @@ using System.Collections.Specialized;
 namespace Ocluse.LiquidSnow.Data;
 
 /// <summary>
-/// Loads and manages keyed paged data from an <see cref="IDataSource{TKey, TItem}"/> while ensuring
+/// Loads and manages keyed paged data from an <see cref="IDataSource{TCursor, TItem}"/> while ensuring
 /// that only one item per key exists in <see cref="Items"/>.
 /// Duplicate keys from refresh, append, and prepend loads are ignored.
 /// </summary>
-/// <typeparam name="TKey">The type of key used to load page data.</typeparam>
+/// <typeparam name="TCursor">The type of cursor used to load page data.</typeparam>
 /// <typeparam name="TItem">The type of data item.</typeparam>
-/// <typeparam name="TId">The unique key type for each item.</typeparam>
-public class KeyedPager<TKey, TItem, TId> : IPager<TKey, TItem>
+/// <typeparam name="TKey">The unique key type for each item.</typeparam>
+public class KeyedPager<TCursor, TItem, TKey> : IPager<TCursor, TItem>, IItemKeyProvider<TItem>
+    where TKey : notnull
 {
-    private readonly IDataSource<TKey, TItem> _dataSource;
-    private readonly Func<TItem, TId> _idSelector;
+    private readonly IDataSource<TCursor, TItem> _dataSource;
+    private readonly Func<TItem, TKey> _keySelector;
     private readonly ConflictStrategy _loadConflictStrategy;
     private readonly object _jobsLock = new();
     private readonly object _stateLock = new();
 
-    private record PageKeys(TKey? NextKey, TKey? PrevKey);
+    private record PageCursors(TCursor? NextCursor, TCursor? PreviousCursor);
 
     private CancellationTokenSource? _refreshCts;
     private CancellationTokenSource? _appendCts;
@@ -45,12 +46,12 @@ public class KeyedPager<TKey, TItem, TId> : IPager<TKey, TItem>
     /// <summary>
     /// The set of keys currently represented by <see cref="_items"/>.
     /// </summary>
-    protected readonly HashSet<TId> _itemIds;
+    protected readonly HashSet<TKey> _itemKeys;
 
     /// <summary>
     /// The loaded page keys in order.
     /// </summary>
-    private readonly List<PageKeys> _keys = [];
+    private readonly List<PageCursors> _cursors = [];
 
     /// <summary>
     /// Queue for mutations that arrive while loading is in progress.
@@ -62,8 +63,8 @@ public class KeyedPager<TKey, TItem, TId> : IPager<TKey, TItem>
     /// Creates a keyed pager.
     /// </summary>
     /// <param name="dataSource">The source used to load paged data.</param>
-    /// <param name="idSelector">A function that extracts the unique key from each item.</param>
-    /// <param name="comparer">
+    /// <param name="keySelector">A function that extracts the unique key from each item.</param>
+    /// <param name="keyComparer">
     /// An optional key comparer for uniqueness checks. When <see langword="null"/>,
     /// <see cref="EqualityComparer{T}.Default"/> is used.
     /// </param>
@@ -76,17 +77,17 @@ public class KeyedPager<TKey, TItem, TId> : IPager<TKey, TItem>
     /// Defaults to <see cref="ConflictStrategy.Ignore"/>, which keeps the existing item and drops the duplicate.
     /// </param>
     public KeyedPager(
-        IDataSource<TKey, TItem> dataSource,
-        Func<TItem, TId> idSelector,
-        IEqualityComparer<TId>? comparer = null,
+        IDataSource<TCursor, TItem> dataSource,
+        Func<TItem, TKey> keySelector,
+        IEqualityComparer<TKey>? keyComparer = null,
         int pageSize = 20,
         bool supportsPrepending = false,
         ConflictStrategy loadConflictStrategy = ConflictStrategy.Ignore)
     {
         _dataSource = dataSource;
-        _idSelector = idSelector;
+        _keySelector = keySelector;
         _loadConflictStrategy = loadConflictStrategy;
-        _itemIds = new HashSet<TId>(comparer ?? EqualityComparer<TId>.Default);
+        _itemKeys = new HashSet<TKey>(keyComparer ?? EqualityComparer<TKey>.Default);
         PageSize = pageSize;
         SupportsPrepending = supportsPrepending;
     }
@@ -139,7 +140,7 @@ public class KeyedPager<TKey, TItem, TId> : IPager<TKey, TItem>
     public event EventHandler<PagerStateChangedArgs>? StateChanged;
 
     /// <summary>
-    /// Clears currently loaded items and reloads data from the source using the refresh key.
+    /// Clears currently loaded items and reloads data from the source using the refresh cursor.
     /// Any in-flight append or prepend operations are cancelled before the refresh begins.
     /// </summary>
     public async Task RefreshAsync(CancellationToken cancellationToken = default)
@@ -161,20 +162,20 @@ public class KeyedPager<TKey, TItem, TId> : IPager<TKey, TItem>
 
         lock (_syncRoot)
         {
-            _keys.Clear();
+            _cursors.Clear();
             _items.Clear();
-            _itemIds.Clear();
+            _itemKeys.Clear();
             OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
         }
 
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, operationCts.Token);
-        var refreshKey = await _dataSource.GetRefreshKeyAsync(linkedCts.Token);
-        await LoadCoreAsync(refreshKey, LoadType.Refresh, linkedCts.Token);
+        var refreshCursor = await _dataSource.GetRefreshCursorAsync(linkedCts.Token);
+        await LoadCoreAsync(refreshCursor, LoadType.Refresh, linkedCts.Token);
     }
 
     /// <summary>
     /// Notifies the pager that the data accessor has reached the start and should load more prepending data when supported.
-    /// If prepending is unsupported, already loading, or there is no previous key, this call does nothing.
+    /// If prepending is unsupported, already loading, or there is no previous cursor, this call does nothing.
     /// </summary>
     public void ReachedStart()
     {
@@ -188,13 +189,13 @@ public class KeyedPager<TKey, TItem, TId> : IPager<TKey, TItem>
             return;
         }
 
-        TKey? firstKey;
+        TCursor? firstCursor;
         lock (_syncRoot)
         {
-            firstKey = _keys.Count == 0 ? default : _keys[0].PrevKey;
+            firstCursor = _cursors.Count == 0 ? default : _cursors[0].PreviousCursor;
         }
 
-        if (firstKey == null)
+        if (firstCursor == null)
         {
             return;
         }
@@ -207,12 +208,12 @@ public class KeyedPager<TKey, TItem, TId> : IPager<TKey, TItem>
             token = _prependCts.Token;
         }
 
-        _ = LoadCoreAsync(firstKey, LoadType.Prepend, token);
+        _ = LoadCoreAsync(firstCursor, LoadType.Prepend, token);
     }
 
     /// <summary>
     /// Notifies the pager that the data accessor has reached the end and should load more appending data when available.
-    /// If already loading or there is no next key, this call does nothing.
+    /// If already loading or there is no next cursor, this call does nothing.
     /// </summary>
     public void ReachedEnd()
     {
@@ -221,13 +222,13 @@ public class KeyedPager<TKey, TItem, TId> : IPager<TKey, TItem>
             return;
         }
 
-        TKey? lastKey;
+        TCursor? lastCursor;
         lock (_syncRoot)
         {
-            lastKey = _keys.Count == 0 ? default : _keys[^1].NextKey;
+            lastCursor = _cursors.Count == 0 ? default : _cursors[^1].NextCursor;
         }
 
-        if (lastKey == null)
+        if (lastCursor == null)
         {
             return;
         }
@@ -240,17 +241,17 @@ public class KeyedPager<TKey, TItem, TId> : IPager<TKey, TItem>
             token = _appendCts.Token;
         }
 
-        _ = LoadCoreAsync(lastKey, LoadType.Append, token);
+        _ = LoadCoreAsync(lastCursor, LoadType.Append, token);
     }
 
     /// <summary>
     /// Tries to find an item by key.
     /// </summary>
-    public bool TryFindById(TId id, out TItem item)
+    public bool TryFindByKey(TKey key, out TItem item)
     {
         lock (_syncRoot)
         {
-            var index = IndexOfIdUnsafe(id);
+            var index = IndexOfKeyUnsafe(key);
             if (index < 0)
             {
                 item = default!;
@@ -265,19 +266,19 @@ public class KeyedPager<TKey, TItem, TId> : IPager<TKey, TItem>
     /// <summary>
     /// Finds an item by key, or <see langword="default"/> when no match exists.
     /// </summary>
-    public TItem? FindById(TId id)
+    public TItem? FindByKey(TKey key)
     {
-        return TryFindById(id, out var item) ? item : default;
+        return TryFindByKey(key, out var item) ? item : default;
     }
 
     /// <summary>
     /// Finds the index of an item by key.
     /// </summary>
-    public int IndexOf(TId id)
+    public int IndexOfKey(TKey key)
     {
         lock (_syncRoot)
         {
-            return IndexOfIdUnsafe(id);
+            return IndexOfKeyUnsafe(key);
         }
     }
 
@@ -352,10 +353,13 @@ public class KeyedPager<TKey, TItem, TId> : IPager<TKey, TItem>
     /// <summary>
     /// Gets the key for an item.
     /// </summary>
-    protected TId GetId(TItem item)
+    public TKey GetItemKey(TItem item)
     {
-        return _idSelector(item);
+        return _keySelector(item);
     }
+
+    object IItemKeyProvider<TItem>.GetItemKey(TItem item)
+        => GetItemKey(item);
 
     /// <summary>
     /// Returns true when any load operation is currently in progress.
@@ -387,11 +391,11 @@ public class KeyedPager<TKey, TItem, TId> : IPager<TKey, TItem>
     /// <summary>
     /// Finds the index of an item by key.
     /// </summary>
-    protected int IndexOfIdUnsafe(TId id)
+    protected int IndexOfKeyUnsafe(TKey key)
     {
         for (int i = 0; i < _items.Count; i++)
         {
-            if (_itemIds.Comparer.Equals(GetId(_items[i]), id))
+            if (_itemKeys.Comparer.Equals(GetItemKey(_items[i]), key))
             {
                 return i;
             }
@@ -408,11 +412,11 @@ public class KeyedPager<TKey, TItem, TId> : IPager<TKey, TItem>
         CollectionChanged?.Invoke(this, args);
     }
 
-    private async Task LoadCoreAsync(TKey? key, LoadType type, CancellationToken cancellationToken)
+    private async Task LoadCoreAsync(TCursor? cursor, LoadType type, CancellationToken cancellationToken)
     {
-        var request = new LoadRequest<TKey>
+        var request = new LoadRequest<TCursor>
         {
-            Key = key,
+            Cursor = cursor,
             Type = type,
             PageSize = PageSize
         };
@@ -426,8 +430,8 @@ public class KeyedPager<TKey, TItem, TId> : IPager<TKey, TItem>
 
             lock (_syncRoot)
             {
-                var keys = new PageKeys(result.NextKey, result.PreviousKey);
-                var applyResult = ApplyLoadResultUnsafe(request.Type, result.Items, keys);
+                var cursors = new PageCursors(result.NextCursor, result.PreviousCursor);
+                var applyResult = ApplyLoadResultUnsafe(request.Type, result.Items, cursors);
 
                 if (applyResult.HadReplacements)
                 {
@@ -460,7 +464,7 @@ public class KeyedPager<TKey, TItem, TId> : IPager<TKey, TItem>
 
     private readonly record struct ApplyResult(IList AddedItems, bool HadReplacements);
 
-    private ApplyResult ApplyLoadResultUnsafe(LoadType type, IReadOnlyList<TItem> incoming, PageKeys keys)
+    private ApplyResult ApplyLoadResultUnsafe(LoadType type, IReadOnlyList<TItem> incoming, PageCursors cursors)
     {
         List<TItem> added = [];
         bool hadReplacements = false;
@@ -469,8 +473,8 @@ public class KeyedPager<TKey, TItem, TId> : IPager<TKey, TItem>
         {
             case LoadType.Refresh:
                 _items.Clear();
-                _itemIds.Clear();
-                _keys.Clear();
+                _itemKeys.Clear();
+                _cursors.Clear();
                 foreach (var item in incoming)
                 {
                     if (ApplyIncomingItemUnsafe(item, LoadType.Append, added))
@@ -479,7 +483,7 @@ public class KeyedPager<TKey, TItem, TId> : IPager<TKey, TItem>
                     }
                 }
 
-                _keys.Add(keys);
+                _cursors.Add(cursors);
                 break;
 
             case LoadType.Append:
@@ -491,7 +495,7 @@ public class KeyedPager<TKey, TItem, TId> : IPager<TKey, TItem>
                     }
                 }
 
-                _keys.Add(keys);
+                _cursors.Add(cursors);
                 break;
 
             case LoadType.Prepend:
@@ -508,7 +512,7 @@ public class KeyedPager<TKey, TItem, TId> : IPager<TKey, TItem>
                     _items.InsertRange(0, added);
                 }
 
-                _keys.Insert(0, keys);
+                _cursors.Insert(0, cursors);
                 break;
 
             default:
@@ -520,8 +524,8 @@ public class KeyedPager<TKey, TItem, TId> : IPager<TKey, TItem>
 
     private bool ApplyIncomingItemUnsafe(TItem item, LoadType type, List<TItem> added)
     {
-        var id = GetId(item);
-        var existingIndex = IndexOfIdUnsafe(id);
+        var key = GetItemKey(item);
+        var existingIndex = IndexOfKeyUnsafe(key);
 
         if (existingIndex >= 0)
         {
@@ -535,14 +539,14 @@ public class KeyedPager<TKey, TItem, TId> : IPager<TKey, TItem>
                     return true;
 
                 case ConflictStrategy.Error:
-                    throw new InvalidOperationException($"Duplicate item key '{id}' encountered during {type} load.");
+                    throw new InvalidOperationException($"Duplicate item key '{key}' encountered during {type} load.");
 
                 default:
                     throw new InvalidOperationException("Invalid conflict strategy.");
             }
         }
 
-        _itemIds.Add(id);
+        _itemKeys.Add(key);
 
         if (type == LoadType.Prepend)
         {

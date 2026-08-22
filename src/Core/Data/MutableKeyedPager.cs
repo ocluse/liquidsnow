@@ -5,36 +5,37 @@ namespace Ocluse.LiquidSnow.Data;
 /// <summary>
 /// A keyed pager that supports mutating items while preserving key uniqueness.
 /// </summary>
-/// <typeparam name="TKey">The type of key used to load page data.</typeparam>
+/// <typeparam name="TCursor">The type of cursor used to load page data.</typeparam>
 /// <typeparam name="TItem">The type of data item.</typeparam>
-/// <typeparam name="TId">The unique key type for each item.</typeparam>
-public class MutableKeyedPager<TKey, TItem, TId> : KeyedPager<TKey, TItem, TId>
+/// <typeparam name="TKey">The unique key type for each item.</typeparam>
+public class MutableKeyedPager<TCursor, TItem, TKey> : KeyedPager<TCursor, TItem, TKey>
+    where TKey : notnull
 {
     /// <summary>
     /// Creates a mutable keyed pager.
     /// </summary>
     /// <param name="dataSource">The source used to load paged data.</param>
-    /// <param name="idSelector">A function that extracts the unique key from each item.</param>
-    /// <param name="comparer">
+    /// <param name="keySelector">A function that extracts the unique key from each item.</param>
+    /// <param name="keyComparer">
     /// An optional key comparer for uniqueness checks. When <see langword="null"/>,
     /// <see cref="EqualityComparer{T}.Default"/> is used.
     /// </param>
     /// <param name="pageSize">The maximum number of items to request per load operation.</param>
     /// <param name="supportsPrepending">
-    /// Indicates whether prepending is supported when <see cref="KeyedPager{TKey, TItem, TId}.ReachedStart"/> is called.
+    /// Indicates whether prepending is supported when <see cref="KeyedPager{TCursor, TItem, TKey}.ReachedStart"/> is called.
     /// </param>
     /// <param name="loadConflictStrategy">
     /// Specifies how duplicate keys encountered during load operations are handled.
     /// Defaults to <see cref="ConflictStrategy.Ignore"/>.
     /// </param>
     public MutableKeyedPager(
-        IDataSource<TKey, TItem> dataSource,
-        Func<TItem, TId> idSelector,
-        IEqualityComparer<TId>? comparer = null,
+        IDataSource<TCursor, TItem> dataSource,
+        Func<TItem, TKey> keySelector,
+        IEqualityComparer<TKey>? keyComparer = null,
         int pageSize = 20,
         bool supportsPrepending = false,
         ConflictStrategy loadConflictStrategy = ConflictStrategy.Ignore)
-        : base(dataSource, idSelector, comparer, pageSize, supportsPrepending, loadConflictStrategy)
+        : base(dataSource, keySelector, keyComparer, pageSize, supportsPrepending, loadConflictStrategy)
     {
     }
 
@@ -48,8 +49,8 @@ public class MutableKeyedPager<TKey, TItem, TId> : KeyedPager<TKey, TItem, TId>
     {
         RunOrQueueMutation(() =>
         {
-            var itemId = GetId(item);
-            var existingIndex = IndexOfIdUnsafe(itemId);
+            var itemKey = GetItemKey(item);
+            var existingIndex = IndexOfKeyUnsafe(itemKey);
 
             if (existingIndex != -1)
             {
@@ -65,7 +66,7 @@ public class MutableKeyedPager<TKey, TItem, TId> : KeyedPager<TKey, TItem, TId>
                         break;
 
                     case ConflictStrategy.Error:
-                        throw new InvalidOperationException($"Item with id '{itemId}' already exists in the list.");
+                        throw new InvalidOperationException($"Item with key '{itemKey}' already exists in the list.");
 
                     default:
                         throw new InvalidOperationException("Invalid conflict strategy.");
@@ -78,7 +79,7 @@ public class MutableKeyedPager<TKey, TItem, TId> : KeyedPager<TKey, TItem, TId>
                     : _items.Count;
 
                 _items.Insert(index, item);
-                _itemIds.Add(itemId);
+                _itemKeys.Add(itemKey);
                 OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, index));
             }
         });
@@ -93,8 +94,8 @@ public class MutableKeyedPager<TKey, TItem, TId> : KeyedPager<TKey, TItem, TId>
     {
         RunOrQueueMutation(() =>
         {
-            var itemId = GetId(item);
-            var existingIndex = IndexOfIdUnsafe(itemId);
+            var itemKey = GetItemKey(item);
+            var existingIndex = IndexOfKeyUnsafe(itemKey);
 
             if (existingIndex != -1)
             {
@@ -104,7 +105,7 @@ public class MutableKeyedPager<TKey, TItem, TId> : KeyedPager<TKey, TItem, TId>
             }
             else
             {
-                _itemIds.Add(itemId);
+                _itemKeys.Add(itemKey);
             }
 
             int index = atIndex.HasValue
@@ -125,8 +126,8 @@ public class MutableKeyedPager<TKey, TItem, TId> : KeyedPager<TKey, TItem, TId>
     {
         RunOrQueueMutation(() =>
         {
-            var itemId = GetId(item);
-            var existingIndex = IndexOfIdUnsafe(itemId);
+            var itemKey = GetItemKey(item);
+            var existingIndex = IndexOfKeyUnsafe(itemKey);
             if (existingIndex == -1)
             {
                 return;
@@ -141,12 +142,12 @@ public class MutableKeyedPager<TKey, TItem, TId> : KeyedPager<TKey, TItem, TId>
     /// <summary>
     /// Removes an item by key.
     /// </summary>
-    /// <param name="id">The key of the item to remove.</param>
-    public void RemoveById(TId id)
+    /// <param name="key">The key of the item to remove.</param>
+    public void RemoveByKey(TKey key)
     {
         RunOrQueueMutation(() =>
         {
-            var existingIndex = IndexOfIdUnsafe(id);
+            var existingIndex = IndexOfKeyUnsafe(key);
             if (existingIndex == -1)
             {
                 return;
@@ -154,7 +155,7 @@ public class MutableKeyedPager<TKey, TItem, TId> : KeyedPager<TKey, TItem, TId>
 
             var existing = _items[existingIndex];
             _items.RemoveAt(existingIndex);
-            _itemIds.Remove(id);
+            _itemKeys.Remove(key);
             OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, existing, existingIndex));
         });
     }

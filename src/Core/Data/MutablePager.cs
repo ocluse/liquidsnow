@@ -5,8 +5,8 @@ namespace Ocluse.LiquidSnow.Data;
 /// <summary>
 /// A special type of pager that allows for mutating the data.
 /// </summary>
-public class MutablePager<TKey, TItem>(IDataSource<TKey, TItem> dataSource, int pageSize = 20, bool supportsPrepending = false)
-    : Pager<TKey, TItem>(dataSource, pageSize, supportsPrepending)
+public class MutablePager<TCursor, TItem>(IDataSource<TCursor, TItem> dataSource, int pageSize = 20, bool supportsPrepending = false)
+    : Pager<TCursor, TItem>(dataSource, pageSize, supportsPrepending)
 {
     /// <summary>
     /// Adds an item to the end of the data list.
