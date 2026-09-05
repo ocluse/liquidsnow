@@ -86,7 +86,7 @@ public struct FixRange : IEquatable<FixRange>
     public readonly Fix64 MidPoint
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Min + Max) * Fix64.Half;
+        get => Fix64.FromWide(Fix64.DivideRounded((Int128)Min.RawValue + Max.RawValue, 2));
     }
 
     /// <summary>
@@ -158,7 +158,7 @@ public struct FixRange : IEquatable<FixRange>
         sign = null;
         if (!range1.Overlaps(range2))
         {
-            if (range1.Max < range2.Min) sign = -Fix64.One;
+            if (range1.Max <= range2.Min) sign = -Fix64.One;
             else sign = Fix64.One;
             return true;
         }
@@ -174,14 +174,6 @@ public struct FixRange : IEquatable<FixRange>
     /// <returns>The depth of the overlap between the ranges.</returns>
     public static Fix64 ComputeOverlapDepth(FixRange rangeA, FixRange rangeB)
     {
-        // Check if one range is completely within the other
-        bool isRangeAInsideB = rangeA.Min >= rangeB.Min && rangeA.Max <= rangeB.Max;
-        bool isRangeBInsideA = rangeB.Min >= rangeA.Min && rangeB.Max <= rangeA.Max;
-        if (isRangeAInsideB)
-            return rangeA.Max - rangeB.Min; // The size of rangeA
-        else if (isRangeBInsideA)
-            return rangeB.Max - rangeA.Min; // The size of rangeB
-
         // Calculate overlap between the two ranges
         Fix64 overlapEnd = MathFix.Min(rangeA.Max, rangeB.Max);
         Fix64 overlapStart = MathFix.Max(rangeA.Min, rangeB.Min);
@@ -206,7 +198,7 @@ public struct FixRange : IEquatable<FixRange>
         Fix64 overlap = ComputeOverlapDepth(range1, range2);
 
         // If the overlap is smaller than the current minimum, update the minimum
-        if (overlap < limit)
+        if (overlap > Fix64.Zero && overlap < limit)
         {
             output = (origin * overlap * sign, overlap);
             return true;

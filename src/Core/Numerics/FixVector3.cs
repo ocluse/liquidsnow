@@ -386,25 +386,7 @@ public partial struct FixVector3(Fix64 x, Fix64 y, Fix64 z) : IEquatable<FixVect
     public FixVector3 Normalize(out Fix64 mag)
     {
         mag = GetMagnitude(this);
-
-        // If magnitude is zero, return a zero vector to avoid divide-by-zero errors
-        if (mag == Fix64.Zero)
-        {
-            X = Fix64.Zero;
-            Y = Fix64.Zero;
-            Z = Fix64.Zero;
-            return this;
-        }
-
-        // If already normalized, return as-is
-        if (mag == Fix64.One)
-            return this;
-
-        X /= mag;
-        Y /= mag;
-        Z /= mag;
-
-        return this;
+        return this = GetNormalized(this);
     }
 
     /// <summary>
@@ -425,13 +407,7 @@ public partial struct FixVector3(Fix64 x, Fix64 y, Fix64 z) : IEquatable<FixVect
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly Fix64 Distance(Fix64 otherX, Fix64 otherY, Fix64 otherZ)
     {
-        Fix64 temp1 = X - otherX;
-        temp1 *= temp1;
-        Fix64 temp2 = Y - otherY;
-        temp2 *= temp2;
-        Fix64 temp3 = Z - otherZ;
-        temp3 *= temp3;
-        return MathFix.Sqrt(temp1 + temp2 + temp3);
+        return MathFix.WideMagnitude((Int128)X.RawValue - otherX.RawValue, (Int128)Y.RawValue - otherY.RawValue, (Int128)Z.RawValue - otherZ.RawValue);
     }
 
     /// <summary>
@@ -578,22 +554,11 @@ public partial struct FixVector3(Fix64 x, Fix64 y, Fix64 z) : IEquatable<FixVect
     /// <returns>A normalized (unit) vector with the same direction.</returns>
     public static FixVector3 GetNormalized(FixVector3 value)
     {
-        Fix64 mag = GetMagnitude(value);
-
-        // If magnitude is zero, return a zero vector to avoid divide-by-zero errors
-        if (mag == Fix64.Zero)
-            return new FixVector3(Fix64.Zero, Fix64.Zero, Fix64.Zero);
-
-        // If already normalized, return as-is
-        if (mag == Fix64.One)
-            return value;
-
-        // Normalize it exactly           
-        return new FixVector3(
-            value.X / mag,
-            value.Y / mag,
-            value.Z / mag
-        );
+        Fix64 scale = MathFix.Max(MathFix.Max(MathFix.Abs(value.X), MathFix.Abs(value.Y)), MathFix.Abs(value.Z));
+        if (scale == Fix64.Zero) return Zero;
+        // Scale first so even sub-resolution squares and unrepresentable lengths normalize safely.
+        FixVector3 scaled = value / scale;
+        return scaled / GetMagnitude(scaled);
     }
 
     /// <summary>
@@ -604,13 +569,7 @@ public partial struct FixVector3(Fix64 x, Fix64 y, Fix64 z) : IEquatable<FixVect
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Fix64 GetMagnitude(FixVector3 vector)
     {
-        Fix64 mag = (vector.X * vector.X) + (vector.Y * vector.Y) + (vector.Z * vector.Z);
-
-        // If rounding error pushed magnitude slightly above 1, clamp it
-        if (mag > Fix64.One && mag <= Fix64.One + Fix64.Epsilon)
-            return Fix64.One;
-
-        return mag != Fix64.Zero ? MathFix.Sqrt(mag) : Fix64.Zero;
+        return MathFix.WideMagnitude(vector.X.RawValue, vector.Y.RawValue, vector.Z.RawValue);
     }
 
     /// <summary>
@@ -660,7 +619,7 @@ public partial struct FixVector3(Fix64 x, Fix64 y, Fix64 z) : IEquatable<FixVect
     /// <returns></returns>
     public static FixVector3 ClampMagnitude(FixVector3 value, Fix64 maxMagnitude)
     {
-        if (value.SqrMagnitude > maxMagnitude * maxMagnitude)
+        if (value.Magnitude > maxMagnitude)
             return value.Normal * maxMagnitude; // Scale vector to max magnitude
 
         return value;
@@ -901,13 +860,8 @@ public partial struct FixVector3(Fix64 x, Fix64 y, Fix64 z) : IEquatable<FixVect
     /// </remarks>
     public static Fix64 Angle(FixVector3 from, FixVector3 to)
     {
-        Fix64 denominator = MathFix.Sqrt(from.SqrMagnitude * to.SqrMagnitude);
-
-        if (denominator.Abs() < Fix64.Epsilon)
-            return Fix64.Zero;
-
-        Fix64 dot = MathFix.Clamp(Dot(from, to) / denominator, -Fix64.One, Fix64.One);
-
+        if (from.IsZero || to.IsZero) return Fix64.Zero;
+        Fix64 dot = MathFix.ClampOne(Dot(from.Normal, to.Normal));
         return MathFix.RadToDeg(MathFix.Acos(dot));
     }
 

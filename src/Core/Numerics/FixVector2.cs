@@ -345,23 +345,7 @@ public struct FixVector2(Fix64 x, Fix64 y) : IEquatable<FixVector2>, IComparable
     public FixVector2 Normalize(out Fix64 mag)
     {
         mag = GetMagnitude(this);
-
-        // If magnitude is zero, return a zero vector to avoid divide-by-zero errors
-        if (mag == Fix64.Zero)
-        {
-            X = Fix64.Zero;
-            Y = Fix64.Zero;
-            return this;
-        }
-
-        // If already normalized, return as-is
-        if (mag == Fix64.One)
-            return this;
-
-        X /= mag;
-        Y /= mag;
-
-        return this;
+        return this = GetNormalized(this);
     }
 
     /// <summary>
@@ -571,11 +555,7 @@ public struct FixVector2(Fix64 x, Fix64 y) : IEquatable<FixVector2>, IComparable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly Fix64 Distance(Fix64 otherX, Fix64 otherY)
     {
-        Fix64 temp1 = X - otherX;
-        temp1 *= temp1;
-        Fix64 temp2 = Y - otherY;
-        temp2 *= temp2;
-        return MathFix.Sqrt(temp1 + temp2);
+        return MathFix.WideMagnitude((Int128)X.RawValue - otherX.RawValue, (Int128)Y.RawValue - otherY.RawValue);
     }
 
     /// <summary>
@@ -623,20 +603,11 @@ public struct FixVector2(Fix64 x, Fix64 y) : IEquatable<FixVector2>, IComparable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static FixVector2 GetNormalized(FixVector2 value)
     {
-        Fix64 mag = GetMagnitude(value);
-
-        if (mag == Fix64.Zero)
-            return new FixVector2(Fix64.Zero, Fix64.Zero);
-
-        // If already normalized, return as-is
-        if (mag == Fix64.One)
-            return value;
-
-        // Normalize it exactly
-        return new FixVector2(
-            value.X / mag,
-            value.Y / mag
-        );
+        Fix64 scale = MathFix.Max(MathFix.Abs(value.X), MathFix.Abs(value.Y));
+        if (scale == Fix64.Zero) return Zero;
+        // Scale first so even sub-resolution squares and unrepresentable lengths normalize safely.
+        FixVector2 scaled = value / scale;
+        return scaled / GetMagnitude(scaled);
     }
 
     /// <summary>
@@ -647,13 +618,7 @@ public struct FixVector2(Fix64 x, Fix64 y) : IEquatable<FixVector2>, IComparable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Fix64 GetMagnitude(FixVector2 vector)
     {
-        Fix64 mag = (vector.X * vector.X) + (vector.Y * vector.Y);
-
-        // If rounding error pushed magnitude slightly above 1, clamp it
-        if (mag > Fix64.One && mag <= Fix64.One + Fix64.Epsilon)
-            return Fix64.One;
-
-        return mag.Abs() > Fix64.Zero ? MathFix.Sqrt(mag) : Fix64.Zero;
+        return MathFix.WideMagnitude(vector.X.RawValue, vector.Y.RawValue);
     }
 
     /// <summary>

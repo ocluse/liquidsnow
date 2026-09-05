@@ -44,7 +44,7 @@ public static partial class FixedQuaternionExtensions
         Fix64 p = percentage ?? Fix64.Epsilon;
         return q1.X.FuzzyComponentEqual(q2.X, p) &&
                q1.Y.FuzzyComponentEqual(q2.Y, p) &&
-               q1.Z.FuzzyComponentEqual(q2.X, p) &&
+               q1.Z.FuzzyComponentEqual(q2.Z, p) &&
                q1.W.FuzzyComponentEqual(q2.W, p);
     }
 

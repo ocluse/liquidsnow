@@ -17,9 +17,9 @@ public static partial class MathFix
             10000,       // 10^4 = 10000
             100000,      // 10^5 = 100000
             1000000,     // 10^6 = 1000000
-            10000000,    // 10^7 = 1000000
-            100000000,   // 10^8 = 1000000
-            1000000000,  // 10^9 = 1000000
+            10000000,    // 10^7
+            100000000,   // 10^8
+            1000000000,  // 10^9
         ];
 
     // Trigonometric and logarithmic constants
@@ -32,22 +32,13 @@ public static partial class MathFix
     public static readonly Fix64 PiOver6 = PI / 6;
     public static readonly Fix64 Ln2 = (Fix64)0.6931471805599453;  // Natural logarithm of 2
 
-    public static readonly Fix64 LOG_2_MAX = new(63L * ONE_L);
-    public static readonly Fix64 LOG_2_MIN = new(-64L * ONE_L);
+    public static readonly Fix64 LOG_2_MAX = new(31L * ONE_L);
+    public static readonly Fix64 LOG_2_MIN = new(-33L * ONE_L);
 
     internal const double DEG2RAD_D = 0.01745329251994329576;  // π / 180
     public static readonly Fix64 Deg2Rad = (Fix64)DEG2RAD_D;  // Degrees to radians conversion factor
     internal const double RAD2DEG_D = 57.2957795130823208767;  // 180 / π
     public static readonly Fix64 Rad2Deg = (Fix64)RAD2DEG_D;  // Radians to degrees conversion factor
-
-    // Asin Padé approximations
-    private static readonly Fix64 PADE_A1 = (Fix64)0.183320102;
-    private static readonly Fix64 PADE_A2 = (Fix64)0.0218804099;
-
-    // Carefully optimized polynomial coefficients for sin(x), ensuring maximum precision in Fix64 math.
-    private static readonly Fix64 SIN_COEFF_3 = (Fix64)0.16666667605750262737274169921875d; // 1/3!
-    private static readonly Fix64 SIN_COEFF_5 = (Fix64)0.0083328341133892536163330078125d; // 1/5!
-    private static readonly Fix64 SIN_COEFF_7 = (Fix64)0.00019588856957852840423583984375d; // 1/7!
 
     #endregion
 
@@ -58,10 +49,10 @@ public static partial class MathFix
     /// Uses logarithms to compute power efficiently for fixed-point values.
     /// </summary>
     /// <exception cref="DivideByZeroException">
-    /// The base was Fix64.Zero, with a negative expFix64.Onent
+    /// The base was zero with a negative exponent.
     /// </exception>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// The base was negative, with a non-Fix64.Zero expFix64.Onent
+    /// The base was negative with a nonzero exponent.
     /// </exception>
     public static Fix64 Pow(Fix64 b, Fix64 exp)
     {
@@ -89,46 +80,20 @@ public static partial class MathFix
     /// </summary>
     public static Fix64 Pow2(Fix64 x)
     {
-        if (x.RawValue == 0)
-            return Fix64.One;
-
-        // Handle negative expFix64.Onents by using the reciprocal
-        bool neg = x.RawValue < 0;
-        if (neg)
-            x = -x;
-
-        if (x == Fix64.One)
-            return neg ? Fix64.One / Fix64.Two : Fix64.Two;
-
-        if (x >= LOG_2_MAX)
-            return neg ? Fix64.One / Fix64.MAX_VALUE : Fix64.MAX_VALUE;
-
-        if (x <= LOG_2_MIN)
-            return neg ? Fix64.MAX_VALUE : Fix64.Zero;
-
-        /* 
-         * Taylor series expansion for exp(x)
-         * From term n, we get term n+1 by multiplying with x/n.
-         * When the sum term drops to Fix64.Zero, we can stop summing.
-         */
-        int integerPart = (int)x.Floor();
-        x = Fix64.FromRaw(x.RawValue & MAX_SHIFTED_AMOUNT_UI);  // Fractional part
-
-        var result = Fix64.One;
-        var term = Fix64.One;
-        int i = 1;
-        while (term.RawValue != 0)
+        if (x >= LOG_2_MAX) return Fix64.MAX_VALUE;
+        if (x <= LOG_2_MIN) return Fix64.Zero;
+        int integral = (int)Floor(x);
+        decimal fraction = (decimal)x - integral;
+        decimal term = 1m, result = 1m;
+        decimal exponent = fraction * 0.6931471805599453094172321215m;
+        for (int i = 1; i <= 28; i++)
         {
-            term = FastMul(FastMul(x, term), Ln2) / (Fix64)i;
+            term = term * exponent / i;
             result += term;
-            i++;
         }
-
-        result = Fix64.FromRaw(result.RawValue << integerPart);
-        if (neg)
-            result = Fix64.One / result;
-
-        return result;
+        if (integral >= 0) result *= 1L << integral;
+        else result /= 1L << -integral;
+        return Fix64.FromDecimal(result, saturating: true);
     }
 
     /// <summary>
@@ -186,7 +151,7 @@ public static partial class MathFix
         if (x.RawValue <= 0)
             throw new ArgumentOutOfRangeException(nameof(x),"Cannot compute logarithm of non-positive number.");
 
-        return FastMul(Log2(x), Ln2).Round();
+        return Log2(x) * Ln2;
     }
 
     /// <summary>
@@ -194,138 +159,65 @@ public static partial class MathFix
     /// </summary>
     public static Fix64 Sqrt(Fix64 x)
     {
-        if (x.RawValue < 0)
-            throw new ArgumentOutOfRangeException(nameof(x), "Cannot compute square root of a negative number.");
-
-        ulong num = (ulong)x.RawValue;
-        ulong result = 0UL;
-        ulong bit = 1UL << (sizeof(long) * 8) - 2; // second-to-top bit of a 64-bit integer
-
-        // Adjust the bit position to a suitable starting point
-        while (bit > num)
-            bit >>= 2;
-
-        // Perform the square root calculation using bitwise shifts
-        for (int i = 0; i < 2; ++i)
-        {
-            // Calculate the top bits of the square root result
-            while (bit != 0)
-            {
-                if (num >= result + bit)
-                {
-                    num -= result + bit;
-                    result = (result >> 1) + bit;
-                }
-                else
-                {
-                    result >>= 1;
-                }
-
-                bit >>= 2;
-            }
-
-            if (i == 0)
-            {
-                // Process it again to get the remaining bits
-                if (num > ((1UL << SHIFT_AMOUNT_I) - 1))
-                {
-                    // Handle large remainders by adjusting the result
-                    num -= result;
-                    num = (num << SHIFT_AMOUNT_I) - (ulong)Fix64.Half.RawValue;
-                    result = (result << SHIFT_AMOUNT_I) + (ulong)Fix64.Half.RawValue;
-                }
-                else
-                {
-                    num <<= SHIFT_AMOUNT_I;
-                    result <<= SHIFT_AMOUNT_I;
-                }
-
-                bit = 1UL << (SHIFT_AMOUNT_I - 2);
-            }
-        }
-
-        // Rounding: round up if necessary
-        if (num > result && (num - result) > (result >> 1))
-            ++result;
-
-        return Fix64.FromRaw((long)result);
+        if (x < Fix64.Zero) throw new ArgumentOutOfRangeException(nameof(x));
+        return Fix64.FromRaw((long)SqrtRounded((UInt128)(ulong)x.RawValue << SHIFT_AMOUNT_I));
     }
 
     /// <summary>
     /// Converts a value in radians to degrees.
     /// </summary>
     /// <remarks>
-    /// Uses double precision to avoid precision loss
+    /// Uses decimal guard digits and saturates if the result is outside the fixed-point range.
     /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Fix64 RadToDeg(Fix64 rad)
     {
-        return new Fix64((double)rad * RAD2DEG_D);
+        return Fix64.FromDecimal((decimal)rad * (180m / DecimalPI), saturating: true);
     }
 
     /// <summary>
     /// Converts a value in degrees to radians.
     /// </summary>
     /// <remarks>
-    /// Uses double precision to avoid precision loss
+    /// Uses decimal guard digits before fixed-point quantization.
     /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Fix64 DegToRad(Fix64 deg)
     {
-        return new Fix64((double)deg * DEG2RAD_D);
+        return Fix64.FromDecimal((decimal)deg * (DecimalPI / 180m));
     }
 
     /// <summary>
-    /// Computes the sine of a given angle in radians using an optimized 
-    /// minimax polynomial approximation.
+    /// Computes the sine of a given angle in radians using a reduced-angle Taylor series.
     /// </summary>
     /// <param name="x">The angle in radians.</param>
     /// <returns>The sine of the given angle, in fixed-point format.</returns>
-    /// <remarks>
-    /// - This function uses a Chebyshev-polynomial-based approximation to ensure high accuracy 
-    ///   while maintaining performance in fixed-point arithmetic.
-    /// - The coefficients have been carefully tuned to minimize fixed-point truncation errors.
-    /// - The error is less than 1 ULP (unit in the last place) at key reference points, 
-    ///   ensuring <c>Sin(π/4) = 0.707106781192124</c> exactly within Fix64 precision.
-    /// - The function automatically normalizes input values to the range [-π, π] for stability.
-    /// </remarks>
+    /// <remarks>Reduces the angle before evaluating a series with decimal guard digits.</remarks>
     public static Fix64 Sin(Fix64 x)
     {
-        // Check for special cases
-        if (x == Fix64.Zero) return Fix64.Zero;   // sin(0) = 0
-        if (x == PiOver2) return Fix64.One;         // sin(π/2) = 1
-        if (x == -PiOver2) return -Fix64.One;       // sin(-π/2) = -1
-        if (x == PI) return Fix64.Zero;             // sin(π) = 0
-        if (x == -PI) return Fix64.Zero;            // sin(-π) = 0
-        if (x == TwoPI || x == -TwoPI) return Fix64.Zero;  // sin(2π) = 0
+        if (x == Fix64.Zero || x == PI || x == -PI || x == TwoPI || x == -TwoPI) return Fix64.Zero;
+        if (x == PiOver2) return Fix64.One;
+        if (x == -PiOver2) return -Fix64.One;
+        return SinDecimal((decimal)x);
+    }
 
-        // Normalize x to [-π, π]
-        x %= TwoPI;
-        if (x < -PI)
-            x += TwoPI;
-        else if (x > PI)
-            x -= TwoPI;
-
-        bool flip = false;
-        if (x < Fix64.Zero)
+    private static Fix64 SinDecimal(decimal angle)
+    {
+        // Reduce with guard digits: a Q32.32 period accumulates phase error for large angles.
+        angle %= 2 * DecimalPI;
+        if (angle > DecimalPI) angle -= 2 * DecimalPI;
+        if (angle < -DecimalPI) angle += 2 * DecimalPI;
+        if (angle > DecimalPI / 2) angle = DecimalPI - angle;
+        if (angle < -DecimalPI / 2) angle = -DecimalPI - angle;
+        // Decimal intermediates provide deterministic guard digits before Q32.32 quantization.
+        decimal square = angle * angle;
+        decimal term = angle, result = angle;
+        for (int i = 1; i <= 12; i++)
         {
-            x = -x;
-            flip = true;
+            term = -term * square / ((2 * i) * (2 * i + 1));
+            result += term;
         }
-
-        if (x > PiOver2)
-            x = PI - x;
-
-        // Precompute x^2
-        Fix64 x2 = x * x;
-
-        // Optimized Chebyshev Polynomial for Sin(x)
-        Fix64 result = x * (Fix64.One
-            - x2 * SIN_COEFF_3
-            + (x2 * x2) * SIN_COEFF_5
-            - (x2 * x2 * x2) * SIN_COEFF_7);
-
-        return flip ? -result : result;
+        return ClampOne(Fix64.FromDecimal(result));
     }
 
     /// <summary>
@@ -333,102 +225,49 @@ public static partial class MathFix
     /// </summary>
     /// <param name="x">The angle in radians.</param>
     /// <returns>The cosine of the given angle, in fixed-point format.</returns>
-    /// <remarks>
-    /// - Instead of directly approximating cosine, this function derives <c>cos(x)</c> using 
-    ///   the identity <c>cos(x) = sin(x + π/2)</c>. This ensures maximum accuracy.
-    /// - The underlying sine function is computed using a highly optimized minimax polynomial approximation.
-    /// - By leveraging this transformation, cosine achieves the same precision guarantees 
-    ///   as sine, including <c>Cos(π/4) = 0.707106781192124</c> exactly within Fix64 precision.
-    /// - The function automatically normalizes input values to the range [-π, π] for stability.
-    /// </remarks>
+    /// <remarks>Uses a reduced-angle sine identity.</remarks>
     public static Fix64 Cos(Fix64 x)
     {
-        long xl = x.RawValue;
-        long rawAngle = xl + (xl > 0 ? -PI.RawValue - PiOver2.RawValue : PiOver2.RawValue);
-        return Sin(Fix64.FromRaw(rawAngle));
+        return SinDecimal((decimal)x + DecimalPI / 2);
     }
 
     public static Fix64 SinToCos(Fix64 sin)
     {
-        return Sqrt(Fix64.One - sin * sin);
+        if (sin < -Fix64.One || sin > Fix64.One) throw new ArgumentOutOfRangeException(nameof(sin));
+        return UnitCircleComplement(sin);
+    }
+
+    private static Fix64 UnitCircleComplement(Fix64 x)
+    {
+        // Preserve all bits of 1-x^2, particularly near either endpoint.
+        Int128 square = (Int128)ONE_L * ONE_L - (Int128)x.RawValue * x.RawValue;
+        return Fix64.FromRaw((long)SqrtRounded((UInt128)square));
     }
 
     /// <summary>
     /// Returns the tangent of x.
     /// </summary>
     /// <remarks>
-    /// This function is not well-tested. It may be wildly inaccurate.
+    /// Throws DivideByZeroException when the quantized cosine is zero.
     /// </remarks>
     public static Fix64 Tan(Fix64 x)
     {
-        // Check for special cases
-        if (x == Fix64.Zero) return Fix64.Zero;
-        if (x == PiOver4) return Fix64.One;
-        if (x == -PiOver4) return -Fix64.One;
-
-        // Normalize x to [-π/2, π/2]
-        x %= PI;
-        if (x < -PiOver2)
-            x += PI;
-        else if (x > PiOver2)
-            x -= PI;
-
-        // Use continued fraction to approximate tan(x)
-        Fix64 x2 = x * x;
-        Fix64 numerator = x;
-        Fix64 denominator = Fix64.One;
-
-        // Iterate over the continued fraction terms
-        Fix64 prevDenominator = denominator;
-        int start = x.Abs() > PiOver6 ? 19 : 13;
-        for (int i = start; i >= 1; i -= 2)
-        {
-            denominator = (Fix64)i - (x2 / denominator);
-            if ((denominator - prevDenominator).Abs() < Fix64.Precision)
-                break;
-            prevDenominator = denominator;
-        }
-
-        return numerator / denominator;
+        return Sin(x) / Cos(x);
     }
 
     /// <summary>
     /// Returns the arc-sine of a fixed-point number x, which is the angle in radians 
-    /// whose sine is x, using a combination of a Taylor series expansion and trigonometric identities.
-    /// 
-    /// For values of x near ±1, the identity asin(x) = π/2 - acos(x) is used for stability.
-    /// For values of x near 0, a Taylor series expansion is used.
+    /// whose sine is x, using atan2 and sqrt.
     /// </summary>
     /// <param name="x">The input value (sine) whose arcsine is to be computed. Should be in the range [-1, 1].</param>
     /// <returns>The arc-sine of x in radians.</returns>
     /// <exception cref="ArithmeticException">Thrown if x is outside the domain [-1, 1].</exception>
     public static Fix64 Asin(Fix64 x)
     {
-        // Ensure x is within the domain [-1, 1]
-        if (x < -Fix64.One || x > Fix64.One)
-            throw new ArithmeticException("Input out of domain for Asin: " + x);
-
-        // Handle boundary cases for -1 and 1
-        if (x == Fix64.One) return PiOver2;  // asin(1) = π/2
-        if (x == -Fix64.One) return -PiOver2;  // asin(-1) = -π/2
-
-        // Special case handling for asin(0.5) -> π/6 and asin(-0.5) -> -π/6
-        if (x == Fix64.Half) return PiOver6;
-        if (x == -Fix64.Half) return -PiOver6;
-
-        // For values close to 0, use a Padé approximation for better precision
-        if (x.Abs() < Fix64.Half)
-        {
-            // Padé approximation of asin(x) for |x| < 0.5
-            Fix64 xSquared = x * x;
-            Fix64 numerator = x * (Fix64.One + (xSquared * (PADE_A1 + (xSquared * PADE_A2))));
-            return numerator;
-        }
-
-        // For values closer to ±1, use the identity: asin(x) = π/2 - acos(x) for stability
-        return x > Fix64.Zero
-            ? PiOver2 - Acos(x)
-            : -PiOver2 + Acos(-x);
+        if (x < -Fix64.One || x > Fix64.One) throw new ArithmeticException("Input out of domain for Asin.");
+        if (x == Fix64.One) return PiOver2;
+        if (x == -Fix64.One) return -PiOver2;
+        return Atan2(x, UnitCircleComplement(x));
     }
 
     /// <summary>
@@ -439,21 +278,10 @@ public static partial class MathFix
     /// <exception cref="ArgumentOutOfRangeException">Thrown if x is outside the domain [-1, 1].</exception>
     public static Fix64 Acos(Fix64 x)
     {
-        if (x < -Fix64.One || x > Fix64.One)
-            throw new ArgumentOutOfRangeException(nameof(x), "Input out of domain for Acos: " + x);
-
-        // For values near 1 or -1, the result is directly known.
-        if (x == Fix64.One) return Fix64.Zero;      // acos(1) = 0
-        if (x == -Fix64.One) return PI;       // acos(-1) = π
-        if (x == Fix64.Zero) return PiOver2;  // acos(0) = π/2
-
-        // Compute using the relationship acos(x) = atan(sqrt(1 - x^2) / x) + π/2 when x is negative
-        var sqrtTerm = Sqrt(Fix64.One - x * x);   // sqrt(1 - x^2)
-        var atanTerm = Atan(sqrtTerm / x);
-
-        return x < Fix64.Zero
-                ? atanTerm + PI   // acos(-x) = atan(...) + π
-                : atanTerm;               // Otherwise, return just atan(sqrt(...))
+        if (x < -Fix64.One || x > Fix64.One) throw new ArgumentOutOfRangeException(nameof(x));
+        if (x == Fix64.One) return Fix64.Zero;
+        if (x == -Fix64.One) return PI;
+        return Atan2(UnitCircleComplement(x), x);
     }
 
     /// <summary>
@@ -462,53 +290,14 @@ public static partial class MathFix
     /// </summary>
     public static Fix64 Atan(Fix64 z)
     {
-        if (z == Fix64.Zero) return Fix64.Zero;
-        if (z == Fix64.One) return PiOver4;
-        if (z == -Fix64.One) return -PiOver4;
-
-        bool neg = z < Fix64.Zero;
-        if (neg) z = -z;
-
-        // Adjust series for z > 0.5 using the identity.
-        Fix64 adjustedResult;
-        if (z > Fix64.Half)
-        {
-            // Apply the identity: atan(z) = π/4 - atan((1 - z) / (1 + z))
-            Fix64 transformedZ = (Fix64.One - z) / (Fix64.One + z);
-            adjustedResult = PiOver4 - Atan(transformedZ);
-        }
-        else
-        {
-            // Use extended Taylor series directly for better precision on small z.
-            Fix64 zSq = z * z;
-
-            Fix64 result = z;
-            Fix64 term = z;
-            int sign = -1;
-
-            for (int i = 3; i < 15; i += 2)
-            {
-                term *= zSq;
-                Fix64 nextTerm = term / i;
-                if (nextTerm.Abs() < Fix64.Precision)
-                    break;
-
-                result += nextTerm * sign;
-                sign = -sign;
-            }
-
-            adjustedResult = result;
-        }
-
-        return neg ? -adjustedResult : adjustedResult;
+        return Fix64.FromDecimal(AtanDecimal((decimal)z));
     }
 
     /// <summary>
     /// Computes the angle whose tangent is the quotient of two specified numbers.
     /// </summary>
     /// <remarks>
-    /// Uses a fixed-point arithmetic approximation for the arc tangent function, which is more efficient than using floating-point arithmetic, 
-    /// especially on systems where floating-point operations are expensive.
+    /// Uses decimal guard digits so a large y/x ratio cannot overflow before angle evaluation.
     /// </remarks>
     /// <param name="y">The y-coordinate of the point to which the angle is measured.</param>
     /// <param name="x">The x-coordinate of the point to which the angle is measured.</param>
@@ -517,33 +306,10 @@ public static partial class MathFix
     public static Fix64 Atan2(Fix64 y, Fix64 x)
     {
         if (x == Fix64.Zero)
-        {
-            if (y > Fix64.Zero)
-                return PiOver2;
-            if (y == Fix64.Zero)
-                return Fix64.Zero;
-            return -PiOver2;
-        }
-
-        Fix64 atan = Atan(y / x);
-
-        // Adjust based on the quadrant
-        if (x < Fix64.Zero)
-        {
-            if (y >= Fix64.Zero)
-            {
-                // Second quadrant
-                return atan + PI;
-            }
-            else
-            {
-                // Third quadrant
-                return atan - PI;
-            }
-        }
-
-        // First or fourth quadrant
-        return atan;
+            return y > Fix64.Zero ? PiOver2 : y < Fix64.Zero ? -PiOver2 : Fix64.Zero;
+        decimal angle = AtanDecimal((decimal)y / (decimal)x);
+        if (x < Fix64.Zero) angle += y >= Fix64.Zero ? DecimalPI : -DecimalPI;
+        return Fix64.FromDecimal(angle);
     }
 
     #endregion

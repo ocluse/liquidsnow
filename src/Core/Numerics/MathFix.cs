@@ -37,15 +37,11 @@ public partial class MathFix
     public const long PRECISION_L = 1L;
 
     /// <summary>
-    ///  The smallest value that a Fix64 can have different from zero.
+    /// Default absolute tolerance for approximate comparisons (2^-20).
     /// </summary>
     /// <remarks>
-    /// With the following rules:
-    ///      anyValue + Epsilon = anyValue
-    ///      anyValue - Epsilon = anyValue
-    ///      0 + Epsilon = Epsilon
-    ///      0 - Epsilon = -Epsilon
-    ///  A value Between any number and Epsilon will result in an arbitrary number due to truncating errors.
+    /// This is a comparison tolerance, not the smallest representable increment.
+    /// Use PRECISION_L for the raw increment (2^-32).
     /// </remarks>
     public const long EPSILON_L = 1L << (SHIFT_AMOUNT_I - 20); //~1E-06f
 
@@ -59,7 +55,7 @@ public partial class MathFix
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Fix64 CopySign(Fix64 x, Fix64 y)
     {
-        return y >= Fix64.Zero ? x.Abs() : -x.Abs();
+        return Fix64.FromWide(y >= Fix64.Zero ? Int128.Abs(x.RawValue) : -Int128.Abs(x.RawValue));
     }
 
     /// <summary>
@@ -166,20 +162,7 @@ public partial class MathFix
     /// </summary>
     public static Fix64 Round(Fix64 value, MidpointRounding mode = MidpointRounding.ToEven)
     {
-        long fractionalPart = value.RawValue & MAX_SHIFTED_AMOUNT_UI;
-        Fix64 integralPart = value.Floor();
-        if (fractionalPart < Fix64.Half.RawValue)
-            return integralPart;
-
-        if (fractionalPart > Fix64.Half.RawValue)
-            return integralPart + Fix64.One;
-
-        // When value is exactly Fix64.Halfway between two numbers
-        return mode switch
-        {
-            MidpointRounding.AwayFromZero => value.RawValue > 0 ? integralPart + Fix64.One : integralPart - Fix64.One,// If it's exactly Fix64.Halfway, round away from Fix64.Zero
-            _ => (integralPart.RawValue & ONE_L) == 0 ? integralPart : integralPart + Fix64.One,// Rounds to the nearest even number (default behavior)
-        };
+        return RoundToPrecision(value, 0, mode);
     }
 
     /// <summary>
@@ -187,13 +170,10 @@ public partial class MathFix
     /// </summary>
     public static Fix64 RoundToPrecision(Fix64 value, int decimalPlaces, MidpointRounding mode = MidpointRounding.ToEven)
     {
-        if (decimalPlaces < 0 || decimalPlaces >= Pow10Lookup.Length)
-            throw new ArgumentOutOfRangeException(nameof(decimalPlaces), "Decimal places out of range.");
-
-        int factor = Pow10Lookup[decimalPlaces];
-        Fix64 scaled = value * factor;
-        long rounded = Round(scaled, mode).RawValue;
-        return new Fix64(rounded + (factor / 2)) / factor;
+        if (decimalPlaces < 0 || decimalPlaces > 9)
+            throw new ArgumentOutOfRangeException(nameof(decimalPlaces));
+        // Decimal avoids intermediate scaling overflow and preserves all Q32.32 bits.
+        return Fix64.FromDecimal(decimal.Round((decimal)value, decimalPlaces, mode), saturating: true);
     }
 
     /// <summary>
@@ -277,6 +257,7 @@ public partial class MathFix
     /// <returns>The interpolated value between `a` and `b`.</returns>
     public static Fix64 SmoothStep(Fix64 a, Fix64 b, Fix64 t)
     {
+        t = Clamp01(t);
         t = t * t * (Fix64.Three - Fix64.Two * t);
         return LinearInterpolate(a, b, t);
     }
@@ -356,9 +337,9 @@ public partial class MathFix
     /// </remarks>
     public static long AddOverflowHelper(long x, long y, ref bool overflow)
     {
-        long sum = x + y;
+        long sum = unchecked(x + y);
         // Check for overflow using sign bit changes
-        overflow |= ((x ^ y ^ sum) & MIN_VALUE_L) != 0;
+        overflow |= (~(x ^ y) & (x ^ sum) & MIN_VALUE_L) != 0;
         // Special check for the case when x is long.Fix64.MinValue and y is negative
         if (x == long.MinValue && y == -1)
             overflow = true;

@@ -67,7 +67,7 @@ public struct FixBoundingSphere(FixVector3 center, Fix64 radius) : IFixBound, IE
     /// <returns>True if the point is inside the sphere, otherwise false.</returns>
     public readonly bool Contains(FixVector3 point)
     {
-        return FixVector3.SqrDistance(Center, point) <= SqrRadius;
+        return MathFix.WithinDistance(Center, point, Radius.RawValue);
     }
 
     /// <summary>
@@ -82,12 +82,11 @@ public struct FixBoundingSphere(FixVector3 center, Fix64 radius) : IFixBound, IE
             case FixBoundingBox or FixBoundingArea:
                 // Find the closest point on the BoundingArea to the sphere's center
                 // Check if the closest point is within the sphere's radius
-                return FixVector3.SqrDistance(Center, other.ProjectPointWithinBounds(Center)) <= SqrRadius;
+                return MathFix.WithinDistance(Center, other.ProjectPointWithinBounds(Center), Radius.RawValue);
             case FixBoundingSphere otherSphere:
                 {
-                    Fix64 distanceSquared = FixVector3.SqrDistance(Center, otherSphere.Center);
-                    Fix64 combinedRadius = Radius + otherSphere.Radius;
-                    return distanceSquared <= combinedRadius * combinedRadius;
+                    if (Radius < Fix64.Zero || otherSphere.Radius < Fix64.Zero) return false;
+                    return MathFix.WithinDistance(Center, otherSphere.Center, (Int128)Radius.RawValue + otherSphere.Radius.RawValue);
                 }
 
             default: return false; // Default case for unknown or unsupported types

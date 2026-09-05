@@ -58,7 +58,7 @@ public partial struct Fix64 : IEquatable<Fix64>, IComparable<Fix64>, IEqualityCo
     /// </summary>
     /// <param name="value">Double value to convert to </param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Fix64(double value) : this((long)Math.Round((double)value * MathFix.ONE_L)) { }
+    public Fix64(double value) : this(FromDouble(value)._rawValue) { }
 
     #endregion
 
@@ -84,7 +84,7 @@ public partial struct Fix64 : IEquatable<Fix64>, IComparable<Fix64>, IEqualityCo
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Offset(int x)
     {
-        _rawValue += (long)x << MathFix.SHIFT_AMOUNT_I;
+        this += (Fix64)x;
     }
 
     /// <summary>
@@ -93,7 +93,7 @@ public partial struct Fix64 : IEquatable<Fix64>, IComparable<Fix64>, IEqualityCo
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly string RawToString()
     {
-        return _rawValue.ToString();
+        return _rawValue.ToString(CultureInfo.InvariantCulture);
     }
 
     #endregion
@@ -109,6 +109,7 @@ public partial struct Fix64 : IEquatable<Fix64>, IComparable<Fix64>, IEqualityCo
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Fix64 Fraction(double numerator, double denominator)
     {
+        if (denominator == 0) throw new DivideByZeroException();
         return new Fix64(numerator / denominator);
     }
 
@@ -119,7 +120,7 @@ public partial struct Fix64 : IEquatable<Fix64>, IComparable<Fix64>, IEqualityCo
     public static Fix64 PostIncrement(ref Fix64 a)
     {
         Fix64 originalValue = a;
-        a._rawValue += One._rawValue;
+        a += One;
         return originalValue;
     }
 
@@ -130,7 +131,7 @@ public partial struct Fix64 : IEquatable<Fix64>, IComparable<Fix64>, IEqualityCo
     public static Fix64 PostDecrement(ref Fix64 a)
     {
         Fix64 originalValue = a;
-        a._rawValue -= One._rawValue;
+        a -= One;
         return originalValue;
     }
 
@@ -142,6 +143,7 @@ public partial struct Fix64 : IEquatable<Fix64>, IComparable<Fix64>, IEqualityCo
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static int CountLeadingZeroes(ulong x)
     {
+        if (x == 0) return 64;
         int result = 0;
         while ((x & 0xF000000000000000) == 0) { result += 4; x <<= 4; }
         while ((x & 0x8000000000000000) == 0) { result += 1; x <<= 1; }
@@ -175,13 +177,13 @@ public partial struct Fix64 : IEquatable<Fix64>, IComparable<Fix64>, IEqualityCo
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static explicit operator Fix64(long value)
     {
-        return FromRaw(value << MathFix.SHIFT_AMOUNT_I);
+        return FromWideChecked((Int128)value << MathFix.SHIFT_AMOUNT_I);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static explicit operator long(Fix64 value)
     {
-        return value._rawValue >> MathFix.SHIFT_AMOUNT_I;
+        return value._rawValue / MathFix.ONE_L;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -193,7 +195,7 @@ public partial struct Fix64 : IEquatable<Fix64>, IComparable<Fix64>, IEqualityCo
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static explicit operator int(Fix64 value)
     {
-        return (int)(value._rawValue >> MathFix.SHIFT_AMOUNT_I);
+        return (int)(value._rawValue / MathFix.ONE_L);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -223,13 +225,13 @@ public partial struct Fix64 : IEquatable<Fix64>, IComparable<Fix64>, IEqualityCo
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static explicit operator Fix64(decimal value)
     {
-        return new Fix64((double)value);
+        return FromDecimal(value);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static explicit operator decimal(Fix64 value)
     {
-        return value._rawValue * MathFix.SCALE_FACTOR_M;
+        return (decimal)value._rawValue / MathFix.ONE_L;
     }
 
     #endregion
@@ -241,13 +243,7 @@ public partial struct Fix64 : IEquatable<Fix64>, IComparable<Fix64>, IEqualityCo
     /// </summary>
     public static Fix64 operator +(Fix64 x, Fix64 y)
     {
-        long xl = x._rawValue;
-        long yl = y._rawValue;
-        long sum = xl + yl;
-        // Check for overflow, if signs of operands are equal and signs of sum and x are different
-        if ((~(xl ^ yl) & (xl ^ sum) & MathFix.MIN_VALUE_L) != 0)
-            sum = xl > 0 ? MathFix.MAX_VALUE_L : MathFix.MIN_VALUE_L;
-        return new Fix64(sum);
+        return FromWide((Int128)x._rawValue + y._rawValue);
     }
 
     /// <summary>
@@ -256,7 +252,7 @@ public partial struct Fix64 : IEquatable<Fix64>, IComparable<Fix64>, IEqualityCo
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Fix64 operator +(Fix64 x, int y)
     {
-        return new Fix64(x._rawValue * MathFix.SCALE_FACTOR_D + y);
+        return x + (Fix64)y;
     }
 
     /// <summary>
@@ -273,7 +269,7 @@ public partial struct Fix64 : IEquatable<Fix64>, IComparable<Fix64>, IEqualityCo
     /// </summary>
     public static Fix64 operator +(Fix64 x, float y)
     {
-        return new Fix64(x._rawValue * MathFix.SCALE_FACTOR_D + y);
+        return x + (Fix64)y;
     }
 
     /// <summary>
@@ -289,13 +285,7 @@ public partial struct Fix64 : IEquatable<Fix64>, IComparable<Fix64>, IEqualityCo
     /// </summary>
     public static Fix64 operator -(Fix64 x, Fix64 y)
     {
-        long xl = x._rawValue;
-        long yl = y._rawValue;
-        long diff = xl - yl;
-        // Check for overflow, if signs of operands are different and signs of sum and x are different
-        if (((xl ^ yl) & (xl ^ diff) & MathFix.MIN_VALUE_L) != 0)
-            diff = xl < 0 ? MathFix.MIN_VALUE_L : MathFix.MAX_VALUE_L;
-        return new Fix64(diff);
+        return FromWide((Int128)x._rawValue - y._rawValue);
     }
 
     /// <summary>
@@ -304,7 +294,7 @@ public partial struct Fix64 : IEquatable<Fix64>, IComparable<Fix64>, IEqualityCo
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Fix64 operator -(Fix64 x, int y)
     {
-        return new Fix64(x._rawValue * MathFix.SCALE_FACTOR_D - y);
+        return x - (Fix64)y;
     }
 
     /// <summary>
@@ -313,7 +303,7 @@ public partial struct Fix64 : IEquatable<Fix64>, IComparable<Fix64>, IEqualityCo
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Fix64 operator -(int x, Fix64 y)
     {
-        return new Fix64(x - y._rawValue * MathFix.SCALE_FACTOR_D);
+        return (Fix64)x - y;
     }
 
     /// <summary>
@@ -322,7 +312,7 @@ public partial struct Fix64 : IEquatable<Fix64>, IComparable<Fix64>, IEqualityCo
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Fix64 operator -(Fix64 x, float y)
     {
-        return new Fix64(x._rawValue * MathFix.SCALE_FACTOR_D - y);
+        return x - (Fix64)y;
     }
 
     /// <summary>
@@ -331,7 +321,7 @@ public partial struct Fix64 : IEquatable<Fix64>, IComparable<Fix64>, IEqualityCo
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Fix64 operator -(float x, Fix64 y)
     {
-        return new Fix64(x - y._rawValue * MathFix.SCALE_FACTOR_D);
+        return (Fix64)x - y;
     }
 
     /// <summary>
@@ -339,65 +329,7 @@ public partial struct Fix64 : IEquatable<Fix64>, IComparable<Fix64>, IEqualityCo
     /// </summary>
     public static Fix64 operator *(Fix64 x, Fix64 y)
     {
-        long xl = x._rawValue;
-        long yl = y._rawValue;
-
-        // Split both numbers into high and low parts
-        ulong xlo = (ulong)(xl & MathFix.MAX_SHIFTED_AMOUNT_UI);
-        long xhi = xl >> MathFix.SHIFT_AMOUNT_I;
-        ulong ylo = (ulong)(yl & MathFix.MAX_SHIFTED_AMOUNT_UI);
-        long yhi = yl >> MathFix.SHIFT_AMOUNT_I;
-
-        // Perform partial products
-        ulong lolo = xlo * ylo;          // low bits * low bits
-        long lohi = (long)xlo * yhi;     // low bits * high bits
-        long hilo = xhi * (long)ylo;     // high bits * low bits
-        long hihi = xhi * yhi;           // high bits * high bits
-
-        // Combine results, starting with the low part
-        ulong loResult = lolo >> MathFix.SHIFT_AMOUNT_I;
-        long hiResult = hihi << MathFix.SHIFT_AMOUNT_I;
-
-        // Adjust rounding for the fractional part of the lolo term
-        if ((lolo & 1UL << MathFix.SHIFT_AMOUNT_I - 1) != 0)
-            loResult++; // Apply rounding up if the dropped bit is 1 (round half-up)
-
-        bool overflow = false;
-        long sum = MathFix.AddOverflowHelper((long)loResult, lohi, ref overflow);
-        sum = MathFix.AddOverflowHelper(sum, hilo, ref overflow);
-        sum = MathFix.AddOverflowHelper(sum, hiResult, ref overflow);
-
-        // Overflow handling
-        bool opSignsEqual = ((xl ^ yl) & MathFix.MIN_VALUE_L) == 0;
-
-        // Positive overflow check
-        if (opSignsEqual)
-        {
-            if (sum < 0 || overflow && xl > 0)
-                return MAX_VALUE;
-        }
-        else
-        {
-            if (sum > 0)
-                return MIN_VALUE;
-        }
-
-        // Final overflow check: if the high 32 bits are non-zero or non-sign-extended, it's an overflow
-        long topCarry = hihi >> MathFix.SHIFT_AMOUNT_I;
-        if (topCarry != 0 && topCarry != -1)
-            return opSignsEqual ? MAX_VALUE : MIN_VALUE;
-
-        // Negative overflow check
-        if (!opSignsEqual)
-        {
-            long posOp = xl > yl ? xl : yl;
-            long negOp = xl < yl ? xl : yl;
-
-            if (sum > negOp && negOp < -MathFix.ONE_L && posOp > MathFix.ONE_L)
-                return MIN_VALUE;
-        }
-
-        return new Fix64(sum);
+        return FromWide(ShiftRounded((Int128)x._rawValue * y._rawValue));
     }
 
     /// <summary>
@@ -406,7 +338,7 @@ public partial struct Fix64 : IEquatable<Fix64>, IComparable<Fix64>, IEqualityCo
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Fix64 operator *(Fix64 x, int y)
     {
-        return new Fix64(x._rawValue * MathFix.SCALE_FACTOR_D * y);
+        return FromWide((Int128)x._rawValue * y);
     }
 
     /// <summary>
@@ -422,54 +354,7 @@ public partial struct Fix64 : IEquatable<Fix64>, IComparable<Fix64>, IEqualityCo
     /// </summary>
     public static Fix64 operator /(Fix64 x, Fix64 y)
     {
-        long xl = x._rawValue;
-        long yl = y._rawValue;
-
-        if (yl == 0)
-            throw new DivideByZeroException($"Attempted to divide {x} by zero.");
-
-        ulong remainder = (ulong)(xl < 0 ? -xl : xl);
-        ulong divider = (ulong)(yl < 0 ? -yl : yl);
-        ulong quotient = 0UL;
-        int bitPos = MathFix.SHIFT_AMOUNT_I + 1;
-
-        // If the divider is divisible by 2^n, take advantage of it.
-        while ((divider & 0xF) == 0 && bitPos >= 4)
-        {
-            divider >>= 4;
-            bitPos -= 4;
-        }
-
-        while (remainder != 0 && bitPos >= 0)
-        {
-            int shift = CountLeadingZeroes(remainder);
-            if (shift > bitPos)
-                shift = bitPos;
-
-            remainder <<= shift;
-            bitPos -= shift;
-
-            ulong div = remainder / divider;
-            remainder %= divider;
-            quotient += div << bitPos;
-
-            // Detect overflow
-            if ((div & ~(0xFFFFFFFFFFFFFFFF >> bitPos)) != 0)
-                return ((xl ^ yl) & MathFix.MIN_VALUE_L) == 0 ? MAX_VALUE : MIN_VALUE;
-
-            remainder <<= 1;
-            --bitPos;
-        }
-
-        // Rounding logic: "Round half to even" or "Banker's rounding"
-        if ((quotient & 0x1) != 0)
-            quotient += 1;
-
-        long result = (long)(quotient >> 1);
-        if (((xl ^ yl) & MathFix.MIN_VALUE_L) != 0)
-            result = -result;
-
-        return new Fix64(result);
+        return FromWide(DivideRounded((Int128)x._rawValue << MathFix.SHIFT_AMOUNT_I, y._rawValue));
     }
 
     /// <summary>
@@ -478,7 +363,7 @@ public partial struct Fix64 : IEquatable<Fix64>, IComparable<Fix64>, IEqualityCo
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Fix64 operator /(Fix64 x, int y)
     {
-        return new Fix64(x._rawValue * MathFix.SCALE_FACTOR_D / y);
+        return FromWide(DivideRounded(x._rawValue, y));
     }
 
     /// <summary>
@@ -507,7 +392,7 @@ public partial struct Fix64 : IEquatable<Fix64>, IComparable<Fix64>, IEqualityCo
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Fix64 operator ++(Fix64 a)
     {
-        a._rawValue += One._rawValue;
+        a += One;
         return a;
     }
 
@@ -517,7 +402,7 @@ public partial struct Fix64 : IEquatable<Fix64>, IComparable<Fix64>, IEqualityCo
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Fix64 operator --(Fix64 a)
     {
-        a._rawValue -= One._rawValue;
+        a -= One;
         return a;
     }
 
@@ -611,12 +496,12 @@ public partial struct Fix64 : IEquatable<Fix64>, IComparable<Fix64>, IEqualityCo
     /// Returns the string representation of this Fix64 instance.
     /// </summary>
     /// <remarks>
-    /// Up to 10 decimal places.
+    /// Uses invariant decimal formatting that round-trips through Parse without losing raw bits.
     /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override readonly string ToString()
     {
-        return ((double)this).ToString(CultureInfo.InvariantCulture);
+        return ToString(null, CultureInfo.InvariantCulture);
     }
 
     /// <summary>
@@ -627,7 +512,7 @@ public partial struct Fix64 : IEquatable<Fix64>, IComparable<Fix64>, IEqualityCo
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly string ToString(string format)
     {
-        return ((double)this).ToString(format, CultureInfo.InvariantCulture);
+        return ToString(format, CultureInfo.InvariantCulture);
     }
 
     /// <summary>
@@ -637,24 +522,7 @@ public partial struct Fix64 : IEquatable<Fix64>, IComparable<Fix64>, IEqualityCo
     /// <returns>The parsed Fix64 value.</returns>
     public static Fix64 Parse(string s)
     {
-        if (string.IsNullOrEmpty(s)) throw new ArgumentNullException(nameof(s));
-
-        // Check if the value is negative
-        bool isNegative = false;
-        if (s[0] == '-')
-        {
-            isNegative = true;
-            s = s[1..];
-        }
-
-        if (!long.TryParse(s, out long rawValue))
-            throw new FormatException($"Invalid format: {s}");
-
-        // If the value was negative, negate the result
-        if (isNegative)
-            rawValue = -rawValue;
-
-        return FromRaw(rawValue);
+        return Parse(s, CultureInfo.InvariantCulture);
     }
 
     /// <summary>
@@ -663,27 +531,9 @@ public partial struct Fix64 : IEquatable<Fix64>, IComparable<Fix64>, IEqualityCo
     /// <param name="s">The string representation of the </param>
     /// <param name="result">The parsed Fix64 value.</param>
     /// <returns>True if parsing succeeded; otherwise, false.</returns>
-    public static bool TryParse(string s, out Fix64 result)
+    public static bool TryParse(string? s, out Fix64 result)
     {
-        result = Zero;
-        if (string.IsNullOrEmpty(s)) return false;
-
-        // Check if the value is negative
-        bool isNegative = false;
-        if (s[0] == '-')
-        {
-            isNegative = true;
-            s = s[1..];
-        }
-
-        if (!long.TryParse(s, out long rawValue)) return false;
-
-        // If the value was negative, negate the result
-        if (isNegative)
-            rawValue = -rawValue;
-
-        result = FromRaw(rawValue);
-        return true;
+        return TryParse(s, CultureInfo.InvariantCulture, out result);
     }
 
     /// <summary>
@@ -724,7 +574,7 @@ public partial struct Fix64 : IEquatable<Fix64>, IComparable<Fix64>, IEqualityCo
     /// <returns></returns>
     public static decimal ToDecimal(long f1)
     {
-        return f1 * MathFix.SCALE_FACTOR_M;
+        return (decimal)f1 / MathFix.ONE_L;
     }
 
     #endregion

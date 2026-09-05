@@ -159,7 +159,7 @@ public struct FixQuaternion(Fix64 x, Fix64 y, Fix64 z, Fix64 w) : IEquatable<Fix
         FixQuaternion vQuat = new(v.X, v.Y, v.Z, Fix64.Zero);
         FixQuaternion invQuat = normalizedQuat.Inverse();
         FixQuaternion rotatedVQuat = normalizedQuat * vQuat * invQuat;
-        return new FixVector3(rotatedVQuat.X, rotatedVQuat.Y, rotatedVQuat.Z).Normalize();
+        return new FixVector3(rotatedVQuat.X, rotatedVQuat.Y, rotatedVQuat.Z);
     }
 
     /// <summary>
@@ -199,12 +199,7 @@ public struct FixQuaternion(Fix64 x, Fix64 y, Fix64 z, Fix64 w) : IEquatable<Fix
 
     public static Fix64 GetMagnitude(FixQuaternion q)
     {
-        Fix64 mag = (q.X * q.X) + (q.Y * q.Y) + (q.Z * q.Z) + (q.W * q.W);
-        // If rounding error caused the final magnitude to be slightly above 1, clamp it
-        if (mag > Fix64.One && mag <= Fix64.One + Fix64.Epsilon)
-            return Fix64.One;
-
-        return mag != Fix64.Zero ? MathFix.Sqrt(mag) : Fix64.Zero;
+        return MathFix.WideMagnitude(q.X.RawValue, q.Y.RawValue, q.Z.RawValue, q.W.RawValue);
     }
 
     /// <summary>
@@ -213,23 +208,10 @@ public struct FixQuaternion(Fix64 x, Fix64 y, Fix64 z, Fix64 w) : IEquatable<Fix
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static FixQuaternion GetNormalized(FixQuaternion q)
     {
-        Fix64 mag = GetMagnitude(q);
-
-        // If magnitude is zero, return identity quaternion (to avoid divide by zero)
-        if (mag == Fix64.Zero)
-            return new FixQuaternion(Fix64.Zero, Fix64.Zero, Fix64.Zero, Fix64.One);
-
-        // If already normalized, return as-is
-        if (mag == Fix64.One)
-            return q;
-
-        // Normalize it exactly
-        return new FixQuaternion(
-            q.X / mag,
-            q.Y / mag,
-            q.Z / mag,
-            q.W / mag
-        );
+        Fix64 scale = MathFix.Max(MathFix.Max(MathFix.Abs(q.X), MathFix.Abs(q.Y)), MathFix.Max(MathFix.Abs(q.Z), MathFix.Abs(q.W)));
+        if (scale == Fix64.Zero) return Identity;
+        FixQuaternion scaled = q / scale;
+        return scaled / GetMagnitude(scaled);
     }
 
     /// <summary>
